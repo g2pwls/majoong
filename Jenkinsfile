@@ -82,7 +82,7 @@ pipeline {
     post {
         always {
         echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
-        sh 'rm -f src/main/resources/application.yml || true'
+        sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
         }
     }
 }
