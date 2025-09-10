@@ -16,10 +16,8 @@ pipeline {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                    sh """
-                        cp "$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml"
-                        chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"
-                    """
+                    sh 'cp $APPLICATION_YML ${BACKEND_DIR}/src/main/resources/application.yml'
+                    sh 'chmod 600 ${BACKEND_DIR}/src/main/resources/application.yml'
                 }
             }
         }
@@ -46,6 +44,18 @@ pipeline {
             }
         }
 
+        stage('Detect Branch') {
+            steps {
+                script {
+                    env.BRANCH_NAME = sh(
+                        script: "git rev-parse --abbrev-ref HEAD",
+                        returnStdout: true
+                    ).trim()
+                    echo "🔎 Current branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
         stage('Nothing to Build') {
             when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' } }
             steps {
@@ -67,12 +77,11 @@ pipeline {
         }
 
         stage('Deploy to Dev') {
-            when { branch 'dev' }
+            when { expression { env.BRANCH_NAME == 'dev' } }
             steps {
                 script {
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
-                    // 백엔드: Jenkins에서 빌드한 jar를 Dockerfile로 패키징
                     if (env.BACK_CHANGED == 'true') {
                         sh """
                             docker build -f backend/Dockerfile -t my-backend:${TAG} backend
@@ -81,7 +90,6 @@ pipeline {
                         """
                     }
 
-                    // 프론트엔드: Dockerfile 안에서 Node 빌드 수행
                     if (env.FRONT_CHANGED == 'true') {
                         sh """
                             docker build -f frontend/Dockerfile -t my-frontend:${TAG} frontend
@@ -94,7 +102,7 @@ pipeline {
         }
 
         stage('Deploy to Prod') {
-            when { branch 'main' }
+            when { expression { env.BRANCH_NAME == 'main' } }
             steps {
                 input message: "Deploy to Production?"
                 script {
