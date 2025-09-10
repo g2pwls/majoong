@@ -8,7 +8,7 @@ pipeline {
         stage('Prepare') {
             steps {
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                sh 'cp "$APPLICATION_YML" src/main/resources/application.yml'
+                sh 'cp "$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml"'
                 }
             }
         }
