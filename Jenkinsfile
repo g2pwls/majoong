@@ -5,6 +5,15 @@ pipeline {
         FRONTEND_DIR = 'frontend'
     }
     stages {
+
+        stage('Prepare') {
+            steps {
+                withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
+                sh 'cp "$APPLICATION_YML" src/main/resources/application.yml'
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: "${env.BRANCH_NAME}",
@@ -42,7 +51,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Deploy to Dev') {
             when { branch 'dev' }
@@ -86,3 +94,4 @@ def fileChanged(String folder) {
         returnStatus: true
     ) == 0
 }
+
