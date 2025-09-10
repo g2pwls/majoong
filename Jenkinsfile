@@ -78,6 +78,13 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+        echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
+        sh 'rm -f src/main/resources/application.yml || true'
+        }
+    }
 }
 
 def fileChanged(String folder) {
