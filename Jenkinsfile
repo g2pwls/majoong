@@ -3,12 +3,22 @@ pipeline {
     environment {
         BACKEND_DIR = 'backend'
         FRONTEND_DIR = 'frontend'
+        REPO_URL = 'https://lab.ssafy.com/s13-blochain-transaction-sub1/S13P21E105.git'
     }
     stages {
+        stage('Checkout') {
+            steps {
+                git url: "${REPO_URL}", branch: "${env.BRANCH_NAME}"
+            }
+        }
+
         stage('Prepare') {
             steps {
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                sh 'cp "$APPLICATION_YML" src/main/resources/application.yml'
+                sh '''
+                    mkdir -p src/main/resources
+                    cp "$APPLICATION_YML" src/main/resources/application.yml
+                '''
                 }
             }
         }
