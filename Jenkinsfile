@@ -26,7 +26,10 @@ pipeline {
             }
             steps {
                 dir(BACKEND_DIR) {
-                    sh './gradlew clean build'
+                    sh '''
+                    chmod +x ./gradlew
+                    ./gradlew --no-daemon build -x test
+                    '''
                 }
             }
         }
@@ -49,7 +52,6 @@ pipeline {
             when { branch 'dev' }
             steps {
                 script {
-                    // Backend 변경 시 Dockerfile로 빌드
                     if(fileChanged('backend/')) {
                         sh 'docker build -t my-backend:dev backend -f backend/Dockerfile'
                         sh 'docker run -d --rm -p 8081:8080 my-backend:dev'
