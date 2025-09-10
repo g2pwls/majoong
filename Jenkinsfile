@@ -5,7 +5,6 @@ pipeline {
         FRONTEND_DIR = 'frontend'
     }
     stages {
-
         stage('Prepare') {
             steps {
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
@@ -13,15 +12,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Checkout') {
-            steps {
-                git branch: "${env.BRANCH_NAME}",
-                    url: 'https://lab.ssafy.com/s13-blochain-transaction-sub1/S13P21E105.git',
-                    credentialsId: 'gitlab_token'
-            }
-        }
-
         // -----------------
         // Backend Build
         // -----------------
