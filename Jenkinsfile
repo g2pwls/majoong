@@ -9,8 +9,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
                 sh '''
-                    mkdir -p src/main/resources
-                    cp "$APPLICATION_YML" src/main/resources/application.yml
+                    mkdir -p "${BACKEND_DIR}/src/main/resources"
+                    cp "$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml"
                 '''
                 }
             }
