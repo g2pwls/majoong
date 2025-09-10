@@ -1,46 +1,67 @@
 pipeline {
     agent any
+
     environment {
-        BACKEND_DIR = 'backend'
+        BACKEND_DIR  = 'backend'
         FRONTEND_DIR = 'frontend'
     }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
     stages {
-        stage('Prepare') {
+        stage('Prepare Secret') {
             steps {
+                sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                sh 'cp "$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml"'
-                }
-            }
-        }
-        // -----------------
-        // Backend Build
-        // -----------------
-        stage('Backend Build') {
-            when {
-                expression {
-                    return fileChanged('backend/')
-                }
-            }
-            steps {
-                dir(BACKEND_DIR) {
-                    sh '''
-                    chmod +x ./gradlew
-                    ./gradlew --no-daemon build -x test
-                    '''
+                    sh """
+                        cp "$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml"
+                        chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"
+                    """
                 }
             }
         }
 
-        stage('Frontend Build') {
-            when {
-                expression {
-                    return fileChanged('frontend/')
+        stage('Detect Changes') {
+            steps {
+                script {
+                    def range = env.GIT_PREVIOUS_SUCCESSFUL_COMMIT ? "${env.GIT_PREVIOUS_SUCCESSFUL_COMMIT}..HEAD" : "HEAD~1..HEAD"
+                    def changedFiles = sh(script: "git diff --name-only ${range} || true", returnStdout: true).trim()
+
+                    if (!changedFiles) {
+                        echo "❎ 변경된 파일이 없습니다. 스킵합니다."
+                        env.BACK_CHANGED  = 'false'
+                        env.FRONT_CHANGED = 'false'
+                    } else {
+                        echo "📄 변경 파일 목록:\n${changedFiles}"
+                        def lines = changedFiles.split('\\n') as List<String>
+                        env.BACK_CHANGED  = (lines.any { it.startsWith('backend/') }).toString()
+                        env.FRONT_CHANGED = (lines.any { it.startsWith('frontend/') }).toString()
+                    }
+
+                    echo "🔎 BACK_CHANGED=${env.BACK_CHANGED}, FRONT_CHANGED=${env.FRONT_CHANGED}, range=${range}"
                 }
             }
+        }
+
+        stage('Nothing to Build') {
+            when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' } }
             steps {
-                dir(FRONTEND_DIR) {
-                    sh 'npm install'
-                    sh 'npm run build'
+                echo "⏭️ 변경 없음 → 스킵"
+                script { currentBuild.result = 'NOT_BUILT' }
+            }
+        }
+
+        stage('Backend Build') {
+            when { expression { env.BACK_CHANGED == 'true' } }
+            steps {
+                dir("${BACKEND_DIR}") {
+                    sh '''
+                        chmod +x ./gradlew
+                        ./gradlew --no-daemon build -x test
+                    '''
                 }
             }
         }
@@ -49,13 +70,24 @@ pipeline {
             when { branch 'dev' }
             steps {
                 script {
-                    if(fileChanged('backend/')) {
-                        sh 'docker build -t my-backend:dev backend -f backend/Dockerfile'
-                        sh 'docker run -d --rm -p 8081:8080 my-backend:dev'
+                    def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
+
+                    // 백엔드: Jenkins에서 빌드한 jar를 Dockerfile로 패키징
+                    if (env.BACK_CHANGED == 'true') {
+                        sh """
+                            docker build -f backend/Dockerfile -t my-backend:${TAG} backend
+                            docker rm -f my-backend-dev || true
+                            docker run -d --name my-backend-dev -p 8081:8080 my-backend:${TAG}
+                        """
                     }
-                    if(fileChanged('frontend/')) {
-                        sh 'docker build -t my-frontend:dev frontend -f frontend/Dockerfile'
-                        sh 'docker run -d --rm -p 3000:3000 my-frontend:dev'
+
+                    // 프론트엔드: Dockerfile 안에서 Node 빌드 수행
+                    if (env.FRONT_CHANGED == 'true') {
+                        sh """
+                            docker build -f frontend/Dockerfile -t my-frontend:${TAG} frontend
+                            docker rm -f my-frontend-dev || true
+                            docker run -d --name my-frontend-dev -p 3001:3000 my-frontend:${TAG}
+                        """
                     }
                 }
             }
@@ -66,13 +98,24 @@ pipeline {
             steps {
                 input message: "Deploy to Production?"
                 script {
-                    if(fileChanged('backend/')) {
-                        sh 'docker build -t my-backend:latest backend -f backend/Dockerfile'
-                        sh 'docker run -d --rm -p 8080:8080 my-backend:latest'
+                    def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
+
+                    if (env.BACK_CHANGED == 'true') {
+                        sh """
+                            docker build -f backend/Dockerfile -t my-backend:${TAG} backend
+                            docker tag my-backend:${TAG} my-backend:latest
+                            docker rm -f my-backend-prod || true
+                            docker run -d --name my-backend-prod -p 8080:8080 my-backend:latest
+                        """
                     }
-                    if(fileChanged('frontend/')) {
-                        sh 'docker build -t my-frontend:latest frontend -f frontend/Dockerfile'
-                        sh 'docker run -d --rm -p 3000:3000 my-frontend:latest'
+
+                    if (env.FRONT_CHANGED == 'true') {
+                        sh """
+                            docker build -f frontend/Dockerfile -t my-frontend:${TAG} frontend
+                            docker tag my-frontend:${TAG} my-frontend:latest
+                            docker rm -f my-frontend-prod || true
+                            docker run -d --name my-frontend-prod -p 3000:3000 my-frontend:latest
+                        """
                     }
                 }
             }
@@ -81,17 +124,8 @@ pipeline {
 
     post {
         always {
-        echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
-        sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
+            echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
+            sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
         }
     }
 }
-
-
-def fileChanged(String folder) {
-    return sh(
-        script: "git diff --name-only HEAD~1 HEAD | grep '^${folder}' || true",
-        returnStatus: true
-    ) == 0
-}
-
