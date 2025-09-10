@@ -87,6 +87,7 @@ pipeline {
     }
 }
 
+
 def fileChanged(String folder) {
     return sh(
         script: "git diff --name-only HEAD~1 HEAD | grep '^${folder}' || true",
