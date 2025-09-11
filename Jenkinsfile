@@ -121,7 +121,6 @@ pipeline {
         stage('Deploy to Prod') {
             when { expression { env.BRANCH_NAME == 'main' } }
             steps {
-                input message: "Deploy to Production?"
                 script {
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
