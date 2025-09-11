@@ -147,15 +147,7 @@ export default function SignupPage() {
           {/* 기부자 정보 입력 */}
           {userType === 'donor' && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">기부자 정보</h3>
-                <button
-                  onClick={() => setUserType(null)}
-                  className="text-sm text-blue-600 hover:text-blue-500"
-                >
-                  변경
-                </button>
-              </div>
+              <h3 className="text-lg font-medium text-gray-900">기부자 정보</h3>
               
               <div>
                 <label htmlFor="donorName" className="block text-sm font-medium text-gray-700">
@@ -176,15 +168,7 @@ export default function SignupPage() {
           {/* 목장주 정보 입력 */}
           {userType === 'ranch_owner' && (
             <div className="space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">목장주 정보</h3>
-                <button
-                  onClick={() => setUserType(null)}
-                  className="text-sm text-blue-600 hover:text-blue-500"
-                >
-                  변경
-                </button>
-              </div>
+              <h3 className="text-lg font-medium text-gray-900">목장주 정보</h3>
               
               <div>
                 <label htmlFor="ranchName" className="block text-sm font-medium text-gray-700">
