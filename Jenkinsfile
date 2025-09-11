@@ -12,7 +12,8 @@ pipeline {
         DEV_FRONT_PORT   = '3001'
         PROD_BACK_PORT   = '8080'
         PROD_FRONT_PORT  = '3000'
-        NETWORK_NAME     = 'test-network'
+        TEST_NETWORK     = 'test-network'
+        PROD_NETWORK     = 'prod-network'
     }
 
     options {
@@ -87,7 +88,7 @@ pipeline {
             steps {
                 script {
                     // 네트워크가 없으면 생성
-                    sh "docker network inspect ${NETWORK_NAME} >/dev/null 2>&1 || docker network create ${NETWORK_NAME}"
+                    sh "docker network inspect ${TEST_NETWORK} >/dev/null 2>&1 || docker network create ${TEST_NETWORK}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                     if (env.BACK_CHANGED == 'true') {
@@ -96,7 +97,7 @@ pipeline {
                             docker rm -f ${DEV_BACK_CONTAINER} || true
                             docker run -d \
                               --name ${DEV_BACK_CONTAINER} \
-                              --network ${NETWORK_NAME} \
+                              --network ${TEST_NETWORK} \
                               --network-alias backend-test \
                               -p ${DEV_BACK_PORT}:8080 \
                               majoong/backend-dev:${TAG}
@@ -109,7 +110,7 @@ pipeline {
                             docker rm -f ${DEV_FRONT_CONTAINER} || true
                             docker run -d \
                               --name ${DEV_FRONT_CONTAINER} \
-                              --network ${NETWORK_NAME} \
+                              --network ${TEST_NETWORK} \
                               -p ${DEV_FRONT_PORT}:3000 \
                               majoong/frontend-dev:${TAG}
                         """
@@ -122,6 +123,7 @@ pipeline {
             when { expression { env.BRANCH_NAME == 'main' } }
             steps {
                 script {
+                    sh "docker network inspect ${PROD_NETWORK} >/dev/null 2>&1 || docker network create ${PROD_NETWORK}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                    if (env.BACK_CHANGED == 'true') {
@@ -131,7 +133,7 @@ pipeline {
                             docker rm -f ${PROD_BACK_CONTAINER} || true
                             docker run -d \
                             --name ${PROD_BACK_CONTAINER} \
-                            --network ${NETWORK_NAME} \
+                            --network ${PROD_NETWORK} \
                             -p ${PROD_BACK_PORT}:8080 \
                             majoong/backend-prod:latest
                         """
@@ -144,12 +146,12 @@ pipeline {
                             docker rm -f ${PROD_FRONT_CONTAINER} || true
                             docker run -d \
                             --name ${PROD_FRONT_CONTAINER} \
-                            --network ${NETWORK_NAME} \
+                            --network ${PROD_NETWORK} \
                             -p ${PROD_FRONT_PORT}:3000 \
                             majoong/frontend-prod:latest
                         """
                     }
-                                    }
+                }
             }
         }
     }
