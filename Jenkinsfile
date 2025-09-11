@@ -2,8 +2,17 @@ pipeline {
     agent any
 
     environment {
-        BACKEND_DIR  = 'backend'
-        FRONTEND_DIR = 'frontend'
+        BACKEND_DIR      = 'backend'
+        FRONTEND_DIR     = 'frontend'
+        DEV_BACK_CONTAINER   = 'majoong-backend-dev'
+        DEV_FRONT_CONTAINER  = 'majoong-frontend-dev'
+        PROD_BACK_CONTAINER  = 'majoong-backend-prod'
+        PROD_FRONT_CONTAINER = 'majoong-frontend-prod'
+        DEV_BACK_PORT    = '8081'
+        DEV_FRONT_PORT   = '3001'
+        PROD_BACK_PORT   = '8080'
+        PROD_FRONT_PORT  = '3000'
+        NETWORK_NAME     = 'test-network'
     }
 
     options {
@@ -81,17 +90,26 @@ pipeline {
 
                     if (env.BACK_CHANGED == 'true') {
                         sh """
-                            docker build -f backend/Dockerfile -t my-backend:${TAG} backend
-                            docker rm -f my-backend-dev || true
-                            docker run -d --name my-backend-dev -p 8081:8080 my-backend:${TAG}
+                            docker build -f backend/Dockerfile -t majoong/backend-dev:${TAG} backend
+                            docker rm -f ${DEV_BACK_CONTAINER} || true
+                            docker run -d \
+                              --name ${DEV_BACK_CONTAINER} \
+                              --network ${NETWORK_NAME} \
+                              --network-alias backend-test \
+                              -p ${DEV_BACK_PORT}:8080 \
+                              majoong/backend-dev:${TAG}
                         """
                     }
 
                     if (env.FRONT_CHANGED == 'true') {
                         sh """
-                            docker build -f frontend/Dockerfile -t my-frontend:${TAG} frontend
-                            docker rm -f my-frontend-dev || true
-                            docker run -d --name my-frontend-dev -p 3001:3000 my-frontend:${TAG}
+                            docker build -f frontend/Dockerfile -t majoong/frontend-dev:${TAG} frontend
+                            docker rm -f ${DEV_FRONT_CONTAINER} || true
+                            docker run -d \
+                              --name ${DEV_FRONT_CONTAINER} \
+                              --network ${NETWORK_NAME} \
+                              -p ${DEV_FRONT_PORT}:3000 \
+                              majoong/frontend-dev:${TAG}
                         """
                     }
                 }
@@ -105,24 +123,32 @@ pipeline {
                 script {
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
-                    if (env.BACK_CHANGED == 'true') {
+                   if (env.BACK_CHANGED == 'true') {
                         sh """
-                            docker build -f backend/Dockerfile -t my-backend:${TAG} backend
-                            docker tag my-backend:${TAG} my-backend:latest
-                            docker rm -f my-backend-prod || true
-                            docker run -d --name my-backend-prod -p 8080:8080 my-backend:latest
+                            docker build -f backend/Dockerfile -t majoong/backend-prod:${TAG} backend
+                            docker tag majoong/backend-prod:${TAG} majoong/backend-prod:latest
+                            docker rm -f ${PROD_BACK_CONTAINER} || true
+                            docker run -d \
+                            --name ${PROD_BACK_CONTAINER} \
+                            --network ${NETWORK_NAME} \
+                            -p ${PROD_BACK_PORT}:8080 \
+                            majoong/backend-prod:latest
                         """
                     }
 
                     if (env.FRONT_CHANGED == 'true') {
                         sh """
-                            docker build -f frontend/Dockerfile -t my-frontend:${TAG} frontend
-                            docker tag my-frontend:${TAG} my-frontend:latest
-                            docker rm -f my-frontend-prod || true
-                            docker run -d --name my-frontend-prod -p 3000:3000 my-frontend:latest
+                            docker build -f frontend/Dockerfile -t majoong/frontend-prod:${TAG} frontend
+                            docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest
+                            docker rm -f ${PROD_FRONT_CONTAINER} || true
+                            docker run -d \
+                            --name ${PROD_FRONT_CONTAINER} \
+                            --network ${NETWORK_NAME} \
+                            -p ${PROD_FRONT_PORT}:3000 \
+                            majoong/frontend-prod:latest
                         """
                     }
-                }
+                                    }
             }
         }
     }

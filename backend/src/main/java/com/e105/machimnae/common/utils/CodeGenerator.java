@@ -8,4 +8,4 @@ public class CodeGenerator {
         return UUID.randomUUID().toString().substring(0, length).toUpperCase();
     }
    
-}
+}  
