@@ -86,6 +86,8 @@ pipeline {
             when { expression { env.BRANCH_NAME == 'dev' } }
             steps {
                 script {
+                    // 네트워크가 없으면 생성
+                    sh "docker network inspect ${NETWORK_NAME} >/dev/null 2>&1 || docker network create ${NETWORK_NAME}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                     if (env.BACK_CHANGED == 'true') {
