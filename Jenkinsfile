@@ -47,6 +47,7 @@ pipeline {
         stage('Detect Branch') {
             steps {
                 script {
+                    echo "▶ detect branch = ${params.GIT_REF}"
                     env.ACTUAL_BRANCH = params.GIT_REF.replaceFirst(/^refs\/heads\//, '')
                     echo "▶ Branch = ${env.ACTUAL_BRANCH}"
                 }
