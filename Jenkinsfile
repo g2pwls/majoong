@@ -147,11 +147,7 @@ pipeline {
                             docker run -d \
                             --name ${PROD_FRONT_CONTAINER} \
                             --network ${PROD_NETWORK} \
-                            -p 3000:80 \
-                            -p 3000:443 \
-                            -v /etc/letsencrypt/live/p.ssafy.io/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro \
-                            -v /etc/letsencrypt/live/p.ssafy.io/privkey.pem:/etc/nginx/certs/privkey.pem:ro \
-                            majoong/frontend-prod:latest
+                            -p ${PROD_FRONT_PORT}:3000 \
                         """
                     }
                 }

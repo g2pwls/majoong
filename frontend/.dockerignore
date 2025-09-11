@@ -1,6 +1,6 @@
 node_modules
 .next/cache
-.git
+.git 
 Dockerfile 
 docker-compose*.yml
 *.log
