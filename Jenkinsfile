@@ -47,11 +47,8 @@ pipeline {
         stage('Detect Branch') {
             steps {
                 script {
-                    env.BRANCH_NAME = sh(
-                        script: "git rev-parse --abbrev-ref HEAD",
-                        returnStdout: true
-                    ).trim()
-                    echo "🔎 Current branch: ${env.BRANCH_NAME}"
+                    env.ACTUAL_BRANCH = params.GIT_REF.replaceFirst(/^refs\/heads\//, '')
+                    echo "▶ Branch = ${env.ACTUAL_BRANCH}"
                 }
             }
         }
