@@ -23,9 +23,6 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final KakaoLoginRedirectHandler kakaoLoginRedirectHandler;
-    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     @Bean
     public CorsFilter corsFilter() {
@@ -55,15 +52,7 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .anyRequest().authenticated()
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .successHandler(kakaoLoginRedirectHandler)
-                        .failureHandler(oAuth2LoginFailureHandler)
-                        .userInfoEndpoint(endpoint -> endpoint
-                                .userService(customOAuth2UserService)
-                        )
-                )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                );
 
         return http.build();
     }
