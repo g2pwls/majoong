@@ -21,6 +21,36 @@ pipeline {
         disableConcurrentBuilds()
     }
 
+    triggers {
+        // dev 토큰
+        GenericTrigger(
+            tokenCredentialId: 'majoong-dev',        // Jenkins Credentials(Secret text) ID
+            genericVariables: [
+            [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
+            [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
+            ],
+            // 이 트리거는 dev 브랜치 푸시일 때만 빌드
+            regexpFilterText: '$.ref',
+            regexpFilterExpression: '^refs/heads/dev$',
+            printContributedVariables: true,
+            printPostContent: true
+        )
+
+        // main 토큰
+        GenericTrigger(
+            tokenCredentialId: 'majoong-main',
+            genericVariables: [
+            [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
+            [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
+            ],
+            regexpFilterText: '$.ref',
+            regexpFilterExpression: '^refs/heads/main$',
+            printContributedVariables: true,
+            printPostContent: true
+        )
+    }
+
+
     stages {
         stage('Prepare Secret') {
             steps {
@@ -160,32 +190,33 @@ pipeline {
     post {
         success {
             script {
-                def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                def pusher = sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
-                def mentionUser = env.GIT_PUSHER_USERNAME?.trim()   // ← 추가
-                def displayPusher = mentionUser ? "@${mentionUser}" : pusher  // ← 추가
-
-                sendMMText("빌드 성공 (${branch}) — pushed by ${displayPusher}", true)
+                def branch    = resolveBranch()
+                def mention   = resolvePusherMention()         // @username 또는 빈 문자열
+                def commitMsg = sh(script: "git log -1 --pretty=%s", returnStdout: true).trim()
+                def commitUrl = env.GIT_COMMIT_URL ?: ""
+                sendMMNotify(true, [
+                    branch   : branch,
+                    mention  : mention,
+                    buildUrl : env.BUILD_URL,
+                    commit   : [msg: commitMsg, url: commitUrl],
+                    // 실패가 아니므로 details 생략
+                ])
             }
-        }
+        } 
         failure {
             script {
-                def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
-                def pusher = sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
-                def mentionUser = env.GIT_PUSHER_USERNAME?.trim()   // ← 추가
-                def displayPusher = mentionUser ? "@${mentionUser}" : pusher  // ← 추가
-
-                def tail = currentBuild.rawBuild.getLog(200).join('\n').take(3500)
-
-                sendMMCard(
-                title : "빌드 실패",
-                success: false,
-                fields: [
-                    [title:'Branch',    value: branch,        short:true],
-                    [title:'Pushed By', value: displayPusher, short:true],   // ← 교체
-                    [title:'Details',   value: "로그 (마지막 200줄):\n```\n${tail}\n```", short:false]
-                    ]
-                )
+                def branch    = resolveBranch()
+                def mention   = resolvePusherMention()
+                def commitMsg = sh(script: "git log -1 --pretty=%s", returnStdout: true).trim()
+                def commitUrl = env.GIT_COMMIT_URL ?: ""
+                def tail      = currentBuild.rawBuild.getLog(200).join('\n').take(6000)
+                sendMMNotify(false, [
+                    branch   : branch,
+                    mention  : mention,
+                    buildUrl : env.BUILD_URL,
+                    commit   : [msg: commitMsg, url: commitUrl],
+                    details  : "```\n${tail}\n```"    // 실패시에만 표시
+                ])
             }
         }
         always {
@@ -195,45 +226,56 @@ pipeline {
     }
 }
 
-// ✅/❌ 상태 이모지 + 항상 :jenkins7: 아이콘
-def sendMMText(String text, boolean success=true) {
-  def statusEmoji = success ? "✅" : "❌"
-  def payloadObj = [
-    text     : "${statusEmoji} ${text}",
-    username : "Jenkins",
-    // ↓ 여기만 변경
-    icon_url : "https://www.jenkins.io/images/logos/jenkins/jenkins.png"
-  ]
-  def json = groovy.json.JsonOutput.toJson(payloadObj)
-  withCredentials([string(credentialsId: 'mattermost-webhook', variable: 'MM_WEBHOOK')]) {
-    sh """
-      curl -sS -X POST -H 'Content-Type: application/json' \
-        --data '${json.replace("'", "'\\''")}' \
-        "$MM_WEBHOOK"
-    """
-  }
+// 브랜치 해석: BRANCH_NAME → GIT_REF → git
+def resolveBranch() {
+  if (env.BRANCH_NAME) return env.BRANCH_NAME
+  if (env.GIT_REF) return env.GIT_REF.replaceFirst(/^refs\/heads\//,'')
+  return sh(script: "git name-rev --name-only HEAD || git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
 }
 
-def sendMMCard(Map args = [:]) {
-  def success = (args.success == null) ? false : args.success
-  def statusEmoji = success ? "✅" : "❌"
-  def color = args.color ?: (success ? "#2ECC71" : "#E74C3C")
-  def payloadObj = [
-    username   : "Jenkins",
-    icon_emoji : ":jenkins7:",
-    attachments: [[
-      fallback: "Jenkins Notification",
-      color   : color,
-      title   : "${statusEmoji} ${args.title ?: 'Build'}",
-      fields  : (args.fields ?: [])
-    ]]
-  ]
-  def json = groovy.json.JsonOutput.toJson(payloadObj)
+// @username (웹훅의 user_username) 우선, 없으면 커밋 작성자 표시
+def resolvePusherMention() {
+  def u = env.GIT_PUSHER_USERNAME?.trim()
+  if (u) return "@${u}"
+  return sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
+}
+
+// 커스텀 이모지 + 제목(큰 글씨) + 줄 단위 본문
+// success=true면 Status: ✅ Success, false면 Status: ❌ Failed
+def sendMMNotify(boolean success, Map info) {
+  def statusLine = success ? "Status: ✅ Success" : "Status: ❌ Failed"
+  def titleLine  = "# :jenkins7: Jenkins Notification"     // ← 큰 글씨 제목 (H1)
+  def lines = []
+
+  // 2줄째: 상태
+  lines << statusLine
+  // 3줄째: @username 또는 작성자
+  if (info.mention) lines << "${info.mention}"
+  // 4줄째: 타깃 브랜치
+  if (info.branch)  lines << "Target Branch: `${info.branch}`"
+  // 5줄째: 커밋/빌드 링크(있을 때)
+  if (info.commit?.msg) {
+    def commitLine = info.commit?.url ? "[${info.commit.msg}](${info.commit.url})" : info.commit.msg
+    lines << "Commit: ${commitLine}"
+  }
+  if (info.buildUrl) lines << "Build: [Open Build](${info.buildUrl})"
+  // 실패면 추가 내용(로그 등)
+  if (!success && info.details) lines << "Error:\n${info.details}"
+
+  def text = "${titleLine}\n\n" + lines.join("\n")
+
+  // JSON 파일로 저장 후 --data-binary 로 전송(크리덴셜 경고 방지)
+  writeFile file: 'payload.json', text: groovy.json.JsonOutput.toJson([
+    text      : text,
+    username  : "Jenkins",
+    icon_emoji: ":jenkins7:"     // 프로필 아이콘도 커스텀 이모지 사용
+  ])
+
   withCredentials([string(credentialsId: 'mattermost-webhook', variable: 'MM_WEBHOOK')]) {
-    sh """
-      curl -sS -X POST -H 'Content-Type: application/json' \
-        --data '${json.replace("'", "'\\''")}' \
+    sh(script: '''
+      curl -sS -f -X POST -H 'Content-Type: application/json' \
+        --data-binary @payload.json \
         "$MM_WEBHOOK"
-    """
+    ''')
   }
 }
