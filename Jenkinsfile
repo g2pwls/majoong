@@ -131,7 +131,7 @@ pipeline {
 
                     if (env.BACK_CHANGED == 'true') {
                         sh """
-                            docker build -f backend/Dockerfile -t majoong/backend-dev:${TAG} backend
+                            docker build -f backend/Dockerfil -t majoong/backend-dev:${TAG} backend
                             docker rm -f ${DEV_BACK_CONTAINER} || true
                             docker run -d \
                               --name ${DEV_BACK_CONTAINER} \
