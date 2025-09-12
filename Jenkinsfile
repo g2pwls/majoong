@@ -158,9 +158,77 @@ pipeline {
     }
 
     post {
+        success {
+            script {
+                def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                def pusher = sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
+                sendMMText("빌드 성공 (${branch}) — pushed by ${pusher}", true)   // ✅ + :jenkins7:
+            }
+        }
+        failure {
+            script {
+                def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
+                def pusher = sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
+                // 콘솔 마지막 N줄을 바로 읽어옴 (build.log 없이도 OK)
+                def tail = currentBuild.rawBuild.getLog(200).join('\n')
+                tail = tail.take(3500)
+
+                sendMMCard(
+                    title : "빌드 실패",         // ❌ + :jenkins7:
+                    success: false,
+                    fields: [
+                        [title:'Branch',    value: branch, short:true],
+                        [title:'Pushed By', value: pusher, short:true],
+                        [title:'Details',   value: "로그 (마지막 200줄):\n```\n${tail}\n```", short:false]
+                    ]
+                )
+            }
+        }
         always {
             echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
             sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
         }
     }
+}
+
+// ✅/❌ 상태 이모지 + 항상 :jenkins7: 아이콘
+def sendMMText(String text, boolean success=true) {
+  def statusEmoji = success ? "✅" : "❌"
+  def payloadObj = [
+    text      : "${statusEmoji} ${text}",
+    username  : "Jenkins",
+    icon_emoji: ":jenkins7:"
+  ]
+  def json = groovy.json.JsonOutput.toJson(payloadObj)
+  withCredentials([string(credentialsId: 'mattermost-webhook', variable: 'MM_WEBHOOK')]) {
+    sh """
+      curl -sS -X POST -H 'Content-Type: application/json' \
+        --data '${json.replace("'", "'\\''")}' \
+        "$MM_WEBHOOK"
+    """
+  }
+}
+
+def sendMMCard(Map args = [:]) {
+  def success = (args.success == null) ? false : args.success
+  def statusEmoji = success ? "✅" : "❌"
+  def color = args.color ?: (success ? "#2ECC71" : "#E74C3C")
+  def payloadObj = [
+    username   : "Jenkins",
+    icon_emoji : ":jenkins7:",
+    attachments: [[
+      fallback: "Jenkins Notification",
+      color   : color,
+      title   : "${statusEmoji} ${args.title ?: 'Build'}",
+      fields  : (args.fields ?: [])
+    ]]
+  ]
+  def json = groovy.json.JsonOutput.toJson(payloadObj)
+  withCredentials([string(credentialsId: 'mattermost-webhook', variable: 'MM_WEBHOOK')]) {
+    sh """
+      curl -sS -X POST -H 'Content-Type: application/json' \
+        --data '${json.replace("'", "'\\''")}' \
+        "$MM_WEBHOOK"
+    """
+  }
 }
