@@ -131,13 +131,13 @@ pipeline {
 
                     if (env.BACK_CHANGED == 'true') {
                         sh """
-                            docker build -f Dockerfile -t majoong/backend-dev:${TAG} backend
+                            docker build -f backend/Dockerfile -t majoong/backend-dev:${TAG} backend
                             docker rm -f ${DEV_BACK_CONTAINER} || true
                             docker run -d \
                               --name ${DEV_BACK_CONTAINER} \
                               --network ${TEST_NETWORK} \
                               --network-alias backend-test \
-                              -p ${DEV_BACK_PORT}:8080 \
+                              -p ${DEV_BACK_PORT}:8089 \
                               majoong/backend-dev:${TAG}
                         """
                     }
