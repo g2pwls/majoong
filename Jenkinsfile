@@ -248,37 +248,31 @@ def resolvePusherMention() {
   return sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
 }
 
-// 커스텀 이모지 + 제목(큰 글씨) + 줄 단위 본문
-// success=true면 Status: ✅ Success, false면 Status: ❌ Failed
+// ✅/❌ 제목을 "## :jenkins7: Jenkins Build Success ✅ / Failed ❌" 로 출력하고
+// 아래에 pusher / Target Branch / Commit (실패 시 Error)만 표시
 def sendMMNotify(boolean success, Map info) {
-  def statusLine = success ? "Status: ✅ Success" : "Status: ❌ Failed"
-  def titleLine  = "# :jenkins7: Jenkins Notification"     // ← 큰 글씨 제목 (H1)
-  def lines = []
+  def titleLine = success ? "## :jenkins7: Jenkins Build Success ✅"
+                          : "## :jenkins7: Jenkins Build Failed ❌"
 
-  // 2줄째: 상태
-  lines << statusLine
-  // 3줄째: @username 또는 작성자
-  if (info.mention) lines << "${info.mention}"
-  // 4줄째: 타깃 브랜치
-  if (info.branch)  lines << "Target Branch: `${info.branch}`"
-  // 5줄째: 커밋/빌드 링크(있을 때)
+  def lines = []
+  if (info.mention) lines << "**pusher**: ${info.mention}"
+  if (info.branch)  lines << "**Target Branch**: `${info.branch}`"
   if (info.commit?.msg) {
     def commitLine = info.commit?.url ? "[${info.commit.msg}](${info.commit.url})" : info.commit.msg
-    lines << "Commit: ${commitLine}"
+    lines << "**Commit**: ${commitLine}"
   }
-  if (info.buildUrl) lines << "Build: [Open Build](${info.buildUrl})"
-  // 실패면 추가 내용(로그 등)
-  if (!success && info.details) lines << "Error:\n${info.details}"
+  if (!success && info.details) {
+    lines << "Error:\n${info.details}"
+  }
 
-  def text = "${titleLine}\n\n" + lines.join("\n")
+  def text = "${titleLine}\n" + (lines ? ("\n" + lines.join("\n")) : "")
 
-  // JSON 파일로 저장 후 --data-binary 로 전송(크리덴셜 경고 방지)
+  // 안전 전송(크리덴셜 경고 없음)
   writeFile file: 'payload.json', text: groovy.json.JsonOutput.toJson([
     text      : text,
     username  : "Jenkins",
-    icon_emoji: ":jenkins7:"     // 프로필 아이콘도 커스텀 이모지 사용
+    icon_emoji: ":jenkins7:"
   ])
-
   withCredentials([string(credentialsId: 'mattermost-webhook', variable: 'MM_WEBHOOK')]) {
     sh(script: '''
       curl -sS -f -X POST -H 'Content-Type: application/json' \
