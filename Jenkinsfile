@@ -99,7 +99,7 @@ pipeline {
                               --name ${DEV_BACK_CONTAINER} \
                               --network ${TEST_NETWORK} \
                               --network-alias backend-test \
-                              -p ${DEV_BACK_PORT}:808 \
+                              -p ${DEV_BACK_PORT}:8080 \
                               majoong/backend-dev:${TAG}
                         """
                     }
