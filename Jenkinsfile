@@ -22,6 +22,44 @@ pipeline {
     }
 
     stages {
+            // ✅ 여기 추가: 두 개 웹훅 트리거를 Job 설정에 등록
+        stage('Register Webhook Triggers') {
+            steps {
+                script {
+                    // --- 두 개 웹훅 트리거 등록(DEV/MAIN) ---
+                    properties([
+                        pipelineTriggers([
+                        // dev
+                        [$class: 'GenericTrigger',
+                            tokenCredentialId: 'majoong-dev',
+                            genericVariables: [
+                            [key: 'GIT_REF',             value: '$.ref'],
+                            [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
+                            [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
+                            ],
+                            regexpFilterText:       '$.ref',
+                            regexpFilterExpression: '^refs/heads/dev$',
+                            printContributedVariables: true,
+                            printPostContent: true
+                        ],
+                        // main
+                        [$class: 'GenericTrigger',
+                            tokenCredentialId: 'majoong-main',
+                            genericVariables: [
+                            [key: 'GIT_REF',             value: '$.ref'],
+                            [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
+                            [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
+                            ],
+                            regexpFilterText:       '$.ref',
+                            regexpFilterExpression: '^refs/heads/main$',
+                            printContributedVariables: true,
+                            printPostContent: true
+                        ]
+                        ])
+                    ])
+                }
+            }
+    }
         stage('Prepare Secret') {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
@@ -99,7 +137,7 @@ pipeline {
                               --name ${DEV_BACK_CONTAINER} \
                               --network ${TEST_NETWORK} \
                               --network-alias backend-test \
-                              -p ${DEV_BACK_PORT}:8080 \
+                              -p ${DEV_BACK_PORT}:808 \
                               majoong/backend-dev:${TAG}
                         """
                     }
