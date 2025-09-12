@@ -134,6 +134,7 @@ pipeline {
                             docker run -d \
                             --name ${PROD_BACK_CONTAINER} \
                             --network ${PROD_NETWORK} \
+                            --network-alias backend
                             -p ${PROD_BACK_PORT}:8080 \
                             majoong/backend-prod:latest
                         """
