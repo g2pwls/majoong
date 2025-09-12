@@ -21,37 +21,46 @@ pipeline {
         disableConcurrentBuilds()
     }
 
-    triggers {
-        // dev 토큰
-        GenericTrigger(
-            tokenCredentialId: 'majoong-dev',        // Jenkins Credentials(Secret text) ID
-            genericVariables: [
-            [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
-            [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
-            ],
-            // 이 트리거는 dev 브랜치 푸시일 때만 빌드
-            regexpFilterText: '$.ref',
-            regexpFilterExpression: '^refs/heads/dev$',
-            printContributedVariables: true,
-            printPostContent: true
-        )
-
-        // main 토큰
-        GenericTrigger(
-            tokenCredentialId: 'majoong-main',
-            genericVariables: [
-            [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
-            [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
-            ],
-            regexpFilterText: '$.ref',
-            regexpFilterExpression: '^refs/heads/main$',
-            printContributedVariables: true,
-            printPostContent: true
-        )
-    }
-
-
     stages {
+            // ✅ 여기 추가: 두 개 웹훅 트리거를 Job 설정에 등록
+        stage('Register Webhook Triggers') {
+        when { beforeAgent true }   // 에이전트 띄우기 전에 빠르게 실행
+        steps {
+            script {
+            // --- 두 개 웹훅 트리거 등록(DEV/MAIN) ---
+            properties([
+                pipelineTriggers([
+                // dev
+                [$class: 'GenericTrigger',
+                    tokenCredentialId: 'majoong-dev',
+                    genericVariables: [
+                    [key: 'GIT_REF',             value: '$.ref'],
+                    [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
+                    [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
+                    ],
+                    regexpFilterText:       '$.ref',
+                    regexpFilterExpression: '^refs/heads/dev$',
+                    printContributedVariables: true,
+                    printPostContent: true
+                ],
+                // main
+                [$class: 'GenericTrigger',
+                    tokenCredentialId: 'majoong-main',
+                    genericVariables: [
+                    [key: 'GIT_REF',             value: '$.ref'],
+                    [key: 'GIT_PUSHER_USERNAME', value: '$.user_username'],
+                    [key: 'GIT_COMMIT_URL',      value: '$.commits[0].url']
+                    ],
+                    regexpFilterText:       '$.ref',
+                    regexpFilterExpression: '^refs/heads/main$',
+                    printContributedVariables: true,
+                    printPostContent: true
+                ]
+                ])
+            ])
+            }
+        }
+    }
         stage('Prepare Secret') {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
