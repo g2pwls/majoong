@@ -1,7 +1,5 @@
-// src/app/api/horses/[farm_uuid]/route.ts
 import { NextResponse } from "next/server";
 export const runtime = "nodejs";
-// 캐시 방지 (개발/프리뷰에서 GET 결과가 캐싱되지 않도록)
 export const dynamic = "force-dynamic";
 
 // ------- 타입 -------
@@ -32,103 +30,105 @@ const store: Record<string, Horse[]> = {};
 function ensureSeed(farm_uuid: string) {
   if (store[farm_uuid]) return;
 
-  store[farm_uuid] = [
-    {
-      id: 1,
-      farm_id: farm_uuid,
-      horseNo: "0038020",
-      hrNm: "청담도끼",
-      birthDt: "20140517",
-      sex: "거",
-      color: "밤색",
-      breed: "더러브렛",
-      prdCty: "미국",
-      rcCnt: 39,
-      fstCnt: 18,
-      sndCnt: 7,
-      amt: 3095000000,
-      discardDt: "20220803",
-      fdebutDt: "20160924",
-      lchulDt: "20220626",
-      horse_url: "/horses/mal.png",
-    },
-    {
-      id: 2,
-      farm_id: farm_uuid,
-      horseNo: "0038024",
-      hrNm: "허리케인러너",
-      birthDt: "20140314",
-      sex: "거",
-      color: "밤색",
-      breed: "더러브렛",
-      prdCty: "미국",
-      rcCnt: 8,
-      fstCnt: 0,
-      sndCnt: 2,
-      amt: 25500000,
-      discardDt: "20190910",
-      fdebutDt: "20170210",
-      lchulDt: "20190419",
-      horse_url: "/horses/mal.png",
-    },
-    {
-      id: 3,
-      farm_id: farm_uuid,
-      horseNo: "0038025",
-      hrNm: "아임유어파더",
-      birthDt: "20140206",
-      sex: "수",
-      color: "갈색",
-      breed: "더러브렛",
-      prdCty: "미국",
-      rcCnt: 14,
-      fstCnt: 6,
-      sndCnt: 3,
-      amt: 724040000,
-      discardDt: "20181017",
-      fdebutDt: "20160807",
-      lchulDt: "20180729",
-      horse_url: "/horses/mal.png",
-    },
-    {
-      id: 4,
-      farm_id: farm_uuid,
-      horseNo: "0038021",
-      hrNm: "경주불패",
-      birthDt: "20140419",
-      sex: "거",
-      color: "흑갈색",
-      breed: "더러브렛",
-      prdCty: "미국",
-      rcCnt: 6,
-      fstCnt: 2,
-      sndCnt: 2,
-      amt: 102150000,
-      discardDt: "20180308",
-      fdebutDt: "20170319",
-      lchulDt: "20170924",
-      horse_url: "/horses/mal.png",
-    },
-    {
-      id: 5,
-      farm_id: farm_uuid,
-      horseNo: "0038027",
-      hrNm: "킹칸타로스",
-      birthDt: "20140222",
-      sex: "거",
-      color: "밤색",
-      breed: "더러브렛",
-      prdCty: "미국",
-      rcCnt: 4,
-      fstCnt: 0,
-      sndCnt: 0,
-      amt: 0,
-      discardDt: "20170720",
-      fdebutDt: "20161007",
-      lchulDt: "20170714",
-      horse_url: "/horses/mal.png",
-    },
-  ];
+  if (farm_uuid === "1111-2222-3333-4444") {
+    store[farm_uuid] = [
+      {
+        id: 1,
+        farm_id: "1111-2222-3333-4444",
+        horseNo: "0038020",
+        hrNm: "청담도끼",
+        birthDt: "20140517",
+        sex: "거",
+        color: "밤색",
+        breed: "더러브렛",
+        prdCty: "미국",
+        rcCnt: 39,
+        fstCnt: 18,
+        sndCnt: 7,
+        amt: 3095000000,
+        discardDt: "20220803",
+        fdebutDt: "20160924",
+        lchulDt: "20220626",
+        horse_url: "/horses/mal.png",
+      },
+      {
+        id: 2,
+        farm_id: "1111-2222-3333-4444",
+        horseNo: "0038024",
+        hrNm: "허리케인러너",
+        birthDt: "20140314",
+        sex: "거",
+        color: "밤색",
+        breed: "더러브렛",
+        prdCty: "미국",
+        rcCnt: 8,
+        fstCnt: 0,
+        sndCnt: 2,
+        amt: 25500000,
+        discardDt: "20190910",
+        fdebutDt: "20170210",
+        lchulDt: "20190419",
+        horse_url: "/horses/mal1.jpg",
+      },
+      {
+        id: 3,
+        farm_id: "1111-2222-3333-4444",
+        horseNo: "0038025",
+        hrNm: "아임유어파더",
+        birthDt: "20140206",
+        sex: "수",
+        color: "갈색",
+        breed: "더러브렛",
+        prdCty: "미국",
+        rcCnt: 14,
+        fstCnt: 6,
+        sndCnt: 3,
+        amt: 724040000,
+        discardDt: "20181017",
+        fdebutDt: "20160807",
+        lchulDt: "20180729",
+        horse_url: "/horses/mal2.jpg",
+      },
+      {
+        id: 4,
+        farm_id: "1111-2222-3333-4444",
+        horseNo: "0038021",
+        hrNm: "경주불패",
+        birthDt: "20140419",
+        sex: "거",
+        color: "흑갈색",
+        breed: "더러브렛",
+        prdCty: "미국",
+        rcCnt: 6,
+        fstCnt: 2,
+        sndCnt: 2,
+        amt: 102150000,
+        discardDt: "20180308",
+        fdebutDt: "20170319",
+        lchulDt: "20170924",
+        horse_url: "/horses/mal3.jpg",
+      },
+      {
+        id: 5,
+        farm_id: "1111-2222-3333-4444",
+        horseNo: "0038027",
+        hrNm: "킹칸타로스",
+        birthDt: "20140222",
+        sex: "거",
+        color: "밤색",
+        breed: "더러브렛",
+        prdCty: "미국",
+        rcCnt: 4,
+        fstCnt: 0,
+        sndCnt: 0,
+        amt: 0,
+        discardDt: "20170720",
+        fdebutDt: "20161007",
+        lchulDt: "20170714",
+        horse_url: "/horses/mal4.jpg",
+      },
+    ];
+  }
 }
 
 // ------- GET: 말 목록 -------
@@ -137,6 +137,12 @@ export async function GET(
   { params }: { params: { farm_uuid: string } }
 ) {
   ensureSeed(params.farm_uuid);
+  
+  // 만약 해당 farm_uuid에 말 데이터가 없다면, 404 에러를 반환
+  if (!store[params.farm_uuid]) {
+    return NextResponse.json({ error: `No horses found for farm ${params.farm_uuid}` }, { status: 404 });
+  }
+
   return NextResponse.json(store[params.farm_uuid]);
 }
 

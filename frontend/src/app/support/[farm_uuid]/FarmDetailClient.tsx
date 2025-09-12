@@ -72,6 +72,8 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   if (loading) return <div className="p-6">로딩 중…</div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
+  const farmId = (farm as any)?.farm_uuid ?? (farm as any)?.id;
+
   return (
     <div className="mx-auto max-w-6xl p-6">
       {/* 브레드크럼 */}
@@ -101,7 +103,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             className="mt-4"
           />
           <div className="flex justify-end">
-            <Link href={`/support/${farm.farm_uuid}/edit`}>
+            <Link href={`/support/${farmId}/edit`}>
             <Button className="mt-2 whitespace-nowrap">
               목장 정보 수정
             </Button>
@@ -114,8 +116,8 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
           <FarmTabs value={tab} onChange={onChangeTab} />
           <div className="mt-6">
             {tab === "intro" && <IntroPanel farm={farm} />}
-            {tab === "newsletter" && <NewsletterPanel farmId={farm.farm_uuid} />}
-            {tab === "donations" && <DonationPanel farmId={farm.farm_uuid} />}
+            {tab === "newsletter" && <NewsletterPanel farmId={farmId} />}
+            {tab === "donations" && <DonationPanel farmId={farmId} />}
             {tab === "trust" && <TrustPanel score={farm.total_score} />}
           </div>
         </section>

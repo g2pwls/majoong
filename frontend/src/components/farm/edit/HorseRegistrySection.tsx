@@ -20,7 +20,7 @@ export default function HorseRegistrySection({ horses }: Props) {
     <section>
       <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>
       {horses.length > 0 && (
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {horses.map((horse) => (
             <div
               key={horse.id ?? horse.horseNo}

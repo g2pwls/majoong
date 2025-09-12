@@ -82,7 +82,7 @@ export default function FarmEdit({ params }: PageProps) {
               : h.birthDt,
           breed: h.breed,
           sex: h.sex,
-          image: h.image,
+          image: h.horse_url,
         }));
         setRegisteredHorses(mapped);
       } catch (e) {
