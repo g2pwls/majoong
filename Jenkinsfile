@@ -20,29 +20,15 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
     }
-    //fail test
-    parameters {
-        booleanParam(name: 'FAIL_TEST', defaultValue: false, description: '체크 시 실패 알림 테스트')
-    }
-
 
     stages {
-        //fail test
-        stage('Fail Injection (test)') {
-            when { expression { return params.FAIL_TEST } }
-            steps {
-                script {
-                echo "[FAIL_TEST] 강제 실패를 유도합니다."
-                error 'FAIL_TEST triggered'   // 여기서 실패 발생 → post { failure { ... } } 실행
-                }
-            }
-}
+        //${BACKEND_DIR}
         stage('Prepare Secret') {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                    sh 'cp $APPLICATION_YML ${BACKEND_DIR}/src/main/resources/application.yml'
-                    sh 'chmod 600 ${BACKEND_DIR}/src/main/resources/application.yml'
+                    sh 'cp $APPLICATION_YML /src/main/resources/application.yml'
+                    sh 'chmod 600 /src/main/resources/application.yml'
                 }
             }
         }
