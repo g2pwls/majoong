@@ -162,24 +162,28 @@ pipeline {
             script {
                 def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                 def pusher = sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
-                sendMMText("빌드 성공 (${branch}) — pushed by ${pusher}", true)   // ✅ + :jenkins7:
+                def mentionUser = env.GIT_PUSHER_USERNAME?.trim()   // ← 추가
+                def displayPusher = mentionUser ? "@${mentionUser}" : pusher  // ← 추가
+
+                sendMMText("빌드 성공 (${branch}) — pushed by ${displayPusher}", true)
             }
         }
         failure {
             script {
                 def branch = sh(script: "git rev-parse --abbrev-ref HEAD", returnStdout: true).trim()
                 def pusher = sh(script: "git --no-pager show -s --format='%an <%ae>' HEAD", returnStdout: true).trim()
-                // 콘솔 마지막 N줄을 바로 읽어옴 (build.log 없이도 OK)
-                def tail = currentBuild.rawBuild.getLog(200).join('\n')
-                tail = tail.take(3500)
+                def mentionUser = env.GIT_PUSHER_USERNAME?.trim()   // ← 추가
+                def displayPusher = mentionUser ? "@${mentionUser}" : pusher  // ← 추가
+
+                def tail = currentBuild.rawBuild.getLog(200).join('\n').take(3500)
 
                 sendMMCard(
-                    title : "빌드 실패",         // ❌ + :jenkins7:
-                    success: false,
-                    fields: [
-                        [title:'Branch',    value: branch, short:true],
-                        [title:'Pushed By', value: pusher, short:true],
-                        [title:'Details',   value: "로그 (마지막 200줄):\n```\n${tail}\n```", short:false]
+                title : "빌드 실패",
+                success: false,
+                fields: [
+                    [title:'Branch',    value: branch,        short:true],
+                    [title:'Pushed By', value: displayPusher, short:true],   // ← 교체
+                    [title:'Details',   value: "로그 (마지막 200줄):\n```\n${tail}\n```", short:false]
                     ]
                 )
             }
@@ -195,9 +199,10 @@ pipeline {
 def sendMMText(String text, boolean success=true) {
   def statusEmoji = success ? "✅" : "❌"
   def payloadObj = [
-    text      : "${statusEmoji} ${text}",
-    username  : "Jenkins",
-    icon_emoji: ":jenkins7:"
+    text     : "${statusEmoji} ${text}",
+    username : "Jenkins",
+    // ↓ 여기만 변경
+    icon_url : "https://www.jenkins.io/images/logos/jenkins/jenkins.png"
   ]
   def json = groovy.json.JsonOutput.toJson(payloadObj)
   withCredentials([string(credentialsId: 'mattermost-webhook', variable: 'MM_WEBHOOK')]) {
