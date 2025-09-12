@@ -20,8 +20,23 @@ pipeline {
         timestamps()
         disableConcurrentBuilds()
     }
+    //fail test
+    parameters {
+        booleanParam(name: 'FAIL_TEST', defaultValue: false, description: '체크 시 실패 알림 테스트')
+    }
+
 
     stages {
+        //fail test
+        stage('Fail Injection (test)') {
+            when { expression { return params.FAIL_TEST } }
+            steps {
+                script {
+                echo "[FAIL_TEST] 강제 실패를 유도합니다."
+                error 'FAIL_TEST triggered'   // 여기서 실패 발생 → post { failure { ... } } 실행
+                }
+            }
+}
         stage('Prepare Secret') {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
@@ -213,8 +228,8 @@ def resolvePusherMention() {
 // ✅/❌ 제목을 "## :jenkins7: Jenkins Build Success ✅ / Failed ❌" 로 출력하고
 // 아래에 pusher / Target Branch / Commit (실패 시 Error)만 표시
 def sendMMNotify(boolean success, Map info) {
-  def titleLine = success ? "## :jenkins7: Jenkins Build Success ✅"
-                          : "## :jenkins7: Jenkins Build Failed ❌"
+  def titleLine = success ? "## :jenkins7: Jenkins Build Success"
+                          : "## :jenkins7: Jenkins Build Failed"
 
   def lines = []
   if (info.mention) lines << "**pusher**: ${info.mention}"
