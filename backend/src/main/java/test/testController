@@ -1,0 +1,20 @@
+package com.example.demo.controller;
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.Hidden;
+
+@RestController
+@RequestMapping("/test")
+public class TestController {
+
+    @GetMapping("/hello")
+    public String hello() {
+        return "Hello, Swagger Test!";
+    }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "pong";
+    }
+}
