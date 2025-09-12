@@ -148,6 +148,7 @@ pipeline {
                             --name ${PROD_FRONT_CONTAINER} \
                             --network ${PROD_NETWORK} \
                             -p ${PROD_FRONT_PORT}:3000 \
+                            majoong/frontend-prod:${TAG}
                         """
                     }
                 }
