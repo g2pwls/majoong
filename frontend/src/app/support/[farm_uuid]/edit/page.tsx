@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import FarmBasicInfoPanel from "@/components/farm/edit/FarmBasicInfoPanel";
 import HorseInfoPanel from "@/components/farm/edit/HorseInfoPanel";
+import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import FarmTabs, { FarmTabValue } from "@/components/farm/FarmTabs";
 
@@ -59,7 +60,7 @@ export default function FarmEdit({ params }: PageProps) {
   // 등록된 말 정보 상태 관리
   const [registeredHorses, setRegisteredHorses] = useState<any[]>([]);
 
-  // ✅ 초기 더미 말 목록 불러와 카드로 표시
+  // 초기 더미 말 목록 불러와 카드로 표시
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -67,7 +68,6 @@ export default function FarmEdit({ params }: PageProps) {
         const res = await fetch(`/api/horse/${farm_uuid}`, {
           method: "GET",
           headers: { "Content-Type": "application/json" },
-          // cache: "no-store",
         });
         if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
         const data = (await res.json()) as any[];
@@ -76,16 +76,16 @@ export default function FarmEdit({ params }: PageProps) {
           id: h.id,
           horseNo: String(h.horseNo),
           name: h.hrNm,
-          birthDate: typeof h.birthDt === "string" && h.birthDt.length === 8
-            ? `${h.birthDt.slice(0, 4)}-${h.birthDt.slice(4, 6)}-${h.birthDt.slice(6, 8)}`
-            : h.birthDt,
+          birthDate:
+            typeof h.birthDt === "string" && h.birthDt.length === 8
+              ? `${h.birthDt.slice(0, 4)}-${h.birthDt.slice(4, 6)}-${h.birthDt.slice(6, 8)}`
+              : h.birthDt,
           breed: h.breed,
           sex: h.sex,
           image: h.image,
         }));
         setRegisteredHorses(mapped);
       } catch (e) {
-        // 초기 더미 로드 실패는 치명적이지 않으므로 콘솔에만 기록
         console.error(e);
       }
     })();
@@ -94,7 +94,7 @@ export default function FarmEdit({ params }: PageProps) {
     };
   }, [farm_uuid]);
 
-  // ✅ 말 등록 처리: 마번 중복이면 교체
+  // 말 등록 처리: 마번 중복이면 교체
   const handleHorseRegistration = (horseData: any) => {
     setRegisteredHorses((prev) => {
       const existsIdx = prev.findIndex((h) => h.horseNo === horseData.horseNo);
@@ -152,39 +152,7 @@ export default function FarmEdit({ params }: PageProps) {
         <h2 className="mt-6 text-lg font-semibold">말 정보 수정</h2>
         <HorseInfoPanel farm_uuid={farm_uuid} onHorseRegistered={handleHorseRegistration} />
 
-        {/* ✅ 여러 말 카드 렌더링 */}
-        <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>
-        {registeredHorses.length > 0 && (
-          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
-            {registeredHorses.map((horse) => (
-              <div
-                key={horse.id ?? horse.horseNo}
-                className="bg-white rounded-lg shadow-lg overflow-hidden"
-              >
-                {horse.image ? (
-                  <img
-                    src={horse.image}
-                    alt={horse.name}
-                    className="w-full h-48 object-cover bg-gray-50"
-                  />
-                ) : (
-                  <div className="w-full h-48 bg-gray-50 flex items-center justify-center text-gray-400 text-sm">
-                    이미지 없음
-                  </div>
-                )}
-                <div className="p-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-semibold">{horse.name}</h4>
-                  </div>
-                  <p className="text-sm text-gray-500">마번: {horse.horseNo}</p>
-                  <p className="text-sm text-gray-500">생년월일: {horse.birthDate}</p>
-                  <p className="text-sm text-gray-500">품종: {horse.breed}</p>
-                  <p className="text-sm text-gray-500">성별: {horse.sex}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <HorseRegistrySection horses={registeredHorses} />
       </main>
     </div>
   );

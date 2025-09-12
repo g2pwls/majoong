@@ -22,7 +22,7 @@ export type Horse = {
   discardDt?: string | null;
   fdebutDt?: string | null;
   lchulDt?: string | null;
-  image?: string;         // 카드에 쓰는 이미지
+  horse_url?: string;         // 카드에 쓰는 이미지
 };
 
 // ------- 메모리 저장소 (farm_uuid 별) -------
@@ -50,7 +50,7 @@ function ensureSeed(farm_uuid: string) {
       discardDt: "20220803",
       fdebutDt: "20160924",
       lchulDt: "20220626",
-      image: "/horses/mal.png",
+      horse_url: "/horses/mal.png",
     },
     {
       id: 2,
@@ -69,7 +69,7 @@ function ensureSeed(farm_uuid: string) {
       discardDt: "20190910",
       fdebutDt: "20170210",
       lchulDt: "20190419",
-      image: "/horses/mal.png",
+      horse_url: "/horses/mal.png",
     },
     {
       id: 3,
@@ -88,7 +88,7 @@ function ensureSeed(farm_uuid: string) {
       discardDt: "20181017",
       fdebutDt: "20160807",
       lchulDt: "20180729",
-      image: "/horses/mal.png",
+      horse_url: "/horses/mal.png",
     },
     {
       id: 4,
@@ -107,7 +107,7 @@ function ensureSeed(farm_uuid: string) {
       discardDt: "20180308",
       fdebutDt: "20170319",
       lchulDt: "20170924",
-      image: "/horses/mal.png",
+      horse_url: "/horses/mal.png",
     },
     {
       id: 5,
@@ -126,7 +126,7 @@ function ensureSeed(farm_uuid: string) {
       discardDt: "20170720",
       fdebutDt: "20161007",
       lchulDt: "20170714",
-      image: "/horses/mal.png",
+      horse_url: "/horses/mal.png",
     },
   ];
 }
@@ -180,7 +180,7 @@ export async function POST(
     discardDt: body.discardDt ?? null,
     fdebutDt: body.fdebutDt ?? null,
     lchulDt: body.lchulDt ?? null,
-    image: body.image,
+    horse_url: body.horse_url,
   };
 
   if (idx >= 0) list[idx] = next;
