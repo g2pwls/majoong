@@ -1,4 +1,3 @@
-// components/farm/FarmTabs.tsx
 import React from "react";
 
 export type FarmTabValue = "intro" | "newsletter" | "donations" | "trust";
@@ -33,31 +32,40 @@ export default function FarmTabs({
   return (
     <div className={`border-b border-gray-200 ${className}`}>
       <nav
-        className="-mb-px flex gap-6"
+        className="-mb-px flex gap-6 items-center justify-between" // Added justify-between and items-center
         role="tablist"
         aria-label="Farm Tabs"
       >
-        {items.map((it) => {
-          const active = value === it.value;
-          return (
-            <button
-              key={it.value}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              aria-controls={it.panelId}
-              className={[
-                "whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring",
-                active
-                  ? "border-black text-black"
-                  : "border-transparent text-gray-500 hover:text-black hover:border-gray-300",
-              ].join(" ")}
-              onClick={() => onChange(it.value)}
-            >
-              {it.label}
-            </button>
-          );
-        })}
+        <div className="flex gap-6">
+          {items.map((it) => {
+            const active = value === it.value;
+            return (
+              <button
+                key={it.value}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-controls={it.panelId}
+                className={[
+                  "whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring",
+                  active
+                    ? "border-black text-black"
+                    : "border-transparent text-gray-500 hover:text-black hover:border-gray-300",
+                ].join(" ")}
+                onClick={() => onChange(it.value)}
+              >
+                {it.label}
+              </button>
+            );
+          })}
+        </div>
+        {/* Donate Button */}
+        <button
+          type="button"
+          className="ml-4 bg-green-500 text-white py-1.5 px-4 rounded-md hover:bg-green-600 transition-colors"
+        >
+          기부하기
+        </button>
       </nav>
     </div>
   );
