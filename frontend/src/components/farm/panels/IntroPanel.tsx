@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link"; // Import Link from next/link
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 
 type Horse = {
@@ -89,23 +90,21 @@ export default function IntroPanel({ farm }: { farm: any }) {
   return (
     <section id="panel-intro" className="flex flex-col items-end">
       <div className="flex flex-row">
-      {/* Countdown Text */}
-      {deadlineText && (
-        <div className="mr-4 mb-2 text-sm text-gray-600">
-          {deadlineText}
-        </div>
-      )}
+        {/* Countdown Text */}
+        {deadlineText && (
+          <div className="mr-4 mb-2 text-sm text-gray-600">
+            {deadlineText}
+          </div>
+        )}
 
-      {/* Reporting Button */}
-      <button
-        onClick={() => {
-          // Add your logic to handle the button click here
-          console.log("목장 운영 보고하기 버튼 클릭됨");
-        }}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-      >
-        목장 운영 보고하기
-      </button>
+        {/* Reporting Button with Link */}
+        <Link
+          href={`/support/${farm?.farm_uuid ?? farm?.id}/report`} // Link to the report page
+        >
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+            목장 운영 보고하기
+          </button>
+        </Link>
       </div>
       
       {/* Horse registry section */}
