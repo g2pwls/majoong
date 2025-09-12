@@ -14,6 +14,7 @@ pipeline {
         PROD_FRONT_PORT  = '3000'
         TEST_NETWORK     = 'test-network'
         PROD_NETWORK     = 'prod-network'
+        LOG_FILE = 'ci.log'
     }
 
     options {
@@ -22,9 +23,8 @@ pipeline {
     }
 
     stages {
-        //${BACKEND_DIR}
         stage('Prepare Secret') {
-            steps {
+            steps {//${BACKEND_DIR}
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
                     sh 'cp $APPLICATION_YML /src/main/resources/application.yml'
@@ -180,13 +180,26 @@ pipeline {
                 def mention   = resolvePusherMention()
                 def commitMsg = sh(script: "git log -1 --pretty=%s", returnStdout: true).trim()
                 def commitUrl = env.GIT_COMMIT_URL ?: ""
-                def tail      = currentBuild.rawBuild.getLog(200).join('\n').take(6000)
+
+                // ci.log이 있으면 마지막 200줄, 없으면 빈 문자열
+                def tail = sh(
+                    script: 'tail -n 200 "$WORKSPACE/${LOG_FILE:-ci.log}" 2>/dev/null || true',
+                    returnStdout: true
+                ).trim()
+
+                // (선택) 민감정보 간단 마스킹
+                tail = tail
+                    .replaceAll(/(?i)(token|secret|password|passwd|apikey|api_key)\s*[:=]\s*\S+/, '$1=[REDACTED]')
+                    .replaceAll(/AKIA[0-9A-Z]{16}/, 'AKIA[REDACTED]')
+
+                def detailsBlock = tail ? "```\n${tail}\n```" : ""
+
                 sendMMNotify(false, [
                     branch   : branch,
                     mention  : mention,
                     buildUrl : env.BUILD_URL,
                     commit   : [msg: commitMsg, url: commitUrl],
-                    details  : "```\n${tail}\n```"    // 실패시에만 표시
+                    details  : detailsBlock
                 ])
             }
         }
