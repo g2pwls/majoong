@@ -108,7 +108,7 @@ export default function IntroPanel({ farm }: { farm: any }) {
       </div>
       
       {/* Horse registry section */}
-      <HorseRegistrySection horses={horses} />
+      <HorseRegistrySection horses={horses} farmUuid={farm?.farm_uuid ?? farm?.id} />
     </section>
   );
 }

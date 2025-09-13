@@ -1,6 +1,8 @@
 // src/compents/farm/edit/HorseRegistrySection.tsx
 "use client";
 
+import Link from "next/link";
+
 type Horse = {
   id?: string | number;
   horseNo: string;
@@ -13,18 +15,20 @@ type Horse = {
 
 type Props = {
   horses: Horse[];
+  farmUuid?: string;
 };
 
-export default function HorseRegistrySection({ horses }: Props) {
+export default function HorseRegistrySection({ horses, farmUuid }: Props) {
   return (
     <section>
       <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>
       {horses.length > 0 && (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {horses.map((horse) => (
-            <div
+            <Link
               key={horse.id ?? horse.horseNo}
-              className="bg-white rounded-lg shadow-lg overflow-hidden"
+              href={farmUuid ? `/support/${farmUuid}/${horse.horseNo}` : '#'}
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
             >
               {horse.image ? (
                 <img
@@ -52,7 +56,7 @@ export default function HorseRegistrySection({ horses }: Props) {
                   <p className="text-sm text-gray-500">성별: {horse.sex}</p>
                 )}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

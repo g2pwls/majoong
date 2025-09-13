@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // HorseImageUpload 컴포넌트 불러오기
+import DonationProofUpload from "@/components/farm/report/DonationProofUpload"; // DonationProofUpload 컴포넌트 불러오기
 
 // ---- Types ----
 export type Farm = {
@@ -40,6 +41,7 @@ export default function FarmReport({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [horses, setHorses] = useState<Horse[]>([]);
   const [imageData, setImageData] = useState<Record<string, Record<string, string>>>({});
+  const [donationData, setDonationData] = useState<Record<string, Record<string, string>>>({});
   const [activeTab, setActiveTab] = useState<"farmManagement" | "receiptProof">("farmManagement");
   const [selectedHorseNo, setSelectedHorseNo] = useState<string | null>(null);
 
@@ -118,6 +120,35 @@ export default function FarmReport({ params }: PageProps) {
     setImageData(updatedImages);
   };
 
+  const handleDonationImageUpload = (farmUuid: string, type: string, file: File) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const updatedDonations = { ...donationData };
+      if (!updatedDonations[farmUuid]) {
+        updatedDonations[farmUuid] = {};
+      }
+      updatedDonations[farmUuid][type] = reader.result as string;
+      setDonationData(updatedDonations);
+    };
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDonationImageSwap = (farmUuid: string, fromType: string, toType: string) => {
+    const updatedDonations = { ...donationData };
+    if (!updatedDonations[farmUuid]) {
+      updatedDonations[farmUuid] = {};
+    }
+    
+    // 두 이미지의 위치를 바꿈
+    const temp = updatedDonations[farmUuid][fromType];
+    updatedDonations[farmUuid][fromType] = updatedDonations[farmUuid][toType] || '';
+    updatedDonations[farmUuid][toType] = temp || '';
+    
+    setDonationData(updatedDonations);
+  };
+
   const selectedHorse = useMemo(() => {
     return horses.find((h) => h.horseNo === selectedHorseNo) || null;
   }, [horses, selectedHorseNo]);
@@ -190,7 +221,7 @@ export default function FarmReport({ params }: PageProps) {
                     <button
                       key={h.horseNo}
                       onClick={() => setSelectedHorseNo(h.horseNo)}
-                      className={`flex-shrink-0 w-30 h-38 rounded border overflow-hidden ${selectedHorseNo === h.horseNo ? "ring-2 ring-blue-600" : "opacity-80"}`}
+                      className={`flex-shrink-0 w-30 h-38 rounded border overflow-hidden transition-all ${selectedHorseNo === h.horseNo ? "ring-2 ring-blue-600" : "opacity-80 hover:opacity-100"}`}
                       title={h.name}
                     >
                       {h.horse_url ? (
@@ -223,7 +254,14 @@ export default function FarmReport({ params }: PageProps) {
             )}
 
             {activeTab === "receiptProof" && (
-              <div className="mt-6 text-gray-600">영수증 증빙 관련 내용</div>
+              <div className="mt-0">
+                <DonationProofUpload
+                  farmUuid={farm_uuid}
+                  donationData={donationData}
+                  onImageUpload={handleDonationImageUpload}
+                  onImageSwap={handleDonationImageSwap}
+                />
+              </div>
             )}
           </section>
         </div>

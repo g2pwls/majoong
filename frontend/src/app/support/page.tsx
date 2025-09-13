@@ -24,6 +24,27 @@ type Farm = {
   image_url: string;
   state?: "우수" | "양호" | "보통" | "미흡";
   horse_url?: string[]; // 말 이미지 4장
+  horses?: Horse[]; // 말 데이터 배열
+};
+
+type Horse = {
+  id: number;
+  farm_id: string;
+  horseNo: string;
+  hrNm: string;
+  birthDt: string;
+  sex?: string;
+  color?: string;
+  breed?: string;
+  prdCty?: string;
+  rcCnt?: number;
+  fstCnt?: number;
+  sndCnt?: number;
+  amt?: number;
+  discardDt?: string | null;
+  fdebutDt?: string | null;
+  lchulDt?: string | null;
+  horse_url?: string;
 };
 
 const SearchTypeToggle: React.FC<{
@@ -115,6 +136,57 @@ const FarmCard: React.FC<{ farm: Farm }> = ({ farm }) => (
   </Link>
 );
 
+const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
+  <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
+    <Card className="relative overflow-hidden rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-shadow">
+      <CardContent className="p-4">
+        <div className="flex gap-4 items-start">
+          {/* 말 이미지 */}
+          <div className="flex-shrink-0">
+            <img
+              src={horse.horse_url || "/horses/mal.png"}
+              alt={`${horse.hrNm} 이미지`}
+              className="h-32 w-24 rounded-lg object-cover"
+            />
+          </div>
+          
+          {/* 말 정보 */}
+          <div className="flex-1 min-w-0">
+            <div className="mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 truncate">{horse.hrNm}</h3>
+              <p className="text-sm text-gray-600">마번: {horse.horseNo}</p>
+            </div>
+            
+            <div className="space-y-1 text-sm text-gray-600">
+              <p><span className="font-medium">농장:</span> {farm.farm_name}</p>
+              <p><span className="font-medium">성별:</span> {horse.sex || "미상"}</p>
+              <p><span className="font-medium">색상:</span> {horse.color || "미상"}</p>
+              <p><span className="font-medium">품종:</span> {horse.breed || "미상"}</p>
+              {horse.rcCnt !== undefined && (
+                <p><span className="font-medium">경주횟수:</span> {horse.rcCnt}회</p>
+              )}
+              {horse.amt !== undefined && horse.amt > 0 && (
+                <p><span className="font-medium">총상금:</span> {horse.amt.toLocaleString()}원</p>
+              )}
+            </div>
+          </div>
+          
+          {/* 농장 정보 */}
+          <div className="flex-shrink-0 text-right">
+            <div className="text-xs text-gray-500 space-y-1">
+              <p>농장주: {farm.name}</p>
+              <p className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {farm.address}
+              </p>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  </Link>
+);
+
 export default function SupportPage() {
   const [sort, setSort] = useState<"latest" | "recommended">("recommended");
   const [keyword, setKeyword] = useState("");
@@ -133,16 +205,16 @@ export default function SupportPage() {
         const res = await fetch(`/api/farms/all`, { cache: "no-store" });
         const list = res.ok ? ((await res.json()) as Farm[]) : [];
 
-        // (선택) 각 농장별 말 4장 붙이기 — horse API가 있다면
+        // 각 농장별 말 데이터와 이미지 4장 붙이기
         const withHorses = await Promise.all(
           list.map(async (f) => {
             try {
               const r = await fetch(`/api/horse/${f.id}`, { cache: "no-store" });
-              const horses = r.ok ? ((await r.json()) as any[]) : [];
+              const horses = r.ok ? ((await r.json()) as Horse[]) : [];
               const imgs = Array.isArray(horses)
                 ? horses.slice(0, 4).map((h) => h.horse_url).filter(Boolean)
                 : [];
-              return { ...f, horse_url: imgs };
+              return { ...f, horse_url: imgs, horses: horses };
             } catch {
               return f;
             }
@@ -162,16 +234,44 @@ export default function SupportPage() {
     };
   }, []);
 
-  const filtered = useMemo(() => {
-    let arr = [...farms];
+  const { filteredFarms, filteredHorses } = useMemo(() => {
+    let farmArr = [...farms];
+    let horseArr: Array<{ horse: Horse; farm: Farm }> = [];
+    
     if (keyword.trim()) {
       const q = keyword.trim().toLowerCase();
-      if (searchType === "farm") arr = arr.filter((f) => f.farm_name.toLowerCase().includes(q));
-      else arr = arr.filter((f) => (f.horse_url ?? []).some((u) => u.toLowerCase().includes(q)));
+      if (searchType === "farm") {
+        farmArr = farmArr.filter((f) => f.farm_name.toLowerCase().includes(q));
+      } else {
+        // 마명 검색: 각 농장의 말 데이터에서 hrNm으로 검색하여 말 카드 배열 생성
+        farmArr = farmArr.filter((f) => 
+          (f.horses ?? []).some((horse) => 
+            horse.hrNm.toLowerCase().includes(q)
+          )
+        );
+        
+        // 검색된 농장들에서 매칭된 말들만 추출
+        horseArr = farmArr.flatMap((farm) => 
+          (farm.horses ?? [])
+            .filter((horse) => horse.hrNm.toLowerCase().includes(q))
+            .map((horse) => ({ horse, farm }))
+        );
+      }
+    } else {
+      // 검색어가 없을 때는 모든 농장 표시
+      farmArr = farms;
     }
-    if (sort === "recommended") arr.sort((a, b) => b.total_score - a.total_score);
-    if (sort === "latest") arr.sort((a, b) => b.id.localeCompare(a.id));
-    return arr;
+    
+    if (sort === "recommended") {
+      farmArr.sort((a, b) => b.total_score - a.total_score);
+      horseArr.sort((a, b) => b.horse.amt - a.horse.amt);
+    }
+    if (sort === "latest") {
+      farmArr.sort((a, b) => b.id.localeCompare(a.id));
+      horseArr.sort((a, b) => b.horse.id - a.horse.id);
+    }
+    
+    return { filteredFarms: farmArr, filteredHorses: horseArr };
   }, [farms, keyword, searchType, sort]);
 
   return (
@@ -218,10 +318,18 @@ export default function SupportPage() {
           {loading && (
             <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">불러오는 중…</div>
           )}
-          {!loading && filtered.map((farm) => <FarmCard key={farm.id} farm={farm} />)}
-          {!loading && filtered.length === 0 && (
+          {!loading && searchType === "farm" && filteredFarms.map((farm) => <FarmCard key={farm.id} farm={farm} />)}
+          {!loading && searchType === "horse" && filteredHorses.map(({ horse, farm }) => (
+            <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
+          ))}
+          {!loading && searchType === "farm" && filteredFarms.length === 0 && (
             <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">
               검색 조건에 맞는 목장이 없어요.
+            </div>
+          )}
+          {!loading && searchType === "horse" && filteredHorses.length === 0 && (
+            <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">
+              검색 조건에 맞는 말이 없어요.
             </div>
           )}
         </div>
