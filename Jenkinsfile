@@ -1,8 +1,4 @@
 pipeline {
-    //failtest
-    parameters {
-        booleanParam(name: 'FAIL_TEST', defaultValue: false, description: '체크 시 실패 알림 테스트')
-    }
     agent any
 
     environment {
@@ -27,14 +23,14 @@ pipeline {
     }
 
     stages {
-        //failtest
-        stage('Fail Injection by Parameter') {
-            when { expression { return params.FAIL_TEST } }
+        stage('Init Log') {
             steps {
-                script {
-                sh 'echo "[FAIL_TEST] parameter-based failure" >> "$WORKSPACE/${LOG_FILE:-ci.log}" 2>&1'
-                error 'FAIL_TEST triggered'
-                }
+                sh '''
+                set -eu
+                : "${WORKSPACE:?}"
+                rm -f "$WORKSPACE/${LOG_FILE:-ci.log}" || true
+                touch "$WORKSPACE/${LOG_FILE:-ci.log}"
+                '''
             }
         }
 
@@ -42,8 +38,11 @@ pipeline {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                    sh 'cp $APPLICATION_YML ${BACKEND_DIR}/src/main/resources/application.yml'
-                    sh 'chmod 600 ${BACKEND_DIR}/src/main/resources/application.yml'
+                    sh """
+                      set -eu
+                      cp "\$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                      chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                    """
                 }
             }
         }
@@ -91,10 +90,19 @@ pipeline {
             when { expression { env.BACK_CHANGED == 'true' } }
             steps {
                 dir("${BACKEND_DIR}") {
-                    sh '''
-                        chmod +x ./gradlew
-                        ./gradlew --no-daemon build -x test
-                    '''
+                    script {
+                        try {
+                            sh """
+                            #!/usr/bin/env bash
+                            set -Eeuo pipefail
+                            chmod +x ./gradlew                                  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            ./gradlew --no-daemon build -x test 2>&1 | tee -a "\$WORKSPACE/${LOG_FILE}"
+                            """
+                        } catch (err) {
+                            sh "echo '[ERROR] Backend Build failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
+                            throw err  // 실패를 파이프라인에 전파
+                        }
+                    }
                 }
             }
         }
@@ -108,28 +116,43 @@ pipeline {
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                     if (env.BACK_CHANGED == 'true') {
-                        sh """
-                            docker build -f backend/Dockerfile -t majoong/backend-dev:${TAG} backend
-                            docker rm -f ${DEV_BACK_CONTAINER} || true
-                            docker run -d \
-                              --name ${DEV_BACK_CONTAINER} \
-                              --network ${TEST_NETWORK} \
-                              --network-alias backend-test \
-                              -p ${DEV_BACK_PORT}:8080 \
-                              majoong/backend-dev:${TAG}
-                        """
+                        script {
+                            try {
+                                sh """
+                                    docker build -f backend/Dockerfile -t majoong/backend-dev:${TAG} backend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker rm -f ${DEV_BACK_CONTAINER} || true                                >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker run -d \
+                                      --name ${DEV_BACK_CONTAINER} \
+                                      --network ${TEST_NETWORK} \
+                                      --network-alias backend-test \
+                                      -p ${DEV_BACK_PORT}:8080 \
+                                      majoong/backend-dev:${TAG}                                             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                """
+                            } catch(err) {
+                                sh "echo '[ERROR] Backend Deploy to Dev failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
+                                throw err
+                            }
+
+                        }
                     }
 
                     if (env.FRONT_CHANGED == 'true') {
-                        sh """
-                            docker build -f frontend/Dockerfile -t majoong/frontend-dev:${TAG} frontend
-                            docker rm -f ${DEV_FRONT_CONTAINER} || true
-                            docker run -d \
-                              --name ${DEV_FRONT_CONTAINER} \
-                              --network ${TEST_NETWORK} \
-                              -p ${DEV_FRONT_PORT}:3000 \
-                              majoong/frontend-dev:${TAG}
-                        """
+                        script {
+                            try {
+                                sh """
+                                    docker build -f frontend/Dockerfile -t majoong/frontend-dev:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker rm -f ${DEV_FRONT_CONTAINER} || true                                  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker run -d \
+                                      --name ${DEV_FRONT_CONTAINER} \
+                                      --network ${TEST_NETWORK} \
+                                      -p ${DEV_FRONT_PORT}:3000 \
+                                      majoong/frontend-dev:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                """
+                            } catch (err) {
+                                sh "echo '[ERROR] Frontend Deploy to Dev failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
+                                throw err
+                            }
+                        }
                     }
                 }
             }
@@ -143,30 +166,45 @@ pipeline {
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                    if (env.BACK_CHANGED == 'true') {
-                        sh """
-                            docker build -f backend/Dockerfile -t majoong/backend-prod:${TAG} backend
-                            docker tag majoong/backend-prod:${TAG} majoong/backend-prod:latest
-                            docker rm -f ${PROD_BACK_CONTAINER} || true
-                            docker run -d \
-                            --name ${PROD_BACK_CONTAINER} \
-                            --network ${PROD_NETWORK} \
-                            --network-alias backend
-                            -p ${PROD_BACK_PORT}:8080 \
-                            majoong/backend-prod:latest
-                        """
+                        script {
+                            try {
+                                sh """
+                                    docker build -f backend/Dockerfile -t majoong/backend-prod:${TAG} backend  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker tag majoong/backend-prod:${TAG} majoong/backend-prod:latest         >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker rm -f ${PROD_BACK_CONTAINER} || true                                 >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker run -d \
+                                      --name ${PROD_BACK_CONTAINER} \
+                                      --network ${PROD_NETWORK} \
+                                      --network-alias backend \
+                                      -p ${PROD_BACK_PORT}:8080 \
+                                      majoong/backend-prod:latest                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                """
+                            } catch(err) {
+                                sh "echo '[ERROR] Backend Deploy to main failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
+                                throw err
+                            }
+                        }
                     }
 
                     if (env.FRONT_CHANGED == 'true') {
-                        sh """
-                            docker build -f frontend/Dockerfile -t majoong/frontend-prod:${TAG} frontend
-                            docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest
-                            docker rm -f ${PROD_FRONT_CONTAINER} || true
-                            docker run -d \
-                            --name ${PROD_FRONT_CONTAINER} \
-                            --network ${PROD_NETWORK} \
-                            -p ${PROD_FRONT_PORT}:3000 \
-                            majoong/frontend-prod:${TAG}
-                        """
+                        script {
+                            try {
+                                sh """
+                                    docker build -f frontend/Dockerfile -t majoong/frontend-prod:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest         >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker rm -f ${PROD_FRONT_CONTAINER} || true                                  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker run -d \
+                                      --name ${PROD_FRONT_CONTAINER} \
+                                      --network ${PROD_NETWORK} \
+                                      -p ${PROD_FRONT_PORT}:3000 \
+                                      majoong/frontend-prod:latest                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                """
+
+                            } catch(err) {
+                                sh "echo '[ERROR] Frontend Deploy to Main failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
+                                throw err
+                            }
+                        }
                     }
                 }
             }
