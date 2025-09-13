@@ -1,4 +1,8 @@
 pipeline {
+    //failtest
+    parameters {
+        booleanParam(name: 'FAIL_TEST', defaultValue: false, description: '체크 시 실패 알림 테스트')
+    }
     agent any
 
     environment {
@@ -23,12 +27,23 @@ pipeline {
     }
 
     stages {
+        //failtest
+        stage('Fail Injection by Parameter') {
+            when { expression { return params.FAIL_TEST } }
+            steps {
+                script {
+                sh 'echo "[FAIL_TEST] parameter-based failure" >> "$WORKSPACE/${LOG_FILE:-ci.log}" 2>&1'
+                error 'FAIL_TEST triggered'
+                }
+            }
+            }
+
         stage('Prepare Secret') {
-            steps {//${BACKEND_DIR}
+            steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                    sh 'cp $APPLICATION_YML /src/main/resources/application.yml'
-                    sh 'chmod 600 /src/main/resources/application.yml'
+                    sh 'cp ${BACKEND_DIR}/$APPLICATION_YML /src/main/resources/application.yml'
+                    sh 'chmod 600 ${BACKEND_DIR}/src/main/resources/application.yml'
                 }
             }
         }
