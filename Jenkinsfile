@@ -36,13 +36,13 @@ pipeline {
                 error 'FAIL_TEST triggered'
                 }
             }
-            }
+        }
 
         stage('Prepare Secret') {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                    sh 'cp ${BACKEND_DIR}/$APPLICATION_YML /src/main/resources/application.yml'
+                    sh 'cp $APPLICATION_YML ${BACKEND_DIR}/src/main/resources/application.yml'
                     sh 'chmod 600 ${BACKEND_DIR}/src/main/resources/application.yml'
                 }
             }
@@ -198,7 +198,7 @@ pipeline {
 
                 // ci.log이 있으면 마지막 200줄, 없으면 빈 문자열
                 def tail = sh(
-                    script: 'tail -n 200 "$WORKSPACE/${LOG_FILE:-ci.log}" 2>/dev/null || true',
+                    script: "tail -n 200 \"$WORKSPACE/${LOG_FILE}\" 2>/dev/null || true",
                     returnStdout: true
                 ).trim()
 
