@@ -1,8 +1,4 @@
 pipeline {
-    //test
-    parameters {                                  // ← 추가
-    booleanParam(name: 'FAIL_TEST', defaultValue: false, description: '체크 시 실패 알림 테스트')
-  }
     agent any
 
     environment {
@@ -12,7 +8,7 @@ pipeline {
         DEV_FRONT_CONTAINER  = 'majoong-frontend-dev'
         PROD_BACK_CONTAINER  = 'majoong-backend-prod'
         PROD_FRONT_CONTAINER = 'majoong-frontend-prod'
-        DEV_BACK_PORTR    = '8081'
+        DEV_BACK_PORT    = '8081'
         DEV_FRONT_PORT   = '3001'
         PROD_BACK_PORT   = '8082'
         PROD_FRONT_PORT  = '3000'
@@ -37,16 +33,6 @@ pipeline {
                 '''
             }
         }
-
-//test
-        stage('Force Fail (param)') {                // ← 추가
-            when { expression { params.FAIL_TEST } }
-            steps {
-                sh 'echo "[FAIL_TEST] simulated failure before build" >> "$WORKSPACE/${LOG_FILE:-ci.log}"'
-                error 'FAIL_TEST triggered'              // 실패 유도 → post { failure { ... } } 실행
-            }
-        }   
-
         stage('Prepare Secret') {
             steps {
                 sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
