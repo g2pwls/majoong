@@ -1,6 +1,6 @@
 package com.e105.machimnae.common.jwt;
 
-import io.jsonwebtoken.Jwts;
+import com.e105.machimnae.auth.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,13 +9,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.crypto.SecretKey;
 import java.io.IOException;
 
 @Slf4j
@@ -32,28 +29,47 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain) throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String memberUUID;
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7); // "Bearer " 제거
+        try {
+            final String jwt = authHeader.substring(7);
 
-        memberUUID = Jwts.parser()
-                .verifyWith((SecretKey) jwtTokenProvider.getSignKey())
-                .build()
-                .parseSignedClaims(jwt)
-                .getPayload()
-                .get("memberUUID", String.class);
+            if (jwtTokenProvider.isTokenValid(jwt)) {
+                String memberUuid = jwtTokenProvider.getMemberUuid(jwt);
+                String role = jwtTokenProvider.getRole(jwt);
 
-        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                CustomUserDetails userDetails = new CustomUserDetails(memberUuid, role);
 
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+                log.info("JWT 인증 성공: {} (role={})", memberUuid, role);
+            }
+        } catch (Exception e) {
+            log.error("JWT 인증 실패: {}", e.getMessage());
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        boolean result = path.startsWith("/login/oauth2/") || path.startsWith("/oauth2/authorization/");
+        log.debug("shouldNotFilter: path={}, exclude={}", path, result);
+        return result;
+    }
 }
