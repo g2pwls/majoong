@@ -130,7 +130,7 @@ pipeline {
                                       --name ${DEV_BACK_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       --network-alias backend-test \
-                                      -p ${DEV_BACK_PORT}:808 \
+                                      -p ${DEV_BACK_PORT}:8080 \
                                       majoong/backend-dev:${TAG}                                             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
                             } catch(err) {
@@ -174,7 +174,7 @@ pipeline {
                         script {
                             try {
                                 sh """
-                                    docker build -f backend/Dockerfile -t majoong/backend-prod:${TAG} backend  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                    docker build -f /Dockerfile -t majoong/backend-prod:${TAG} backend  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                     docker tag majoong/backend-prod:${TAG} majoong/backend-prod:latest         >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                     docker rm -f ${PROD_BACK_CONTAINER} || true                                 >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                     docker run -d \
