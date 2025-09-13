@@ -92,11 +92,16 @@ pipeline {
                 dir("${BACKEND_DIR}") {
                     script {
                         try {
-                            sh """
-                            #!/usr/bin/env bash
+                            sh """#!/usr/bin/env bash
                             set -Eeuo pipefail
-                            chmod +x ./gradlew                                  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            ./gradlew --no-daemon build -x test 2>&1 | tee -a "\$WORKSPACE/${LOG_FILE}"
+                            chmod +x ./gradlew                                   >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            set -x
+                            ./gradlew --no-daemon build -x test --stacktrace --warning-mode all --info \
+                            2>&1 | tee -a "\$WORKSPACE/${LOG_FILE}"
+                            ec=\${PIPESTATUS[0]}
+                            set +x
+                            echo "[GRADLE_EXIT_CODE] \${ec}"                    >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            exit "\${ec}"
                             """
                         } catch (err) {
                             sh "echo '[ERROR] Backend Build failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
@@ -281,17 +286,17 @@ def resolvePusherMention() {
 // 아래에 pusher / Target Branch / Commit (실패 시 Error)만 표시
 def sendMMNotify(boolean success, Map info) {
   def titleLine = success ? "## :jenkins7: Jenkins Build Success"
-                          : "## :jenkins7: Jenkins Build Failed"
+                          : "## :angry_jenkins: Jenkins Build Failed"
 
   def lines = []
-  if (info.mention) lines << "**pusher**: ${info.mention}"
+  if (info.mention) lines << "**Author**: ${info.mention}"
   if (info.branch)  lines << "**Target Branch**: `${info.branch}`"
   if (info.commit?.msg) {
     def commitLine = info.commit?.url ? "[${info.commit.msg}](${info.commit.url})" : info.commit.msg
     lines << "**Commit**: ${commitLine}"
   }
   if (!success && info.details) {
-    lines << "Error:\n${info.details}"
+    lines << "**Error**:\n${info.details}"
   }
 
   def text = "${titleLine}\n" + (lines ? ("\n" + lines.join("\n")) : "")
