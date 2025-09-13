@@ -73,16 +73,16 @@ pipeline {
                         withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
                         sh """
                             set -eu
-                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application-prod.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            chmod 600 "${BACKEND_DIR}/src/main/resources/application-prod.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                         """
                         }
                     } else if (env.BRANCH_NAME == 'dev') {
                         withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
                         sh """
                             set -eu
-                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application-dev.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            chmod 600 "${BACKEND_DIR}/src/main/resources/application-dev.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                         """
                         }
                     } else {
