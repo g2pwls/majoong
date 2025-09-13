@@ -12,7 +12,7 @@ pipeline {
         DEV_FRONT_CONTAINER  = 'majoong-frontend-dev'
         PROD_BACK_CONTAINER  = 'majoong-backend-prod'
         PROD_FRONT_CONTAINER = 'majoong-frontend-prod'
-        DEV_BACK_PORT    = '8081'
+        DEV_BACK_PORTR    = '8081'
         DEV_FRONT_PORT   = '3001'
         PROD_BACK_PORT   = '8082'
         PROD_FRONT_PORT  = '3000'
