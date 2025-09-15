@@ -6,8 +6,8 @@ import Link from "next/link";
 type Horse = {
   id?: string | number;
   horseNo: string;
-  name?: string;
-  birthDate?: string;
+  hrNm?: string;
+  birthDt?: string;
   breed?: string;
   sex?: string;
   image?: string;
@@ -33,7 +33,7 @@ export default function HorseRegistrySection({ horses, farmUuid }: Props) {
               {horse.image ? (
                 <img
                   src={horse.image}
-                  alt={horse.name ?? "말 이미지"}
+                  alt={horse.hrNm ?? "말 이미지"}
                   className="w-full h-48 object-cover bg-gray-50"
                 />
               ) : (
@@ -43,11 +43,11 @@ export default function HorseRegistrySection({ horses, farmUuid }: Props) {
               )}
               <div className="p-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-semibold">{horse.name}</h4>
+                  <h4 className="text-lg font-semibold">{horse.hrNm}</h4>
                 </div>
                 <p className="text-sm text-gray-500">마번: {horse.horseNo}</p>
-                {horse.birthDate && (
-                  <p className="text-sm text-gray-500">생년월일: {horse.birthDate}</p>
+                {horse.birthDt && (
+                  <p className="text-sm text-gray-500">생년월일: {horse.birthDt}</p>
                 )}
                 {horse.breed && (
                   <p className="text-sm text-gray-500">품종: {horse.breed}</p>

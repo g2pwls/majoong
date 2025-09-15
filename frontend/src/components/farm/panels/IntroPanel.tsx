@@ -7,8 +7,8 @@ import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 type Horse = {
   id?: string | number;
   horseNo: string;
-  name?: string;
-  birthDate?: string;
+  hrNm?: string;
+  birthDt?: string;
   breed?: string;
   sex?: string;
   image?: string;
@@ -34,8 +34,8 @@ export default function IntroPanel({ farm }: { farm: any }) {
         const mapped = data.map((h: any) => ({
           id: h.id,
           horseNo: String(h.horseNo),
-          name: h.hrNm,
-          birthDate:
+          hrNm: h.hrNm,
+          birthDt:
             typeof h.birthDt === "string" && h.birthDt.length === 8
               ? `${h.birthDt.slice(0, 4)}-${h.birthDt.slice(4, 6)}-${h.birthDt.slice(6, 8)}`
               : h.birthDt,

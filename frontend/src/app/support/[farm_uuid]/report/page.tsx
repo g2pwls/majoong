@@ -21,7 +21,7 @@ export type Farm = {
 
 type Horse = {
   horseNo: string;
-  name: string;
+  hrNm: string;
   horse_url?: string;
 };
 
@@ -74,7 +74,7 @@ export default function FarmReport({ params }: PageProps) {
         // API 응답을 Horse 타입에 맞게 변환
         const mappedHorses = data.map((h: any) => ({
           horseNo: String(h.horseNo),
-          name: h.hrNm,
+          hrNm: h.hrNm,
           horse_url: h.horse_url,
         }));
         setHorses(mappedHorses);
@@ -222,16 +222,16 @@ export default function FarmReport({ params }: PageProps) {
                       key={h.horseNo}
                       onClick={() => setSelectedHorseNo(h.horseNo)}
                       className={`flex-shrink-0 w-30 h-38 rounded border overflow-hidden transition-all ${selectedHorseNo === h.horseNo ? "ring-2 ring-blue-600" : "opacity-80 hover:opacity-100"}`}
-                      title={h.name}
+                      title={h.hrNm}
                     >
                       {h.horse_url ? (
                         <img
                           src={h.horse_url}
-                          alt={h.name}
+                          alt={h.hrNm}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="w-full h-full grid place-items-center text-xs bg-gray-200">{h.name}</span>
+                        <span className="w-full h-full grid place-items-center text-xs bg-gray-200">{h.hrNm}</span>
                       )}
                     </button>
                   ))}
@@ -242,7 +242,7 @@ export default function FarmReport({ params }: PageProps) {
                   <HorseImageUpload
                     key={selectedHorse.horseNo}
                     horseNo={selectedHorse.horseNo}
-                    horseName={selectedHorse.name}
+                    hrNm={selectedHorse.hrNm}
                     imageData={imageData}
                     onImageUpload={handleImageUpload}
                     onImageSwap={handleImageSwap}

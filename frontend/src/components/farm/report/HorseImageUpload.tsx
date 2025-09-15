@@ -5,7 +5,7 @@ import { useState } from "react";
 
 type HorseImageUploadProps = {
   horseNo: string;
-  horseName: string;
+  hrNm: string;
   imageData: Record<string, Record<string, string>>;
   onImageUpload: (horseNo: string, imageType: string, file: File) => void;
   onImageSwap?: (horseNo: string, fromType: string, toType: string) => void;
@@ -13,7 +13,7 @@ type HorseImageUploadProps = {
 
 export default function HorseImageUpload({ 
   horseNo, 
-  horseName, 
+  hrNm, 
   imageData, 
   onImageUpload,
   onImageSwap
@@ -66,7 +66,7 @@ export default function HorseImageUpload({
 
   return (
     <div className="border p-4 rounded-lg bg-gray-100 mb-4">
-      <h3 className="text-lg font-semibold">{horseName} ({horseNo})</h3>
+      <h3 className="text-lg font-semibold">{hrNm} ({horseNo})</h3>
 
       <div className="grid grid-cols-3 gap-4 mt-4">
         {["front", "side", "back"].map((view) => (

@@ -11,7 +11,7 @@ import { ArrowLeft, Calendar, Trophy, MapPin, Phone } from "lucide-react";
 
 type Horse = {
   horseNo: string;
-  name: string;
+  hrNm: string;
   horse_url?: string;
   farm_name?: string;
   birthDt?: string;
@@ -77,7 +77,7 @@ export default function HorseDetailPage({ params }: PageProps) {
         if (alive) {
           setHorse({
             horseNo: foundHorse.horseNo,
-            name: foundHorse.hrNm,
+            hrNm: foundHorse.hrNm,
             horse_url: foundHorse.horse_url,
             farm_name: foundHorse.farm_name,
             birthDt: foundHorse.birthDt,
@@ -156,13 +156,13 @@ export default function HorseDetailPage({ params }: PageProps) {
           items={[
             { label: "목장후원", href: "/support" },
             { label: farm?.farm_name || "목장", href: `/support/${farm_uuid}` },
-            { label: `${horse.horseNo} ${horse.name}` },
+            { label: `${horse.horseNo} ${horse.hrNm}` },
           ]}
         />
 
         {/* 메인 콘텐츠 */}
         <div className="flex flex-row items-center justify-between mt-5">
-          <h1 className="text-3xl font-bold"><span className="text-red-600">{horse.horseNo}</span> {horse.name}</h1>
+          <h1 className="text-3xl font-bold"><span className="text-red-600">{horse.horseNo}</span> {horse.hrNm}</h1>
             <div className="mt-0">
               <Button 
                 variant="outline" 
@@ -182,7 +182,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                 {horse.horse_url ? (
                   <img
                     src={horse.horse_url}
-                    alt={horse.name}
+                    alt={horse.hrNm}
                     className="w-full h-64 object-contain"
                   />
                 ) : (
@@ -345,7 +345,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                       {horse.horse_url && (
                         <img
                           src={horse.horse_url}
-                          alt={horse.name}
+                          alt={horse.hrNm}
                           className="w-12 h-12 rounded-full object-cover"
                         />
                       )}
