@@ -1,0 +1,67 @@
+// src/compents/farm/edit/HorseRegistrySection.tsx
+"use client";
+
+import Link from "next/link";
+
+type Horse = {
+  id?: string | number;
+  horseNo: string;
+  hrNm?: string;
+  birthDt?: string;
+  breed?: string;
+  sex?: string;
+  image?: string;
+};
+
+type Props = {
+  horses: Horse[];
+  farmUuid?: string;
+};
+
+export default function HorseRegistrySection({ horses, farmUuid }: Props) {
+  return (
+    <section>
+      <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>
+      {horses.length > 0 && (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {horses.map((horse) => (
+            <Link
+              key={horse.id ?? horse.horseNo}
+              href={farmUuid ? `/support/${farmUuid}/${horse.horseNo}` : '#'}
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
+            >
+              {horse.image ? (
+                <img
+                  src={horse.image}
+                  alt={horse.hrNm ?? "말 이미지"}
+                  className="w-full h-48 object-cover bg-gray-50"
+                />
+              ) : (
+                <div className="w-full h-48 bg-gray-50 flex items-center justify-center text-gray-400 text-sm">
+                  이미지 없음
+                </div>
+              )}
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-lg font-semibold">{horse.hrNm}</h4>
+                </div>
+                <p className="text-sm text-gray-500">마번: {horse.horseNo}</p>
+                {horse.birthDt && (
+                  <p className="text-sm text-gray-500">생년월일: {horse.birthDt}</p>
+                )}
+                {horse.breed && (
+                  <p className="text-sm text-gray-500">품종: {horse.breed}</p>
+                )}
+                {horse.sex && (
+                  <p className="text-sm text-gray-500">성별: {horse.sex}</p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
