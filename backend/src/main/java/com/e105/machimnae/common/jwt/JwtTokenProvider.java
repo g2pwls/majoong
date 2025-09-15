@@ -10,66 +10,60 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.core.env.Environment;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    //    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
-    private final Environment env;
-    public String generateAccessToken(String memberUUID) {
+    @Value("${jwt.secret-key}")
+    private String secretKey;
 
-        Claims claims = Jwts.claims().subject(memberUUID).build();
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + env.getProperty("jwt.access-expire-time", Long.class).longValue());
+    @Value("${jwt.access-expire-time}")
+    private long accessExpireTime;
 
-        return Jwts.builder()
-                .signWith(getSignKey())
-                .claim("memberUUID", claims.getSubject())
-                .setExpiration(expiration)
-                .compact();
+    @Value("${jwt.refresh-expire-time}")
+    private long refreshExpireTime;
 
+    private Key getSignKey() {
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateRefreshToken(Authentication authentication) {
-
-        Claims claims = Jwts.claims().subject(authentication.getName()).build();
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + env.getProperty("jwt.refresh-expire-time", Long.class).longValue());
-
+    public String generateAccessToken(String memberUUID, String role) {
         return Jwts.builder()
                 .signWith(getSignKey())
-                .claim("email", claims.getSubject())
-                .issuedAt(expiration)
+                .claim("memberUUID", memberUUID)
+                .claim("role", role)
+                .setExpiration(new Date(System.currentTimeMillis() + accessExpireTime))
                 .compact();
     }
 
-    public Key getSignKey() {
-        return Keys.hmacShaKeyFor(env.getProperty("jwt.secret-key").getBytes());
+    public String generateRefreshToken(String memberUUID, String role) {
+        return Jwts.builder()
+                .signWith(getSignKey())
+                .claim("memberUUID", memberUUID)
+                .claim("role", role)
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpireTime))
+                .compact();
     }
 
-    public Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(getSignKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    public long getRefreshExpireTime() {
+        return refreshExpireTime;
     }
 
-    public String getMemberUUID(String token) throws BaseException {
+    public boolean isTokenValid(String token) throws BaseException {
         try {
-            token = token.replace("Bearer ", "");
-            Claims claims = getClaims(token);
-            token = claims.get("memberUUID", String.class);
-            return token;
+            Jwts.parser()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
         } catch (ExpiredJwtException e) {
             log.error("만료된 토큰입니다");
             throw new BaseException(BaseResponseStatus.WRONG_JWT_TOKEN);
@@ -85,4 +79,34 @@ public class JwtTokenProvider {
         }
     }
 
+    private Claims getClaims(String token) {
+        return Jwts.parser()
+                .setSigningKey(getSignKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
+    public String getMemberUuid(String token) {
+        return getClaims(token).get("memberUUID", String.class);
+    }
+
+    public String getRole(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public String generateTempAccessToken(String oauthId, String email, String provider) {
+        long thirtyMinutes = TimeUnit.MINUTES.toMillis(30);
+
+        return Jwts.builder()
+                .signWith(getSignKey())
+                .claim("memberUUID", "TEMP:" + oauthId)
+                .claim("role", "TEMP")
+                .claim("scope", "SIGNUP")
+                .claim("oauthId", oauthId)
+                .claim("provider", provider)
+                .claim("email", email)
+                .setExpiration(new Date(System.currentTimeMillis() + thirtyMinutes))
+                .compact();
+    }
 }

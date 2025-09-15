@@ -33,18 +33,6 @@ pipeline {
                 '''
             }
         }
-        stage('Prepare Secret') {
-            steps {
-                sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
-                withCredentials([file(credentialsId: 'SECRETFILE', variable: 'APPLICATION_YML')]) {
-                    sh """
-                      set -eu
-                      cp "\$APPLICATION_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                      chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                    """
-                }
-            }
-        }
 
         stage('Detect Changes') {
             steps {
@@ -74,6 +62,33 @@ pipeline {
                     env.BRANCH_NAME  = params.GIT_REF.replaceFirst(/^refs\/heads\//, '')
                     echo "▶ Branch = ${env.BRANCH_NAME }"
                 }
+            }
+        }
+        
+        stage('Prepare Secret') {
+            steps {
+                sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
+                script {
+                    if (env.BRANCH_NAME == 'main') {
+                        withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
+                        sh """
+                            set -eu
+                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                        """
+                        }
+                    } else if (env.BRANCH_NAME == 'dev') {
+                        withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
+                        sh """
+                            set -eu
+                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                        """
+                        }
+                    } else {
+                        echo "ℹ️ main/dev 외 브랜치: 별도 시크릿 복사 생략"
+                    }
+                    }
             }
         }
 

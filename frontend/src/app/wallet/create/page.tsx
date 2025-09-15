@@ -1,0 +1,131 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+
+export default function WalletCreatePage() {
+  const [isCreating, setIsCreating] = useState(true);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    // 지갑 생성 시뮬레이션
+    const createWallet = async () => {
+      try {
+        // TODO: 백엔드 API 연동
+        // const response = await fetch('/api/wallet/create', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({ userId: 'current_user_id' })
+        // });
+        
+        // 임시로 진행률 시뮬레이션
+        const steps = [
+          { message: '지갑 초기화 중...', progress: 20 },
+          { message: '개인키 생성 중...', progress: 40 },
+          { message: '공개키 생성 중...', progress: 60 },
+          { message: '지갑 주소 생성 중...', progress: 80 },
+          { message: '지갑 설정 완료 중...', progress: 100 }
+        ];
+
+        for (const step of steps) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          setProgress(step.progress);
+        }
+
+        // 지갑 생성 완료 후 메인 페이지로 이동
+        setTimeout(() => {
+          setIsCreating(false);
+          alert('지갑이 성공적으로 생성되었습니다!');
+          window.location.href = '/';
+        }, 1000);
+
+      } catch (error) {
+        console.error('지갑 생성 오류:', error);
+        alert('지갑 생성에 실패했습니다. 다시 시도해주세요.');
+        window.location.href = '/signup';
+      }
+    };
+
+    createWallet();
+  }, []);
+
+  const getProgressMessage = () => {
+    if (progress <= 20) return '지갑 초기화 중...';
+    if (progress <= 40) return '개인키 생성 중...';
+    if (progress <= 60) return '공개키 생성 중...';
+    if (progress <= 80) return '지갑 주소 생성 중...';
+    return '지갑 설정 완료 중...';
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div className="text-center">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            지갑 생성
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            회원가입이 완료되었습니다. 지갑을 생성하고 있습니다.
+          </p>
+        </div>
+
+        <div className="mt-8 space-y-6">
+          {/* 지갑 생성 진행 상황 */}
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="text-center space-y-4">
+              {/* 스피너 */}
+              <div className="flex justify-center">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+              </div>
+
+              {/* 진행 메시지 */}
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  {getProgressMessage()}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  잠시만 기다려주세요. 지갑 생성이 완료되면 자동으로 이동합니다.
+                </p>
+              </div>
+
+              {/* 진행률 바 */}
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+
+              {/* 진행률 퍼센트 */}
+              <div className="text-sm text-gray-600">
+                {progress}% 완료
+              </div>
+            </div>
+          </div>
+
+          {/* 안내 문구 */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  지갑 생성 안내
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>개인키와 공개키를 안전하게 생성합니다</li>
+                    <li>지갑 주소가 자동으로 할당됩니다</li>
+                    <li>생성된 지갑은 안전하게 보관됩니다</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
