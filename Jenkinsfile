@@ -108,13 +108,12 @@ pipeline {
             when { expression { env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'main' } }
             steps {
                 script {
-                def devPath  = '/opt/majoong/dev/backend/application.yml'
-                def prodPath = '/opt/majoong/prod/backend/application.yml'
+                // 워크스페이스 하위 경로로 변경 (sudo 불필요)
+                def devPath  = "${WORKSPACE}/secrets/dev/backend/application.yml"
+                def prodPath = "${WORKSPACE}/secrets/prod/backend/application.yml"
 
-                // 디렉토리/권한 보장 (sudo가 필요 없다면 제거)
                 sh """
-                    sudo mkdir -p /opt/majoong/dev/backend /opt/majoong/prod/backend
-                    sudo chown -R \$(id -u):\$(id -g) /opt/majoong
+                    mkdir -p "${WORKSPACE}/secrets/dev/backend" "${WORKSPACE}/secrets/prod/backend"
                 """
 
                 if (env.BRANCH_NAME == 'dev') {
@@ -128,7 +127,7 @@ pipeline {
                 }
                 }
             }
-            }
+        }
 
         stage('Nothing to Build') {
             when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' && env.CHAIN_CHANGED != 'true' } }
