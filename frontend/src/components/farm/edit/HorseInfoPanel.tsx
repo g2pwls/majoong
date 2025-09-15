@@ -55,8 +55,14 @@ export default function HorseInfoPanel({
     setError("");
     setIsFetchComplete(false); // 조회 시작 시 버튼 비활성화
 
-    const serviceKey =
-      "d4e16bc9a7869e789fee7e1593044398075b8dbaf6d49e5687aba9231bb1c112"; // 인증키
+    const serviceKey = process.env.NEXT_PUBLIC_HORSE_API_SERVICE_KEY; // 인증키
+    
+    if (!serviceKey) {
+      setError("API 서비스 키가 설정되지 않았습니다.");
+      setLoading(false);
+      return;
+    }
+    
     const pageNo = 1; // 페이지 번호
     const numOfRows = 10; // 한 페이지에 결과 수 (필요한 만큼 조정)
 

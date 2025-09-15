@@ -26,8 +26,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!process.env.OPENAI_API_URL) {
+      console.error("OPENAI_API_URL이 설정되지 않았습니다.");
+      return NextResponse.json(
+        { error: "OpenAI API URL이 설정되지 않았습니다." },
+        { status: 500 }
+      );
+    }
+
     // OpenAI API 호출
-    const openaiResponse = await fetch("https://gms.ssafy.io/gmsapi/api.openai.com/v1/chat/completions", {
+    const openaiResponse = await fetch(process.env.OPENAI_API_URL, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
