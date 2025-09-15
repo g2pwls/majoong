@@ -1,5 +1,23 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## 환경 설정
+
+프로젝트를 실행하기 전에 환경 변수를 설정해야 합니다.
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음 내용을 추가하세요:
+
+```bash
+# 백엔드 API URL
+NEXT_PUBLIC_API_URL=http://localhost:8080
+```
+
+### 소셜 로그인
+
+이 프로젝트는 백엔드에서 OAuth2를 처리합니다:
+- 카카오 로그인은 백엔드에서 OAuth2 플로우로 처리
+- 프론트엔드는 백엔드의 OAuth 엔드포인트로 리다이렉트
+- 백엔드에서 카카오 개발자 콘솔 설정 필요
+
 ## Getting Started
 
 First, run the development server:
