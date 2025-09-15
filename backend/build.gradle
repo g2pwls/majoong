@@ -59,6 +59,9 @@ dependencies {
 
 	//okhttp
 	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+
+    // web3j for blockchain interaction
+    implementation 'org.web3j:core:4.10.3'
 }
 
 tasks.named('test') {
