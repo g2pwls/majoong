@@ -40,4 +40,3 @@ out/
 ### .yml files ###
 *.yml
 *.yaml
-*.properties
