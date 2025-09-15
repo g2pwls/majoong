@@ -221,7 +221,7 @@ pipeline {
                                       --name ${DEV_BACK_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       --network-alias backend-test \
-                                      -v /opt/majoong/dev/backend/application.yml:/app/config/application.yml:ro \
+                                      -v ${WORKSPACE}/majoong/dev/backend/application.yml:/app/config/application.yml:ro \
                                       -e SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/ \
                                       -p ${DEV_BACK_PORT}:8080 \
                                       majoong/backend-dev:${TAG}                                             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -275,7 +275,7 @@ pipeline {
                                       --name ${PROD_BACK_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       --network-alias backend \
-                                      -v /opt/majoong/prod/backend/application.yml:/app/config/application.yml:ro \
+                                      -v ${WORKSPACE}/majoong/prod/backend/application.yml:/app/config/application.yml:ro \
                                       -e SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/ \
                                       -p ${PROD_BACK_PORT}:8080 \
                                       majoong/backend-prod:${TAG}                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1

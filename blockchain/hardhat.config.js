@@ -5,7 +5,7 @@ require("@nomicfoundation/hardhat-toolbox");
 // 'dotenv'는 .env 파일에 저장된 환경 변수들을 'process.env' 객체로 불러오는 라이브러리입니다.
 // .env 파일에는 API 키나 개인 키처럼 코드에 직접 노출되면 안 되는 민감한 정보들을 저장합니다.
 // .config() 함수를 호출하여 .env 파일을 읽어들입니다.
-require("dotenv").config();  
+require("dotenv").config();
 
 // 'module.exports'는 Node.js에서 현재 파일을 다른 파일에서 'require'로 불러올 때
 // 어떤 값을 내보낼지 정의하는 객체입니다.
