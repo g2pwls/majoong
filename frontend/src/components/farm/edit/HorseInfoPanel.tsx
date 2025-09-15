@@ -115,7 +115,7 @@ export default function HorseInfoPanel({
         id: `${profileData.horseNo}-${Date.now()}`, // 리스트 렌더링용 key
         horseNo: profileData.horseNo, // 중복 체크용
         image: filePreview,
-        hrnm: profileData.hrNm,
+        hrNm: profileData.hrNm,
         birthDt: profileData.birthDt,
         breed: profileData.breed,
         sex: profileData.sex,
