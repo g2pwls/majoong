@@ -137,15 +137,28 @@ pipeline {
             }
         }
 
-        stage('Prepare Hardhat Env') {
+        stage('Prepare Env Files') {
             steps {
-                withCredentials([file(credentialsId: 'ENV', variable: 'DOTENV')]) {
-                    sh '''
-                    cp $DOTENV blockchain/.env
-                    chmod 600 blockchain/.env
-                    echo ".env copied into blockchain/"
-                    '''
-                }
+                script {
+                    // 디렉토리 보장
+                    sh 'mkdir -p blockchain frontend'
+
+                    // 1) blockchain/.env 주입
+                    withCredentials([file(credentialsId: 'ENV_BLOCKCHAIN', variable: 'BLOCK_ENV')]) {
+                        sh '''
+                        install -m 600 -T "$BLOCK_ENV" "blockchain/.env"
+                        echo "[INFO] blockchain/.env installed"
+                        '''
+                    }
+
+                    // 2) frontend/.env 주입
+                    withCredentials([file(credentialsId: 'ENV_FRONTEND', variable: 'FRONT_ENV')]) {
+                        sh '''
+                        install -m 600 -T "$FRONT_ENV" "frontend/.env"
+                        echo "[INFO] frontend/.env installed"
+                        '''
+                    }
+                    }
             }
         }
 
@@ -331,6 +344,7 @@ pipeline {
         always {
             echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
             sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
+            sh "rm -f blockchain/.env frontend/.env || true"
         }
     }
 }
