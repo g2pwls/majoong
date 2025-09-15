@@ -117,7 +117,7 @@ export default function FarmEdit({ params }: PageProps) {
   return (
     <div className="min-h-screen">
       <header className="border-b bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-5">
+        <div className="mx-auto max-w-7xl px-6 py-5">
           {/* 브래드크럼 */}
           <Breadcrumbs
             items={[
@@ -143,13 +143,13 @@ export default function FarmEdit({ params }: PageProps) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-10 space-y-12">
+      <main className="mx-auto max-w-7xl px-6 py-10 space-y-12">
         {/* 기본 정보 수정 패널 */}
-        <h2 className="text-lg font-semibold">기본 정보 수정</h2>
+        <h2 className="text-lg font-semibold mb-2">기본 정보 수정</h2>
         <FarmBasicInfoPanel farm_uuid={farm_uuid} farm={farm ?? undefined} />
 
         {/* 말 정보 수정 패널 */}
-        <h2 className="mt-6 text-lg font-semibold">말 정보 수정</h2>
+        <h2 className="mt-6 text-lg font-semibold mb-2">말 정보 수정</h2>
         <HorseInfoPanel farm_uuid={farm_uuid} onHorseRegistered={handleHorseRegistration} />
 
         <HorseRegistrySection horses={registeredHorses} />

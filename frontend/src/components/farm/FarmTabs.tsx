@@ -1,5 +1,5 @@
 import React from "react";
-
+import Link from "next/link";
 export type FarmTabValue = "intro" | "newsletter" | "donations" | "trust";
 
 export type TabItem = {
@@ -14,6 +14,7 @@ type Props = {
   onChange: (next: FarmTabValue) => void;
   items?: TabItem[];                   // 탭 목록 (미지정 시 기본 4개)
   className?: string;
+  farmUuid?: string;                  // 농장 UUID (기부하기 버튼 링크용)
 };
 
 const DEFAULT_ITEMS: TabItem[] = [
@@ -28,6 +29,7 @@ export default function FarmTabs({
   onChange,
   items = DEFAULT_ITEMS,
   className = "",
+  farmUuid,
 }: Props) {
   return (
     <div className={`border-b border-gray-200 ${className}`}>
@@ -60,12 +62,12 @@ export default function FarmTabs({
           })}
         </div>
         {/* Donate Button */}
-        <button
-          type="button"
+        <Link 
+          href={farmUuid ? `/support/${farmUuid}/donate` : "/donate"}
           className="ml-4 bg-green-500 text-white py-1.5 px-4 rounded-md hover:bg-green-600 transition-colors"
         >
           기부하기
-        </button>
+        </Link>
       </nav>
     </div>
   );

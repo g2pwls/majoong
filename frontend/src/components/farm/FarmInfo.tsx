@@ -28,7 +28,7 @@ export default function FarmInfo({
     v === undefined || v === null ? "-" : typeof v === "number" ? v.toLocaleString() : v;
 
   return (
-    <section className={`rounded-xl bg-white shadow-sm border p-5 ${className}`}>
+    <section className={`rounded-xl bg-white shadow-sm border p-3 ${className}`}>
       {/* 헤더: 토글 가능 */}
       {showHeader && (
         <div className="mb-4 flex items-baseline gap-3">
@@ -49,7 +49,7 @@ export default function FarmInfo({
       )}
 
       {/* 정보 리스트: dt/dd 쌍만 직계 자식 */}
-      <dl className="mt-5 grid grid-cols-[80px_1fr] gap-y-3 text-sm">
+      <dl className="mt-5 grid grid-cols-[60px_1fr] gap-y-4 text-sm">
         {address && (
           <>
             <dt className="text-gray-500">위치</dt>

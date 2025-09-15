@@ -374,3 +374,4 @@ export default function HorseDetailPage({ params }: PageProps) {
     </div>
   );
 }
+

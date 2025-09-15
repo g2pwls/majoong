@@ -23,7 +23,7 @@ type Farm = {
   total_score: number;
   image_url: string;
   state?: "우수" | "양호" | "보통" | "미흡";
-  horse_url?: string[]; // 말 이미지 4장
+  horse_url?: (string | undefined)[]; // 말 이미지 4장
   horses?: Horse[]; // 말 데이터 배열
 };
 
@@ -82,58 +82,58 @@ const TempBadge: React.FC<{ temp?: number }> = ({ temp }) => {
 };
 
 const FarmCard: React.FC<{ farm: Farm }> = ({ farm }) => (
-  <Link href={`/support/${farm.id}`} passHref>
-    <Card className="relative overflow-hidden rounded-2xl shadow-sm cursor-pointer">
-      <TempBadge temp={farm.total_score} />
-      <CardContent className="p-4 md:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* 왼쪽: cover + 정보 */}
-          <div className="flex gap-4 items-start">
-            <img
-              src={farm.image_url}
-              alt={`${farm.farm_name} cover`}
-              className="h-42 w-58 rounded-xl object-cover"
-            />
-            <div className="flex flex-col gap-1">
-              <div className="mb-3 flex items-center gap-2">
-                <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
-                <button className="rounded-full border p-1" aria-label="즐겨찾기">
-                  <Star className="h-4 w-4" />
-                </button>
-              </div>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-4 w-4" /> {farm.address}
-              </p>
-              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Users className="h-4 w-4" /> 말 {farm.horse_count}두
-              </p>
-              {farm.state && (
-                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
-              )}
+  <Card className="relative overflow-hidden rounded-2xl shadow-sm">
+    <TempBadge temp={farm.total_score} />
+    <CardContent className="p-4 md:p-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* 왼쪽: cover + 정보 */}
+        <Link href={`/support/${farm.id}`} className="flex gap-4 items-start cursor-pointer">
+          <img
+            src={farm.image_url}
+            alt={`${farm.farm_name} cover`}
+            className="h-42 w-58 rounded-xl object-cover"
+          />
+          <div className="flex flex-col gap-1">
+            <div className="mb-3 flex items-center gap-2">
+              <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
+              <button className="rounded-full border p-1" aria-label="즐겨찾기">
+                <Star className="h-4 w-4" />
+              </button>
             </div>
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <MapPin className="h-4 w-4" /> {farm.address}
+            </p>
+            <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+            <p className="text-sm text-muted-foreground flex items-center gap-1">
+              <Users className="h-4 w-4" /> 말 {farm.horse_count}두
+            </p>
+            {farm.state && (
+              <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+            )}
           </div>
+        </Link>
 
-          {/* 오른쪽: 갤러리 + 버튼 */}
-          <div className="flex flex-col items-end gap-3">
+        {/* 오른쪽: 갤러리 + 버튼 */}
+        <div className="flex flex-col items-end gap-3">
+          <Link href={`/support/${farm.id}/donate`}>
             <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
               기부하기
             </Button>
-            <div className="flex gap-2">
-              {(farm.horse_url ?? []).slice(0, 4).map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt={`${farm.farm_name} horse_url ${i + 1}`}
-                  className="h-30 w-23 rounded-lg object-cover"
-                />
-              ))}
-            </div>
+          </Link>
+          <div className="flex gap-2">
+            {(farm.horse_url ?? []).slice(0, 4).map((src, i) => (
+              <img
+                key={i}
+                src={src}
+                alt={`${farm.farm_name} horse_url ${i + 1}`}
+                className="h-30 w-23 rounded-lg object-cover"
+              />
+            ))}
           </div>
         </div>
-      </CardContent>
-    </Card>
-  </Link>
+      </div>
+    </CardContent>
+  </Card>
 );
 
 const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
@@ -264,7 +264,7 @@ export default function SupportPage() {
     
     if (sort === "recommended") {
       farmArr.sort((a, b) => b.total_score - a.total_score);
-      horseArr.sort((a, b) => b.horse.amt - a.horse.amt);
+      horseArr.sort((a, b) => (b.horse.amt || 0) - (a.horse.amt || 0));
     }
     if (sort === "latest") {
       farmArr.sort((a, b) => b.id.localeCompare(a.id));

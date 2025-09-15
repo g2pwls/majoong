@@ -75,12 +75,12 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   const farmId = (farm as any)?.farm_uuid ?? (farm as any)?.id;
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto max-w-7xl p-6">
       {/* 브레드크럼 */}
       <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
-      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
+      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
         {/* 왼쪽: 타이틀(바깥) + 카드(헤더 숨김) */}
         <aside className="lg:sticky lg:top-6 self-start">
           {/* 바깥 헤더 */}
@@ -113,7 +113,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} />
+          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmId} />
           <div className="mt-6">
             {tab === "intro" && <IntroPanel farm={farm} />}
             {tab === "newsletter" && <NewsletterPanel farmId={farmId} />}
