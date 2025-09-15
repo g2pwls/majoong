@@ -44,14 +44,17 @@ pipeline {
                         echo "❎ 변경된 파일이 없습니다. 스킵합니다."
                         env.BACK_CHANGED  = 'false'
                         env.FRONT_CHANGED = 'false'
+                        env.CHAIN_CHANGED  = 'false'
                     } else {
                         echo "📄 변경 파일 목록:\n${changedFiles}"
                         def lines = changedFiles.split('\\n') as List<String>
                         env.BACK_CHANGED  = (lines.any { it.startsWith('backend/') }).toString()
                         env.FRONT_CHANGED = (lines.any { it.startsWith('frontend/') }).toString()
+                        env.CHAIN_CHANGED  = (lines.any { it.startsWith('blockchain/') }).toString()
                     }
+                
 
-                    echo "🔎 BACK_CHANGED=${env.BACK_CHANGED}, FRONT_CHANGED=${env.FRONT_CHANGED}, range=${range}"
+                    echo "🔎 BACK_CHANGED=${env.BACK_CHANGED}, FRONT_CHANGED=${env.FRONT_CHANGED}, CHAIN_CHANGED=${env.CHAIN_CHANGED}, range=${range}."
                 }
             }
         }
@@ -122,6 +125,34 @@ pipeline {
                             throw err  // 실패를 파이프라인에 전파
                         }
                     }
+                }
+            }
+        }
+
+        stage('Hardhat Setup & Compile') {
+            when { expression { return env.CHAIN_CHANGED == 'true' } }
+            steps {
+                dir('blockchain') {
+                    sh '''#!/usr/bin/env bash
+                    set -Eeuo pipefail
+
+                    export NVM_DIR="$HOME/.nvm"
+                    if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+                        echo "[INFO] Installing nvm ..."
+                        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                    fi
+                    . "$NVM_DIR/nvm.sh"
+
+                    nvm install 20
+                    nvm use 20
+
+                    node -v
+                    npm -v
+
+                    export CI=true
+                    npm ci --no-audit --no-fund
+                    npx hardhat compile
+                    '''
                 }
             }
         }

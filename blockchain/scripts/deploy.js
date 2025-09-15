@@ -32,6 +32,6 @@ async function main() {
     // 배포된 FarmVaultFactory 계약의 주소를 콘솔에 출력합니다.
     console.log("FarmVaultFactory:", await factory.getAddress());
 }
-
+ 
 // 위에서 정의한 'main' 함수를 실행합니다.
 main().catch((e) => { console.error(e); process.exit(1); });
