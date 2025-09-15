@@ -76,56 +76,30 @@ pipeline {
             }
         }
         
-        // stage('Prepare Secret') {
-        //     steps {
-        //         sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
-        //         script {
-        //             if (env.BRANCH_NAME == 'main') {
-        //                 withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
-        //                 sh """
-        //                     set -eu
-        //                     cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-        //                     chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-        //                 """
-        //                 }
-        //             } else if (env.BRANCH_NAME == 'dev') {
-        //                 withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
-        //                 sh """
-        //                     set -eu
-        //                     cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-        //                     chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-        //                 """
-        //                 }
-        //             } else {
-        //                 echo "ℹ️ main/dev 외 브랜치: 별도 시크릿 복사 생략"
-        //             }
-        //             }
-        //     }
-        // }
-
-
-        stage('Publish Secret to Host') {
-            when { expression { env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'main' } }
+        stage('Prepare Secret') {
             steps {
+                sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 script {
-                // 워크스페이스 하위 경로로 변경 (sudo 불필요)
-                def devPath  = "${WORKSPACE}/secrets/dev/backend/application.yml"
-                def prodPath = "${WORKSPACE}/secrets/prod/backend/application.yml"
-
-                sh """
-                    mkdir -p "${WORKSPACE}/secrets/dev/backend" "${WORKSPACE}/secrets/prod/backend"
-                """
-
-                if (env.BRANCH_NAME == 'dev') {
-                    withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
-                    sh 'install -m 600 -T "$ENV_YML" "' + devPath + '"'
+                    if (env.BRANCH_NAME == 'main') {
+                        withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
+                        sh """
+                            set -eu
+                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                        """
+                        }
+                    } else if (env.BRANCH_NAME == 'dev') {
+                        withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
+                        sh """
+                            set -eu
+                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                        """
+                        }
+                    } else {
+                        echo "ℹ️ main/dev 외 브랜치: 별도 시크릿 복사 생략"
                     }
-                } else { // main
-                    withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
-                    sh 'install -m 600 -T "$ENV_YML" "' + prodPath + '"'
                     }
-                }
-                }
             }
         }
 
@@ -221,8 +195,6 @@ pipeline {
                                       --name ${DEV_BACK_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       --network-alias backend-test \
-                                      -v ${WORKSPACE}/majoong/dev/backend/application.yml:/app/config/application.yml:ro \
-                                      -e SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/ \
                                       -p ${DEV_BACK_PORT}:8080 \
                                       majoong/backend-dev:${TAG}                                             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
@@ -275,8 +247,6 @@ pipeline {
                                       --name ${PROD_BACK_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       --network-alias backend \
-                                      -v ${WORKSPACE}/majoong/prod/backend/application.yml:/app/config/application.yml:ro \
-                                      -e SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/ \
                                       -p ${PROD_BACK_PORT}:8080 \
                                       majoong/backend-prod:${TAG}                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
@@ -360,6 +330,7 @@ pipeline {
         }
         always {
             echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
+            sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
         }
     }
 }
