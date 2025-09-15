@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/authService';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,8 +14,7 @@ export default function LoginPage() {
     
     try {
       // 백엔드 OAuth2 엔드포인트로 리다이렉트
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      window.location.href = `${apiUrl}/oauth2/authorization/kakao`;
+      window.location.href = 'https://api-test.majoong.site/oauth2/authorization/kakao';
       
     } catch (error) {
       setIsLoading(false);
@@ -23,44 +23,35 @@ export default function LoginPage() {
     }
   };
 
-  // OAuth 콜백 처리 (URL 파라미터 확인)
+  // OAuth 콜백 처리 (백엔드에서 리다이렉트된 후)
   React.useEffect(() => {
     const handleOAuthCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const sessionKey = urlParams.get('session_key');
+      const error = urlParams.get('error');
+      
+      if (error) {
+        console.error('OAuth 에러:', error);
+        alert('OAuth 로그인 중 오류가 발생했습니다.');
+        return;
+      }
       
       if (sessionKey) {
         setIsLoading(true);
         
         try {
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-          
-          const response = await fetch(`${apiUrl}/api/v1/auth/sign-in`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              session_key: sessionKey
-            }),
+          // 백엔드 API로 로그인 요청
+          const response = await authService.signIn({
+            oauthId: sessionKey,
+            oauthProvider: 'kakao'
           });
-
-          if (!response.ok) {
-            throw new Error('로그인 처리 실패');
-          }
-
-          const data = await response.json();
           
-          // 토큰 저장
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
-          localStorage.setItem('userInfo', JSON.stringify({
-            memberUuid: data.memberUuid,
-            email: data.email
-          }));
+          // 토큰 및 사용자 정보 저장
+          authService.saveTokens(response.accessToken, response.refreshToken);
+          authService.saveUserInfo(response.memberUuid, response.email);
 
           // 회원가입 여부에 따른 페이지 이동
-          if (data.isSignUp) {
+          if (response.isSignUp) {
             router.push('/signup');
           } else {
             router.push('/');
