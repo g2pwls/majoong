@@ -59,44 +59,79 @@ pipeline {
             }
         }
 
-        stage('Detect Branch') {
+       stage('Detect Branch') {
             steps {
                 script {
-                    env.BRANCH_NAME  = params.GIT_REF.replaceFirst(/^refs\/heads\//, '')
-                    echo "▶ Branch = ${env.BRANCH_NAME }"
+                def resolved = env.BRANCH_NAME?.trim()
+                if (!resolved) {
+                    resolved = env.GIT_REF?.replaceFirst(/^refs\/heads\//,'')?.trim()
+                }
+                if (!resolved) {
+                    resolved = sh(script: "git name-rev --name-only HEAD || git rev-parse --abbrev-ref HEAD",
+                                returnStdout: true).trim()
+                }
+                env.BRANCH_NAME = resolved
+                echo "▶ Branch = ${env.BRANCH_NAME}"
                 }
             }
         }
         
-        stage('Prepare Secret') {
+        // stage('Prepare Secret') {
+        //     steps {
+        //         sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
+        //         script {
+        //             if (env.BRANCH_NAME == 'main') {
+        //                 withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
+        //                 sh """
+        //                     set -eu
+        //                     cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+        //                     chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+        //                 """
+        //                 }
+        //             } else if (env.BRANCH_NAME == 'dev') {
+        //                 withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
+        //                 sh """
+        //                     set -eu
+        //                     cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+        //                     chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+        //                 """
+        //                 }
+        //             } else {
+        //                 echo "ℹ️ main/dev 외 브랜치: 별도 시크릿 복사 생략"
+        //             }
+        //             }
+        //     }
+        // }
+
+
+        stage('Publish Secret to Host') {
+            when { expression { env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'main' } }
             steps {
-                sh "mkdir -p ${BACKEND_DIR}/src/main/resources"
                 script {
-                    if (env.BRANCH_NAME == 'main') {
-                        withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
-                        sh """
-                            set -eu
-                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml" >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"      >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                        """
-                        }
-                    } else if (env.BRANCH_NAME == 'dev') {
-                        withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
-                        sh """
-                            set -eu
-                            cp "\$ENV_YML" "${BACKEND_DIR}/src/main/resources/application.yml"  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            chmod 600 "${BACKEND_DIR}/src/main/resources/application.yml"       >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                        """
-                        }
-                    } else {
-                        echo "ℹ️ main/dev 외 브랜치: 별도 시크릿 복사 생략"
+                def devPath  = '/opt/majoong/dev/backend/application.yml'
+                def prodPath = '/opt/majoong/prod/backend/application.yml'
+
+                // 디렉토리/권한 보장 (sudo가 필요 없다면 제거)
+                sh """
+                    sudo mkdir -p /opt/majoong/dev/backend /opt/majoong/prod/backend
+                    sudo chown -R \$(id -u):\$(id -g) /opt/majoong
+                """
+
+                if (env.BRANCH_NAME == 'dev') {
+                    withCredentials([file(credentialsId: 'SECRETFILE_DEV', variable: 'ENV_YML')]) {
+                    sh 'install -m 600 -T "$ENV_YML" "' + devPath + '"'
                     }
+                } else { // main
+                    withCredentials([file(credentialsId: 'SECRETFILE_PROD', variable: 'ENV_YML')]) {
+                    sh 'install -m 600 -T "$ENV_YML" "' + prodPath + '"'
                     }
+                }
+                }
             }
-        }
+            }
 
         stage('Nothing to Build') {
-            when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' } }
+            when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' && env.CHAIN_CHANGED != 'true' } }
             steps {
                 echo "⏭️ 변경 없음 → 스킵"
                 script { currentBuild.result = 'NOT_BUILT' }
@@ -125,6 +160,18 @@ pipeline {
                             throw err  // 실패를 파이프라인에 전파
                         }
                     }
+                }
+            }
+        }
+
+        stage('Prepare Hardhat Env') {
+            steps {
+                withCredentials([file(credentialsId: 'ENV', variable: 'DOTENV')]) {
+                    sh '''
+                    cp $DOTENV blockchain/.env
+                    chmod 600 blockchain/.env
+                    echo ".env copied into blockchain/"
+                    '''
                 }
             }
         }
@@ -175,6 +222,8 @@ pipeline {
                                       --name ${DEV_BACK_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       --network-alias backend-test \
+                                      -v /opt/majoong/dev/backend/application.yml:/app/config/application.yml:ro \
+                                      -e SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/ \
                                       -p ${DEV_BACK_PORT}:8080 \
                                       majoong/backend-dev:${TAG}                                             >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
@@ -196,6 +245,7 @@ pipeline {
                                       --name ${DEV_FRONT_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       -p ${DEV_FRONT_PORT}:3000 \
+                                      --restart unless-stopped \
                                       majoong/frontend-dev:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
                             } catch (err) {
@@ -226,8 +276,10 @@ pipeline {
                                       --name ${PROD_BACK_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       --network-alias backend \
+                                      -v /opt/majoong/prod/backend/application.yml:/app/config/application.yml:ro \
+                                      -e SPRING_CONFIG_ADDITIONAL_LOCATION=/app/config/ \
                                       -p ${PROD_BACK_PORT}:8080 \
-                                      majoong/backend-prod:latest                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                      majoong/backend-prod:${TAG}                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
                             } catch(err) {
                                 sh "echo '[ERROR] Backend Deploy to main failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
@@ -247,7 +299,8 @@ pipeline {
                                       --name ${PROD_FRONT_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       -p ${PROD_FRONT_PORT}:3000 \
-                                      majoong/frontend-prod:latest                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                      --restart unless-stopped \
+                                      majoong/frontend-prod:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
 
                             } catch(err) {
@@ -308,7 +361,6 @@ pipeline {
         }
         always {
             echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
-            sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
         }
     }
 }
