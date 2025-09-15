@@ -2,28 +2,81 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const handleKakaoLogin = async () => {
     setIsLoading(true);
     
     try {
-      // TODO: 백엔드 구현 후 카카오톡 소셜 로그인 API 연동
-      // 예: window.location.href = '/api/auth/kakao';
-      
-      // 임시로 2초 후 알림 표시 (실제 구현 시에는 카카오톡으로 리다이렉트)
-      setTimeout(() => {
-        setIsLoading(false);
-        alert('카카오톡 소셜 로그인 기능은 백엔드 구현 후 연동됩니다.');
-      }, 2000);
+      // 백엔드 OAuth2 엔드포인트로 리다이렉트
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      window.location.href = `${apiUrl}/oauth2/authorization/kakao`;
       
     } catch (error) {
       setIsLoading(false);
       console.error('로그인 오류:', error);
+      alert('로그인 중 오류가 발생했습니다.');
     }
   };
+
+  // OAuth 콜백 처리 (URL 파라미터 확인)
+  React.useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionKey = urlParams.get('session_key');
+      
+      if (sessionKey) {
+        setIsLoading(true);
+        
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+          
+          const response = await fetch(`${apiUrl}/api/v1/auth/sign-in`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              session_key: sessionKey
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('로그인 처리 실패');
+          }
+
+          const data = await response.json();
+          
+          // 토큰 저장
+          localStorage.setItem('accessToken', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          localStorage.setItem('userInfo', JSON.stringify({
+            memberUuid: data.memberUuid,
+            email: data.email
+          }));
+
+          // 회원가입 여부에 따른 페이지 이동
+          if (data.isSignUp) {
+            router.push('/signup');
+          } else {
+            router.push('/');
+          }
+          
+        } catch (error) {
+          console.error('OAuth 콜백 처리 오류:', error);
+          alert('로그인 처리 중 오류가 발생했습니다.');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    handleOAuthCallback();
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
