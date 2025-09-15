@@ -1,0 +1,9 @@
+node_modules
+artifacts
+cache
+coverage
+.env
+.git
+.vscode
+.DS_Store
+npm-debug.log*
