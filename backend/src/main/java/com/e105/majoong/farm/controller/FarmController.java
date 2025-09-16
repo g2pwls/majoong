@@ -2,11 +2,9 @@ package com.e105.majoong.farm.controller;
 
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
-import com.e105.majoong.farm.dto.out.FarmDetailResponseDto;
-import com.e105.majoong.farm.dto.out.FarmListResponseDto;
-import com.e105.majoong.farm.dto.out.MonthlyReportListResponseDto;
+import com.e105.majoong.farm.dto.out.*;
 import com.e105.majoong.farm.service.FarmService;
-import com.e105.majoong.farm.dto.out.MonthlyReportDetailResponseDto;
+import com.e105.majoong.farm.service.MonthlyDonationService;
 import com.e105.majoong.farm.service.MonthlyReportService;
 import com.e105.majoong.farm.service.MonthlyReportServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,6 +23,7 @@ public class FarmController {
 
     private final FarmService farmService;
     private final MonthlyReportService monthlyReportService;
+    private final MonthlyDonationService monthlyDonationService;
 
     @GetMapping
     public BaseResponse<Page<FarmListResponseDto>> searchFarms(
@@ -59,4 +58,14 @@ public class FarmController {
     ) {
         return new BaseResponse<>(monthlyReportService.getReports(farmUuid, year));
     }
+
+    @GetMapping("/{farmUuid}/donations/usage")
+    public DonationUsageResponseDto getDonationUsage(
+            @PathVariable String farmUuid,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return monthlyDonationService.getDonationUsage(farmUuid, year, month);
+    }
+
 }
