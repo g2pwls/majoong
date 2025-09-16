@@ -9,7 +9,7 @@
     "baseColor": "gray",
     "cssVariables": true,
     "prefix": ""
-  },
+  },  
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components",
@@ -18,5 +18,5 @@
     "lib": "@/lib",
     "hooks": "@/hooks"
   },
-  "registries": {}
+  "registries": {} 
 }
