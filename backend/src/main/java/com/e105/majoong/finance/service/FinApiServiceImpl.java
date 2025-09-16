@@ -33,11 +33,10 @@ public class FinApiServiceImpl implements FinApiService {
     @Value("${finapi.account-type-unique-no}")
     private String accountTypeUniqueNo;
 
-    /** 회원 등록 */
     public FinMemberResponseDto registerMember(String email) {
         Map<String, Object> req = Map.of(
                 "apiKey", apiKey,
-                "userId", "asda22sd@naver.com"
+                "userId", email
         );
 
         return webClient.post()
@@ -58,7 +57,6 @@ public class FinApiServiceImpl implements FinApiService {
 
     }
 
-    /** 계좌 생성 */
     public CreateAccountResponseDto createDemandDepositAccount(String userKey) {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
