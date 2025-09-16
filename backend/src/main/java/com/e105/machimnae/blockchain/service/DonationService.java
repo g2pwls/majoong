@@ -1,4 +1,4 @@
-package com.machimnae.blockchain.service;
+package com.e105.machimnae.blockchain.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

@@ -37,6 +37,9 @@ public class Farmer extends BaseEntity {
     @Column(name = "wallet_address", length = 1024)
     private String walletAddress;
 
+    @Column(name = "keystore_cipher", columnDefinition = "MEDIUMTEXT")
+    private String keystoreCipher;
+
     @Column(name = "email", length = 255)
     private String email;
 }
