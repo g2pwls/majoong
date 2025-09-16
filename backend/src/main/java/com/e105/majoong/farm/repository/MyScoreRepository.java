@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
     List<MyScore> findByFarmUuid(String farmUuid);
     Optional<MyScore> findFirstByFarmUuidOrderByYearDescMonthDesc(String farmUuid);
+    Optional<MyScore> findByFarmUuidAndYearAndMonth(String farmUuid, Integer year, Integer month);
 }

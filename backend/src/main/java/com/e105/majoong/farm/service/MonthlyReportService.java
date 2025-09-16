@@ -1,7 +1,11 @@
 package com.e105.majoong.farm.service;
 
 import com.e105.majoong.farm.dto.out.MonthlyReportDetailResponseDto;
+import com.e105.majoong.farm.dto.out.MonthlyReportListResponseDto;
+
+import java.util.List;
 
 public interface MonthlyReportService {
     MonthlyReportDetailResponseDto getReportDetail(String farmUuid, Long reportId);
+    List<MonthlyReportListResponseDto> getReports(String farmUuid, int year);
 }

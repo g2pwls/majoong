@@ -4,6 +4,7 @@ import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.farm.dto.out.FarmDetailResponseDto;
 import com.e105.majoong.farm.dto.out.FarmListResponseDto;
+import com.e105.majoong.farm.dto.out.MonthlyReportListResponseDto;
 import com.e105.majoong.farm.service.FarmService;
 import com.e105.majoong.farm.dto.out.MonthlyReportDetailResponseDto;
 import com.e105.majoong.farm.service.MonthlyReportService;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/farms")
@@ -47,5 +50,13 @@ public class FarmController {
             @PathVariable Long reportId
     ) {
         return new BaseResponse<>(monthlyReportService.getReportDetail(farmUuid, reportId));
+    }
+
+    @GetMapping("/{farmUuid}/monthly-reports")
+    public BaseResponse<List<MonthlyReportListResponseDto>> getReports(
+            @PathVariable String farmUuid,
+            @RequestParam int year
+    ) {
+        return new BaseResponse<>(monthlyReportService.getReports(farmUuid, year));
     }
 }
