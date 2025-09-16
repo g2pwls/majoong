@@ -3,6 +3,8 @@ package com.e105.majoong.common.domain;
 import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,28 +13,33 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class HorseState extends BaseEntity {
+public class HorseState {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 12)
     private String farmUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36)
     private String memberUuid;
 
     @Column(nullable = false)
     private Long horseNumber;
 
-    private LocalDateTime updatedAt;
+    @CreatedDate
+    @Column(nullable = false)
+    private LocalDateTime uploadedAt;
 
-    private String frontPhoto;
-    private String leftSidePhoto;
-    private String rightSidePhoto;
-    private String stablePhotoUrl;
+    private String frontImage;
+    private String leftSideImage;
+    private String rightSideImage;
+    private String stableImage;
+
+    @Column(length = 1000)
     private String aiSummary;
-    private String notes;
+    @Column(length = 1000)
+    private String content;
 }
 

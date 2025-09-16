@@ -7,7 +7,6 @@ import lombok.*;
 @Entity
 @Table(name = "donator")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -31,4 +30,12 @@ public class Donator extends BaseEntity {
 
   @Column(name = "email", length = 255)
   private String email;
+
+  public void updateWalletAddress(String address) {
+    this.walletAddress = address;
+  }
+
+  public void updateKeystoreCipher(String cipher) {
+    this.keystoreCipher = cipher;
+  }
 }

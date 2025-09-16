@@ -3,6 +3,9 @@ package com.e105.majoong.common.domain;
 import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedBy;
+import org.springframework.data.annotation.CreatedDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,26 +14,26 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MyScore extends BaseEntity {
+public class MyScore {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 12)
     private String farmUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36)
     private String memberUuid;
 
-    @Column(nullable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private Long scoreCategoryId;
 
     @Column(nullable = false)
-    private Integer currentScore;
+    private Integer Score;
 
     @Column(nullable = false)
     private Integer year;

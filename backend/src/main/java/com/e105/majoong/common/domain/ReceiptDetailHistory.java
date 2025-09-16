@@ -27,4 +27,8 @@ public class ReceiptDetailHistory extends BaseEntity {
 
     @Column(nullable = false)
     private Integer pricePerItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receipt_id", nullable = false)
+    private ReceiptHistory receiptHistory;
 }

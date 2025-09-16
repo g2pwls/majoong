@@ -7,7 +7,6 @@ import lombok.*;
 @Entity
 @Table(name = "oauth_member")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,4 +29,7 @@ public class OauthMember extends BaseEntity {
     @Column(name = "role")
     private Role role;
 
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }

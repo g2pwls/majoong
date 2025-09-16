@@ -9,7 +9,6 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "farmer")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -42,4 +41,12 @@ public class Farmer extends BaseEntity {
 
     @Column(name = "email", length = 255)
     private String email;
+
+    public void updateWalletAddress(String address) {
+        this.walletAddress = address;
+    }
+
+    public void updateKeystoreCipher(String cipher) {
+        this.keystoreCipher = cipher;
+    }
 }

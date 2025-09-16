@@ -3,6 +3,8 @@ package com.e105.majoong.common.domain;
 import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,16 +13,16 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ReceiptHistory extends BaseEntity {
+public class ReceiptHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 12)
     private String farmUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36)
     private String memberUuid;
 
     @Column(nullable = false)
@@ -29,21 +31,23 @@ public class ReceiptHistory extends BaseEntity {
     @Column(nullable = false)
     private String storeAddress;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 15)
     private String storeNumber;
 
     @Column(nullable = false)
     private Integer totalAmount;
 
-    private LocalDateTime transactionDate;
+    @CreatedDate
+    private LocalDateTime craetedAt;
 
     @Column(nullable = false)
     private String photoUrl;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String aiSummary;
 
-    private String notes;
+    @Column(length = 1000)
+    private String content;
 
     @Column(nullable = false)
     private Long categoryId;

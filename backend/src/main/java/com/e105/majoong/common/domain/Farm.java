@@ -4,7 +4,6 @@ import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "farm")
@@ -18,22 +17,20 @@ public class Farm extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36, unique = true)
     private String memberUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 12)
     private String farmUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String farmName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 25)
     private String ownerName;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     private String phoneNumber;
-
-    private String farmTitle;
 
     @Column(nullable = false)
     private String address;
@@ -41,18 +38,17 @@ public class Farm extends BaseEntity {
     @Column(nullable = false)
     private LocalDate openingDate;
 
-    @Column(nullable = false)
     private Double latitude;
 
-    @Column(nullable = false)
     private Double longitude;
 
     @Column(nullable = false)
     private Double area;
 
+    @Column(nullable = false, length = 1000)
     private String description;
 
-    private Integer count;
+    private Integer horseCount;
 
     private Double totalScore;
 
@@ -60,5 +56,6 @@ public class Farm extends BaseEntity {
 
     private Long usedAmount;
 
+    @Column(nullable = false)
     private String profileImage;
 }

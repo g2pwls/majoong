@@ -16,5 +16,5 @@ public class ReceiptCategory extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String category;
+    private ReceiptCategoryType category;
 }

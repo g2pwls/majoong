@@ -3,6 +3,8 @@ package com.e105.majoong.common.domain;
 import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -11,23 +13,23 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MonthlyReport extends BaseEntity {
+public class MonthlyReport {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 12)
     private String farmUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 36)
     private String memberUuid;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
-    private LocalDateTime writeDate;
+    @CreatedDate
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private String thumbnail;
