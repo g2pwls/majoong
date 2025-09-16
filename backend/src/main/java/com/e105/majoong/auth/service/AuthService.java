@@ -12,6 +12,7 @@ import com.e105.majoong.common.domain.Donator;
 import com.e105.majoong.common.domain.Farmer;
 import com.e105.majoong.common.domain.OauthMember;
 import com.e105.majoong.common.domain.Role;
+import com.e105.majoong.finance.service.FinApiServiceImpl;
 import com.e105.majoong.member.repository.DonatorRepository;
 import com.e105.majoong.member.repository.FarmerRepository;
 import com.e105.majoong.member.repository.OauthMemberRepository;
@@ -41,6 +42,7 @@ public class AuthService {
   // 블록체인 연동
   private final WalletService walletService;
   private final VaultService vaultService;
+  private final FinApiServiceImpl finApiService;
 
   @Transactional
   public AuthSignInResponseDto signInWithSessionKey(String sessionKey) {
@@ -110,9 +112,15 @@ public class AuthService {
       Farmer farmer = farmerRepository.save(req.toFarmer(memberUuid));
 
       // 2) 서버 보관형 지갑 생성 → 주소/keystore 암호문 저장
+      // 금융 API
       var created = walletService.createCustodialWallet();
       farmer.updateWalletAddress(created.address());
       farmer.updateKeystoreCipher(created.keystoreCipher());
+
+      var finMember = finApiService.registerMember(req.getEmail());
+      var account = finApiService.createDemandDepositAccount(finMember.getUserKey());
+      farmer.updateFinAccount(finMember.getUserKey(), account.getRec().getAccountNo());
+
       farmerRepository.save(farmer);
 
       // 3) farmId 계산 (임시: memberUuid → keccak → uint256)

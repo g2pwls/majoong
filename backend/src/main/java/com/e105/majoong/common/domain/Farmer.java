@@ -42,11 +42,22 @@ public class Farmer extends BaseEntity {
     @Column(name = "email", length = 255)
     private String email;
 
+    @Column(name = "user_key", length = 255)
+    private String userKey;
+
+    @Column(name = "account_no", length = 50)
+    private String accountNo;
+
     public void updateWalletAddress(String address) {
         this.walletAddress = address;
     }
 
     public void updateKeystoreCipher(String cipher) {
         this.keystoreCipher = cipher;
+    }
+
+    public void updateFinAccount(String userKey, String accountNo) {
+        this.userKey = userKey;
+        this.accountNo = accountNo;
     }
 }
