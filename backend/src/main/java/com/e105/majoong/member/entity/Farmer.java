@@ -19,7 +19,7 @@ public class Farmer extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "member_uuid", nullable = false, length = 36)
+    @Column(name = "member_uuid", nullable = false, length = 36, unique = true)
     private String memberUuid;
 
     @Column(name = "name", length = 25)
