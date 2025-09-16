@@ -1,4 +1,6 @@
-import { NextResponse } from "next/server";
+// src/app/api/horse/[farm_uuid]/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -8,7 +10,7 @@ export type Horse = {
   farm_id: string;
   horseNo: string;        // 반드시 문자열! (선행 0 유지)
   hrNm: string;
-  birthDt: string;      // YYYY-MM-DD
+  birthDt: string;        // YYYY-MM-DD (현재 더미는 YYYYMMDD 형태)
   sex?: string;
   color?: string;
   breed?: string;
@@ -20,7 +22,7 @@ export type Horse = {
   discardDt?: string | null;
   fdebutDt?: string | null;
   lchulDt?: string | null;
-  horse_url?: string;         // 카드에 쓰는 이미지
+  horse_url?: string;     // 카드에 쓰는 이미지
 };
 
 // ------- 메모리 저장소 (farm_uuid 별) -------
@@ -133,27 +135,34 @@ function ensureSeed(farm_uuid: string) {
 
 // ------- GET: 말 목록 -------
 export async function GET(
-  _req: Request,
-  { params }: { params: { farm_uuid: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ farm_uuid: string }> }
 ) {
-  ensureSeed(params.farm_uuid);
-  
-  // 만약 해당 farm_uuid에 말 데이터가 없다면, 404 에러를 반환
-  if (!store[params.farm_uuid]) {
-    return NextResponse.json({ error: `No horses found for farm ${params.farm_uuid}` }, { status: 404 });
-  }
+  const { farm_uuid } = await context.params;
 
-  return NextResponse.json(store[params.farm_uuid]);
+  ensureSeed(farm_uuid);
+
+  if (!store[farm_uuid]) {
+    return NextResponse.json(
+      { error: `No horses found for farm ${farm_uuid}` },
+      { status: 404 }
+    );
+    }
+
+  return NextResponse.json(store[farm_uuid]);
 }
 
-// ------- POST: 말 추가/업sert(마번 중복 시 교체) -------
+// ------- POST: 말 추가/업서트(마번 중복 시 교체) -------
 export async function POST(
-  req: Request,
-  { params }: { params: { farm_uuid: string } }
+  req: NextRequest,
+  context: { params: Promise<{ farm_uuid: string }> }
 ) {
-  ensureSeed(params.farm_uuid);
+  const { farm_uuid } = await context.params;
+
+  ensureSeed(farm_uuid);
 
   const body = (await req.json()) as Partial<Horse>;
+
   // 최소 입력 검증
   if (!body?.horseNo || !body?.hrNm) {
     return NextResponse.json(
@@ -166,12 +175,12 @@ export async function POST(
   const horseNo = String(body.horseNo);
 
   // 기존 말 찾기
-  const list = store[params.farm_uuid];
+  const list = store[farm_uuid] ?? (store[farm_uuid] = []);
   const idx = list.findIndex((h) => h.horseNo === horseNo);
 
   const next: Horse = {
     id: idx >= 0 ? list[idx].id : Math.max(0, ...list.map((h) => h.id)) + 1,
-    farm_id: params.farm_uuid,
+    farm_id: farm_uuid,
     horseNo,
     hrNm: body.hrNm!,
     birthDt: body.birthDt ?? "",

@@ -6,7 +6,6 @@ import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Search, Star, MapPin, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -289,7 +288,7 @@ export default function SupportPage() {
           {/* 왼쪽: 제목 + 탭 */}
           <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-xl font-bold">목장 목록</h1>
-            <Tabs value={sort} onValueChange={(v: any) => setSort(v)} className="shrink-0">
+            <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "recommended")} className="shrink-0">
               <TabsList>
                 <TabsTrigger value="latest">최신순</TabsTrigger>
                 <TabsTrigger value="recommended">추천순</TabsTrigger>

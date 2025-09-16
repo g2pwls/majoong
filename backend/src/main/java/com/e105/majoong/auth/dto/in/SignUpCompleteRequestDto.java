@@ -14,31 +14,29 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class SignUpCompleteRequestDto {
-  private String role;
-  private String name;
-  private String email;
+    private String role;
+    private String name;
+    private String email;
+    private String farmName;
+    private String businessNum;
+    private String openingAt;
 
-  // ── farmer 전용 추가 필드 ──
-  private String farmName;
-  private String businessNum;
-  private LocalDate openingAt;
+    public Farmer toFarmer(String memberUuid) {
+        return Farmer.builder()
+                .memberUuid(memberUuid)
+                .name(name)
+                .farmName(farmName)
+                .businessNum(businessNum)
+                .openingAt(LocalDate.parse(openingAt))
+                .email(email)
+                .build();
+    }
 
-  public Farmer toFarmer(String memberUuid) {
-    return Farmer.builder()
-        .memberUuid(memberUuid)
-        .name(name)
-        .farmName(farmName)
-        .businessNum(businessNum)
-        .openingAt(openingAt)
-        .email(email)
-        .build();
-  }
-
-  public Donator toDonator(String memberUuid) {
-    return Donator.builder()
-        .memberUuid(memberUuid)
-        .name(name)
-        .email(email)
-        .build();
-  }
+    public Donator toDonator(String memberUuid) {
+        return Donator.builder()
+                .memberUuid(memberUuid)
+                .name(name)
+                .email(email)
+                .build();
+    }
 }

@@ -14,12 +14,16 @@ type Horse = {
   image?: string;
 };
 
-export default function IntroPanel({ farm }: { farm: any }) {
+interface Farm {
+  id: string;
+}
+
+export default function IntroPanel({ farm }: { farm: Farm }) {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [deadlineText, setDeadlineText] = useState<string>("");
 
   useEffect(() => {
-    const farmId = farm?.farm_uuid ?? farm?.id;
+    const farmId = farm?.id;
     if (!farmId) return;
     let alive = true;
     (async () => {
@@ -29,9 +33,17 @@ export default function IntroPanel({ farm }: { farm: any }) {
           headers: { "Content-Type": "application/json" },
         });
         if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
-        const data = (await res.json()) as any[];
+        const data = (await res.json()) as Array<{
+          id: string;
+          horseNo: string | number;
+          hrNm: string;
+          birthDt: string;
+          breed: string;
+          sex: string;
+          horse_url?: string;
+        }>;
         if (!alive) return;
-        const mapped = data.map((h: any) => ({
+        const mapped = data.map((h) => ({
           id: h.id,
           horseNo: String(h.horseNo),
           hrNm: h.hrNm,
@@ -85,7 +97,7 @@ export default function IntroPanel({ farm }: { farm: any }) {
     return () => {
       alive = false;
     };
-  }, [farm?.farm_uuid, farm?.id]);
+  }, [farm?.id]);
 
   return (
     <section id="panel-intro" className="flex flex-col items-end">
@@ -99,7 +111,7 @@ export default function IntroPanel({ farm }: { farm: any }) {
 
         {/* Reporting Button with Link */}
         <Link
-          href={`/support/${farm?.farm_uuid ?? farm?.id}/report`} // Link to the report page
+          href={`/support/${farm?.id}/report`} // Link to the report page
         >
           <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
             목장 운영 보고하기
@@ -108,7 +120,7 @@ export default function IntroPanel({ farm }: { farm: any }) {
       </div>
       
       {/* Horse registry section */}
-      <HorseRegistrySection horses={horses} farmUuid={farm?.farm_uuid ?? farm?.id} />
+      <HorseRegistrySection horses={horses} farmUuid={farm?.id} />
     </section>
   );
 }

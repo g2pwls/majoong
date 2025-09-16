@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Trophy, MapPin, Phone } from "lucide-react";
 
@@ -69,7 +68,7 @@ export default function HorseDetailPage({ params }: PageProps) {
         if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
         const horses = await res.json();
         
-        const foundHorse = horses.find((h: any) => h.horseNo === horseNo);
+        const foundHorse = horses.find((h: { horseNo: string | number }) => String(h.horseNo) === horseNo);
         if (!foundHorse) {
           throw new Error("말을 찾을 수 없습니다.");
         }
@@ -94,8 +93,9 @@ export default function HorseDetailPage({ params }: PageProps) {
             lchulDt: foundHorse.lchulDt,
           });
         }
-      } catch (e: any) {
-        if (alive) setError(e?.message ?? "말 정보를 불러오는 중 오류가 발생했어요.");
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "말 정보를 불러오는 중 오류가 발생했어요.";
+        if (alive) setError(errorMessage);
       } finally {
         if (alive) setLoading(false);
       }
@@ -111,7 +111,7 @@ export default function HorseDetailPage({ params }: PageProps) {
         if (!res.ok) throw new Error(`Failed to fetch farm: ${res.status}`);
         const data: Farm = await res.json();
         if (alive) setFarm(data);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error("Farm fetch error:", e);
       }
     })();
@@ -374,4 +374,5 @@ export default function HorseDetailPage({ params }: PageProps) {
     </div>
   );
 }
+
 

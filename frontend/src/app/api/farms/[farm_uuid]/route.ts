@@ -1,5 +1,5 @@
 // src/app/api/farms/[farm_uuid]/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -120,10 +120,10 @@ const FARMS = [
 
 // ---- API Handler ----
 export async function GET(
-  _req: Request,
-  { params }: { params: { farm_uuid: string } }
+  _req: NextRequest,
+  context: { params: Promise<{ farm_uuid: string }> }
 ) {
-  const { farm_uuid } = params;
+  const { farm_uuid } = await context.params;
 
   // 🔹 확장: 'all' → 전체 배열, 'demo' → 첫 아이템 반환
   if (farm_uuid === "all") {
