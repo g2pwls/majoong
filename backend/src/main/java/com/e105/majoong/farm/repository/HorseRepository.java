@@ -12,4 +12,5 @@ import java.util.List;
 public interface HorseRepository extends JpaRepository<Horse, Long> {
     List<Horse> findByFarm(Farm farm);
     Page<Horse> findByHorseNameContaining(String horseName, Pageable pageable);
+    List<Horse> findByFarmId(Long farmId);
 }

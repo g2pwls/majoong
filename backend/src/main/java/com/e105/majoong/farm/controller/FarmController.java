@@ -2,6 +2,7 @@ package com.e105.majoong.farm.controller;
 
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
+import com.e105.majoong.farm.dto.out.FarmDetailResponseDto;
 import com.e105.majoong.farm.dto.out.FarmListResponseDto;
 import com.e105.majoong.farm.service.FarmService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,4 +29,12 @@ public class FarmController {
         Page<FarmListResponseDto> result = farmService.searchFarms(farmName, page, size, user.getMemberUuid());
         return new BaseResponse<>(result);
     }
+
+    @GetMapping("/{farmUuid}")
+    public BaseResponse<FarmDetailResponseDto> getFarmDetail(
+            @PathVariable String farmUuid
+    ) {
+        return new BaseResponse<>(farmService.getFarmDetail(farmUuid));
+    }
+
 }

@@ -5,6 +5,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface FarmRepository extends JpaRepository<Farm, Long> {
     Page<Farm> findByFarmNameContaining(String farmName, Pageable pageable);
+    Optional<Farm> findByFarmUuid(String farmUuid);
 }
