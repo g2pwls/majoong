@@ -23,11 +23,11 @@ export default function LoginPage() {
         
         // 회원가입 여부에 따른 리다이렉트
         if (response.signUp) {
-          // 신규 회원 - 메인 페이지로 이동
-          router.push('/');
-        } else {
-          // 기존 회원 - 회원가입 페이지로 이동
+          // 신규 회원 - 회원가입 페이지로 이동
           router.push('/signup');
+        } else {
+          // 기존 회원 - 메인 페이지로 이동
+          router.push('/');
         }
       } catch (error) {
         console.error('로그인 처리 오류:', error);
