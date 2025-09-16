@@ -28,6 +28,7 @@ public class AuthController {
 
     @PostMapping("/signup-complete")
     public BaseResponse<AuthSignInResponseDto> signUpComplete(
+            @RequestHeader(value = "Authorization", required = false) String authorization,
             @AuthenticationPrincipal CustomUserDetails user,
             @RequestBody SignUpCompleteRequestDto req
     ) {
