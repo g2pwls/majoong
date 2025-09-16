@@ -1,4 +1,4 @@
-package com.e105.majoong.member.entity;
+package com.e105.majoong.common.domain;
 
 import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;

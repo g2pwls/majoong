@@ -1,4 +1,4 @@
-package com.e105.majoong.member.entity;
+package com.e105.majoong.common.domain;
 
 public enum Role {
     FARMER,

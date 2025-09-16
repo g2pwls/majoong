@@ -17,9 +17,6 @@ public class ReceiptDetailHistory extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Long receiptId;
-
-    @Column(nullable = false)
     private String itemName;
 
     @Column(nullable = false)

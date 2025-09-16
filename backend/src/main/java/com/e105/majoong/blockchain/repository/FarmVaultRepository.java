@@ -1,6 +1,6 @@
-package com.e105.majoong.farmvault.repository;
+package com.e105.majoong.blockchain.repository;
 
-import com.e105.majoong.farmvault.entity.FarmVault;
+import com.e105.majoong.common.domain.FarmVault;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
