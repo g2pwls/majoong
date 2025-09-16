@@ -44,23 +44,34 @@ pipeline {
                         echo "❎ 변경된 파일이 없습니다. 스킵합니다."
                         env.BACK_CHANGED  = 'false'
                         env.FRONT_CHANGED = 'false'
+                        env.CHAIN_CHANGED  = 'false'
                     } else {
                         echo "📄 변경 파일 목록:\n${changedFiles}"
                         def lines = changedFiles.split('\\n') as List<String>
                         env.BACK_CHANGED  = (lines.any { it.startsWith('backend/') }).toString()
                         env.FRONT_CHANGED = (lines.any { it.startsWith('frontend/') }).toString()
+                        env.CHAIN_CHANGED  = (lines.any { it.startsWith('blockchain/') }).toString()
                     }
+                
 
-                    echo "🔎 BACK_CHANGED=${env.BACK_CHANGED}, FRONT_CHANGED=${env.FRONT_CHANGED}, range=${range}"
+                    echo "🔎 BACK_CHANGED=${env.BACK_CHANGED}, FRONT_CHANGED=${env.FRONT_CHANGED}, CHAIN_CHANGED=${env.CHAIN_CHANGED}, range=${range}."
                 }
             }
         }
 
-        stage('Detect Branch') {
+       stage('Detect Branch') {
             steps {
                 script {
-                    env.BRANCH_NAME  = params.GIT_REF.replaceFirst(/^refs\/heads\//, '')
-                    echo "▶ Branch = ${env.BRANCH_NAME }"
+                def resolved = env.BRANCH_NAME?.trim()
+                if (!resolved) {
+                    resolved = env.GIT_REF?.replaceFirst(/^refs\/heads\//,'')?.trim()
+                }
+                if (!resolved) {
+                    resolved = sh(script: "git name-rev --name-only HEAD || git rev-parse --abbrev-ref HEAD",
+                                returnStdout: true).trim()
+                }
+                env.BRANCH_NAME = resolved
+                echo "▶ Branch = ${env.BRANCH_NAME}"
                 }
             }
         }
@@ -93,7 +104,7 @@ pipeline {
         }
 
         stage('Nothing to Build') {
-            when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' } }
+            when { expression { env.BACK_CHANGED != 'true' && env.FRONT_CHANGED != 'true' && env.CHAIN_CHANGED != 'true' } }
             steps {
                 echo "⏭️ 변경 없음 → 스킵"
                 script { currentBuild.result = 'NOT_BUILT' }
@@ -122,6 +133,59 @@ pipeline {
                             throw err  // 실패를 파이프라인에 전파
                         }
                     }
+                }
+            }
+        }
+
+        stage('Prepare Env Files') {
+            steps {
+                script {
+                    // 디렉토리 보장
+                    sh 'mkdir -p blockchain frontend'
+
+                    // 1) blockchain/.env 주입
+                    withCredentials([file(credentialsId: 'ENV_BLOCKCHAIN', variable: 'BLOCK_ENV')]) {
+                        sh '''
+                        install -m 600 -T "$BLOCK_ENV" "blockchain/.env"
+                        echo "[INFO] blockchain/.env installed"
+                        '''
+                    }
+
+                    // 2) frontend/.env 주입
+                    withCredentials([file(credentialsId: 'ENV_FRONTEND', variable: 'FRONT_ENV')]) {
+                        sh '''
+                        install -m 600 -T "$FRONT_ENV" "frontend/.env"
+                        echo "[INFO] frontend/.env installed"
+                        '''
+                    }
+                    }
+            }
+        }
+
+        stage('Hardhat Setup & Compile') {
+            when { expression { return env.CHAIN_CHANGED == 'true' } }
+            steps {
+                dir('blockchain') {
+                    sh '''#!/usr/bin/env bash
+                    set -Eeuo pipefail
+
+                    export NVM_DIR="$HOME/.nvm"
+                    if [ ! -s "$NVM_DIR/nvm.sh" ]; then
+                        echo "[INFO] Installing nvm ..."
+                        curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+                    fi
+                    . "$NVM_DIR/nvm.sh"
+
+                    nvm install 20
+                    nvm use 20
+
+                    node -v
+                    npm -v
+
+                    export CI=true
+                    npm ci --no-audit --no-fund
+                    npx hardhat compile
+                    '''
                 }
             }
         }
@@ -165,6 +229,7 @@ pipeline {
                                       --name ${DEV_FRONT_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       -p ${DEV_FRONT_PORT}:3000 \
+                                      --restart unless-stopped \
                                       majoong/frontend-dev:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
                             } catch (err) {
@@ -196,7 +261,7 @@ pipeline {
                                       --network ${PROD_NETWORK} \
                                       --network-alias backend \
                                       -p ${PROD_BACK_PORT}:8080 \
-                                      majoong/backend-prod:latest                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                      majoong/backend-prod:${TAG}                                              >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
                             } catch(err) {
                                 sh "echo '[ERROR] Backend Deploy to main failed: ${err}' >> $WORKSPACE/${LOG_FILE}"
@@ -216,7 +281,8 @@ pipeline {
                                       --name ${PROD_FRONT_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       -p ${PROD_FRONT_PORT}:3000 \
-                                      majoong/frontend-prod:latest                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                      --restart unless-stopped \
+                                      majoong/frontend-prod:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
                                 """
 
                             } catch(err) {
@@ -278,6 +344,7 @@ pipeline {
         always {
             echo "📦 Pipeline finished with status: ${currentBuild.currentResult}"
             sh "rm -f ${BACKEND_DIR}/src/main/resources/application.yml || true"
+            sh "rm -f blockchain/.env frontend/.env || true"
         }
     }
 }
