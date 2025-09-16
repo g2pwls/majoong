@@ -3,7 +3,7 @@ type BreadcrumbItem = {
   label: string;
   href?: string;
 };
-
+ 
 export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
   return (
     <nav className="flex items-center text-sm text-gray-500" aria-label="Breadcrumb">
