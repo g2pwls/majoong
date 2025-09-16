@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function WalletCreatePage() {
-  const [isCreating, setIsCreating] = useState(true);
+  // const [isCreating, setIsCreating] = useState(true);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export default function WalletCreatePage() {
 
         // 지갑 생성 완료 후 메인 페이지로 이동
         setTimeout(() => {
-          setIsCreating(false);
+          // setIsCreating(false);
           alert('지갑이 성공적으로 생성되었습니다!');
           window.location.href = '/';
         }, 1000);
