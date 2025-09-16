@@ -1,4 +1,4 @@
-package com.e105.majoong.horse.dto.out;
+package com.e105.majoong.farm.dto.out;
 
 import com.e105.majoong.common.domain.Horse;
 import lombok.AllArgsConstructor;

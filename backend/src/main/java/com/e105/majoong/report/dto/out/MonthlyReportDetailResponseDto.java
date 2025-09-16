@@ -1,4 +1,4 @@
-package com.e105.majoong.farm.dto.out;
+package com.e105.majoong.report.dto.out;
 
 import com.e105.majoong.common.domain.MonthlyReport;
 import com.e105.majoong.common.domain.MyScore;

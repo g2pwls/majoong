@@ -1,12 +1,12 @@
-package com.e105.majoong.farm.service;
+package com.e105.majoong.report.service;
 
 import com.e105.majoong.common.domain.MonthlyReport;
 import com.e105.majoong.common.domain.MyScore;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
-import com.e105.majoong.farm.dto.out.MonthlyReportDetailResponseDto;
-import com.e105.majoong.farm.dto.out.MonthlyReportListResponseDto;
-import com.e105.majoong.farm.repository.MonthlyReportRepository;
+import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
+import com.e105.majoong.report.dto.out.MonthlyReportListResponseDto;
+import com.e105.majoong.report.repository.MonthlyReportRepository;
 import com.e105.majoong.farm.repository.MyScoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
-package com.e105.majoong.farm.service;
+package com.e105.majoong.report.service;
 
-import com.e105.majoong.farm.dto.out.MonthlyReportDetailResponseDto;
-import com.e105.majoong.farm.dto.out.MonthlyReportListResponseDto;
+import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
+import com.e105.majoong.report.dto.out.MonthlyReportListResponseDto;
 
 import java.util.List;
 

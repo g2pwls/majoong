@@ -1,4 +1,4 @@
-package com.e105.majoong.farm.repository;
+package com.e105.majoong.report.repository;
 
 import com.e105.majoong.common.domain.MonthlyReport;
 import org.springframework.data.jpa.repository.JpaRepository;

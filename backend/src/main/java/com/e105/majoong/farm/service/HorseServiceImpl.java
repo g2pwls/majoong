@@ -1,8 +1,8 @@
-package com.e105.majoong.horse.service;
+package com.e105.majoong.farm.service;
 
 import com.e105.majoong.common.domain.Horse;
 import com.e105.majoong.farm.repository.HorseRepository;
-import com.e105.majoong.horse.dto.out.HorseSearchResponseDto;
+import com.e105.majoong.farm.dto.out.HorseSearchResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
