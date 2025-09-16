@@ -1,9 +1,9 @@
-package com.e105.majoong.farmvault.entity;
+package com.e105.majoong.common.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import java.math.BigInteger;
+
 import java.time.LocalDateTime;
 
 @Getter @Setter @Builder

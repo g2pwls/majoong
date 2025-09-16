@@ -1,4 +1,4 @@
-package com.e105.majoong.member.entity;
+package com.e105.majoong.common.domain;
 
 import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -7,7 +7,6 @@ import lombok.*;
 @Entity
 @Table(name = "oauth_member")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -30,4 +29,7 @@ public class OauthMember extends BaseEntity {
     @Column(name = "role")
     private Role role;
 
+    public void updateRole(Role role) {
+        this.role = role;
+    }
 }

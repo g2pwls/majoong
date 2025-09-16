@@ -8,10 +8,10 @@ import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.jwt.JwtTokenProvider;
 import com.e105.majoong.common.redis.RedisService;
-import com.e105.majoong.member.entity.Donator;
-import com.e105.majoong.member.entity.Farmer;
-import com.e105.majoong.member.entity.OauthMember;
-import com.e105.majoong.member.entity.Role;
+import com.e105.majoong.common.domain.Donator;
+import com.e105.majoong.common.domain.Farmer;
+import com.e105.majoong.common.domain.OauthMember;
+import com.e105.majoong.common.domain.Role;
 import com.e105.majoong.member.repository.DonatorRepository;
 import com.e105.majoong.member.repository.FarmerRepository;
 import com.e105.majoong.member.repository.OauthMemberRepository;
@@ -111,8 +111,8 @@ public class AuthService {
 
       // 2) 서버 보관형 지갑 생성 → 주소/keystore 암호문 저장
       var created = walletService.createCustodialWallet();
-      farmer.setWalletAddress(created.address());
-      farmer.setKeystoreCipher(created.keystoreCipher());
+      farmer.updateWalletAddress(created.address());
+      farmer.updateKeystoreCipher(created.keystoreCipher());
       farmerRepository.save(farmer);
 
       // 3) farmId 계산 (임시: memberUuid → keccak → uint256)
@@ -129,8 +129,8 @@ public class AuthService {
 
       // 2) 서버 보관형 지갑 생성 → 주소/keystore 암호문 저장
       var created = walletService.createCustodialWallet();
-      donator.setWalletAddress(created.address());
-      donator.setKeystoreCipher(created.keystoreCipher());
+      donator.updateWalletAddress(created.address());
+      donator.updateKeystoreCipher(created.keystoreCipher());
       donatorRepository.save(donator);
 
     } else {
@@ -138,7 +138,7 @@ public class AuthService {
     }
     // ───────── 역할 분기 끝 ─────────
 
-    oauth.setRole(Role.valueOf(req.getRole().toUpperCase()));
+    oauth.updateRole(Role.valueOf(req.getRole().toUpperCase()));
 
     String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, req.getRole());
     String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, req.getRole());
@@ -175,7 +175,7 @@ public class AuthService {
     return AuthSignInResponseDto.ofRefresh(memberUuid, newAccess, newRefresh);
   }
 
-  /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */
+  /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */ //todo
   private static java.math.BigInteger toUint256FromMemberUuid(String memberUuid) {
     if (memberUuid == null || memberUuid.isBlank()) {
       throw new IllegalArgumentException("memberUuid is required for farmer");

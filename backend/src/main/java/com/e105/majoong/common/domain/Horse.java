@@ -18,31 +18,32 @@ public class Horse extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Long farmId;
-
-    @Column(nullable = false)
     private Long horseNumber;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 25)
     private String horseName;
 
-    private LocalDate birthDate;
+    private LocalDate birth;
 
+    @Column(length = 50)
     private String gender;
 
-    private String coatColor;
+    @Column(length = 30)
+    private String color;
 
+    @Column(length = 50)
     private String breed;
 
+    @Column(length = 50)
     private String countryOfOrigin;
 
-    private Integer races;
+    private Integer raceCount;
 
-    private Integer firstPlace;
+    private Integer firstPlaceCount;
 
-    private Integer secondPlace;
+    private Integer secondPlaceCount;
 
-    private Long prize;
+    private Long totalPrize;
 
     private LocalDate retiredDate;
 
@@ -50,5 +51,10 @@ public class Horse extends BaseEntity {
 
     private LocalDate lastRaceDate;
 
+    @Column(nullable = false)
     private String profileImage;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "farm_id", nullable = false)
+    private Farm farm;
 }

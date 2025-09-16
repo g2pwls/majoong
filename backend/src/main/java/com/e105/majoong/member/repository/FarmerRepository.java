@@ -1,6 +1,6 @@
 package com.e105.majoong.member.repository;
 
-import com.e105.majoong.member.entity.Farmer;
+import com.e105.majoong.common.domain.Farmer;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -17,9 +17,6 @@ public class ReceiptDetailHistory extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Long receiptId;
-
-    @Column(nullable = false)
     private String itemName;
 
     @Column(nullable = false)
@@ -27,4 +24,8 @@ public class ReceiptDetailHistory extends BaseEntity {
 
     @Column(nullable = false)
     private Integer pricePerItem;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "receipt_id", nullable = false)
+    private ReceiptHistory receiptHistory;
 }
