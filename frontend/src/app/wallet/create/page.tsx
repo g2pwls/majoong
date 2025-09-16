@@ -1,46 +1,104 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { signupComplete, getTokens } from '@/services/authService';
 
 export default function WalletCreatePage() {
   // const [isCreating, setIsCreating] = useState(true);
   const [progress, setProgress] = useState(0);
+  const hasStarted = useRef(false);
 
   useEffect(() => {
-    // 지갑 생성 시뮬레이션
+    // 중복 실행 방지
+    if (hasStarted.current) return;
+    hasStarted.current = true;
+
+    // 지갑 생성 및 회원가입 완료
     const createWallet = async () => {
       try {
-        // TODO: 백엔드 API 연동
-        // const response = await fetch('/api/wallet/create', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ userId: 'current_user_id' })
-        // });
+        // 1. 이미 처리 중인지 확인 (추가 중복 방지)
+        const isProcessing = localStorage.getItem('isProcessingSignup');
+        if (isProcessing === 'true') {
+          console.log('이미 처리 중입니다. 중복 실행 방지');
+          return;
+        }
+
+        // 2. 회원가입 데이터 가져오기
+        const pendingSignupData = localStorage.getItem('pendingSignupData');
+        if (!pendingSignupData) {
+          alert('회원가입 정보가 없습니다. 다시 시도해주세요.');
+          window.location.href = '/signup';
+          return;
+        }
+
+        // 3. 처리 중 플래그 설정
+        localStorage.setItem('isProcessingSignup', 'true');
+
+        const signupData = JSON.parse(pendingSignupData);
         
-        // 임시로 진행률 시뮬레이션
+        // 2. 토큰에서 이메일 정보 가져오기
+        const tokens = getTokens();
+        signupData.email = tokens.email || '';
+
+        // 3. 지갑 생성 시뮬레이션 시작 (0-30%)
         const steps = [
-          { message: '지갑 초기화 중...', progress: 20 },
-          { message: '개인키 생성 중...', progress: 40 },
-          { message: '공개키 생성 중...', progress: 60 },
-          { message: '지갑 주소 생성 중...', progress: 80 },
-          { message: '지갑 설정 완료 중...', progress: 100 }
+          { message: '지갑 초기화 중...', progress: 5 },
+          { message: '개인키 생성 중...', progress: 10 },
+          { message: '공개키 생성 중...', progress: 15 },
+          { message: '지갑 주소 생성 중...', progress: 20 },
+          { message: '지갑 설정 중...', progress: 30 }
         ];
 
         for (const step of steps) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 150));
           setProgress(step.progress);
         }
 
-        // 지갑 생성 완료 후 메인 페이지로 이동
-        setTimeout(() => {
-          // setIsCreating(false);
-          alert('지갑이 성공적으로 생성되었습니다!');
-          window.location.href = '/';
-        }, 1000);
+        // 4. 실제 회원가입 API 호출 (지갑 생성 포함) - 30-99%
+        console.log('회원가입 API 호출 시작:', signupData);
+        setProgress(30); // API 호출 시작
+        
+        // API 호출 시작 시간 기록
+        const apiStartTime = Date.now();
+        
+        // API 호출 중 진행률 업데이트 (실제 시간 기반)
+        const apiProgressInterval = setInterval(() => {
+          const elapsed = Date.now() - apiStartTime;
+          // API 호출이 3.8초 이상 걸리면 30%에서 99%까지 점진적으로 증가
+          const apiProgress = Math.min(30 + (elapsed / 3800) * 69, 99);
+          setProgress(Math.floor(apiProgress));
+        }, 100); // 100ms마다 업데이트
+        
+        const response = await signupComplete(signupData);
+        clearInterval(apiProgressInterval);
+        
+        // API 호출 완료 시간 기록
+        const apiEndTime = Date.now();
+        const apiDuration = apiEndTime - apiStartTime;
+        console.log(`API 호출 소요 시간: ${apiDuration}ms`);
+        
+        if (response.isSuccess) {
+          // 5. 회원가입 완료 - 진행률 100%로 설정
+          setProgress(100);
+          
+          // 6. 임시 데이터 삭제
+          localStorage.removeItem('pendingSignupData');
+          localStorage.removeItem('isProcessingSignup');
+          
+          // 7. 완료 팝업 표시 후 메인 페이지로 이동
+          setTimeout(() => {
+            alert('🎉 회원가입이 완료되었습니다!\n지갑이 성공적으로 생성되었습니다.');
+            window.location.href = '/';
+          }, 500);
+        } else {
+          throw new Error(response.message || '회원가입에 실패했습니다.');
+        }
 
       } catch (error) {
-        console.error('지갑 생성 오류:', error);
-        alert('지갑 생성에 실패했습니다. 다시 시도해주세요.');
+        console.error('회원가입/지갑 생성 오류:', error);
+        // 에러 발생 시 플래그 제거
+        localStorage.removeItem('isProcessingSignup');
+        alert('회원가입에 실패했습니다. 다시 시도해주세요.');
         window.location.href = '/signup';
       }
     };
@@ -49,11 +107,13 @@ export default function WalletCreatePage() {
   }, []);
 
   const getProgressMessage = () => {
-    if (progress <= 20) return '지갑 초기화 중...';
-    if (progress <= 40) return '개인키 생성 중...';
-    if (progress <= 60) return '공개키 생성 중...';
-    if (progress <= 80) return '지갑 주소 생성 중...';
-    return '지갑 설정 완료 중...';
+    if (progress <= 5) return '지갑 초기화 중...';
+    if (progress <= 10) return '개인키 생성 중...';
+    if (progress <= 15) return '공개키 생성 중...';
+    if (progress <= 20) return '지갑 주소 생성 중...';
+    if (progress <= 30) return '지갑 설정 중...';
+    if (progress < 100) return '회원가입 처리 중...';
+    return '지갑 생성 완료!';
   };
 
   return (
@@ -72,9 +132,13 @@ export default function WalletCreatePage() {
           {/* 지갑 생성 진행 상황 */}
           <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="text-center space-y-4">
-              {/* 스피너 */}
+              {/* 스피너 - 100% 완료 시에는 멈춤 */}
               <div className="flex justify-center">
-                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+                {progress < 100 ? (
+                  <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600"></div>
+                ) : (
+                  <div className="text-6xl">✅</div>
+                )}
               </div>
 
               {/* 진행 메시지 */}

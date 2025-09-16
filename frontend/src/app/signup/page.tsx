@@ -85,61 +85,21 @@ export default function SignupPage() {
       }
     }
 
-    setIsSubmitting(true);
+    // 가입 완료 버튼을 누르면 즉시 지갑 생성 페이지로 이동
+    // 회원가입 데이터를 localStorage에 임시 저장
+    const signupData = {
+      role: userType === 'donor' ? 'DONATOR' : 'FARMER',
+      name: userType === 'donor' ? donorInfo.name : ranchInfo.representativeName,
+      farmName: userType === 'ranch_owner' ? ranchInfo.ranchName : '',
+      businessNum: userType === 'ranch_owner' ? ranchInfo.businessNumber : '',
+      openingAt: userType === 'ranch_owner' ? ranchInfo.openingDate : ''
+    };
+
+    // 회원가입 데이터를 localStorage에 저장
+    localStorage.setItem('pendingSignupData', JSON.stringify(signupData));
     
-    try {
-      // 토큰에서 이메일 정보 가져오기
-      const tokens = getTokens();
-      if (!tokens.tempAccessToken) {
-        alert('로그인 정보가 없습니다. 다시 로그인해주세요.');
-        router.push('/login');
-        return;
-      }
-
-      // 쿠키 상태 확인 (httpOnly 쿠키는 document.cookie에서 보이지 않음)
-      console.log('현재 쿠키:', document.cookie);
-      console.log('session_key 쿠키는 httpOnly이므로 JavaScript에서 직접 확인할 수 없습니다.');
-
-      // API 요청 데이터 구성
-      const signupData = {
-        role: userType === 'donor' ? 'DONOR' : 'RANCH_OWNER',
-        name: userType === 'donor' ? donorInfo.name : ranchInfo.representativeName,
-        email: '', // 백엔드에서 세션에서 가져올 예정
-        farmName: userType === 'ranch_owner' ? ranchInfo.ranchName : '',
-        businessNum: userType === 'ranch_owner' ? ranchInfo.businessNumber : '',
-        openingAt: userType === 'ranch_owner' ? ranchInfo.openingDate : ''
-      };
-
-      // 회원가입 완료 API 호출
-      const response = await signupComplete(signupData);
-      
-      if (response.success) {
-        alert('회원가입이 완료되었습니다!');
-        // 지갑 생성 페이지로 리다이렉트
-        router.push('/wallet/create');
-      } else {
-        alert('회원가입에 실패했습니다: ' + response.message);
-      }
-      
-    } catch (error: unknown) {
-      console.error('회원가입 오류:', error);
-      
-      // 더 자세한 에러 정보 표시
-      let errorMessage = '회원가입에 실패했습니다.';
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string } } };
-        if (axiosError.response?.data?.message) {
-          errorMessage += `\n오류: ${axiosError.response.data.message}`;
-        }
-      } else if (error && typeof error === 'object' && 'message' in error) {
-        const errorWithMessage = error as { message: string };
-        errorMessage += `\n오류: ${errorWithMessage.message}`;
-      }
-      
-      alert(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // 지갑 생성 페이지로 이동
+    router.push('/wallet/create');
   };
 
   return (
