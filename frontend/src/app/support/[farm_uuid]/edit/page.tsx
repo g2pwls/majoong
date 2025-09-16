@@ -6,7 +6,6 @@ import FarmBasicInfoPanel from "@/components/farm/edit/FarmBasicInfoPanel";
 import HorseInfoPanel from "@/components/farm/edit/HorseInfoPanel";
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 import Breadcrumbs from "@/components/common/Breadcrumb";
-import FarmTabs, { FarmTabValue } from "@/components/farm/FarmTabs";
 
 // ---- Types ----
 export type Farm = {
@@ -46,8 +45,9 @@ export default function FarmEdit({ params }: PageProps) {
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const data: Farm = await res.json();
         if (alive) setFarm(data);
-      } catch (e: any) {
-        if (alive) setError(e?.message ?? "불러오기 중 오류가 발생했어요.");
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "불러오기 중 오류가 발생했어요.";
+        if (alive) setError(errorMessage);
       } finally {
         if (alive) setLoading(false);
       }
@@ -58,7 +58,16 @@ export default function FarmEdit({ params }: PageProps) {
   }, [farm_uuid]);
 
   // 등록된 말 정보 상태 관리
-  const [registeredHorses, setRegisteredHorses] = useState<any[]>([]);
+  interface RegisteredHorse {
+    id: string;
+    horseNo: string;
+    hrNm: string;
+    birthDt: string;
+    breed: string;
+    sex: string;
+    image?: string;
+  }
+  const [registeredHorses, setRegisteredHorses] = useState<RegisteredHorse[]>([]);
 
   // 초기 더미 말 목록 불러와 카드로 표시
   useEffect(() => {
@@ -70,9 +79,17 @@ export default function FarmEdit({ params }: PageProps) {
           headers: { "Content-Type": "application/json" },
         });
         if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
-        const data = (await res.json()) as any[];
+        const data = (await res.json()) as Array<{
+          id: string;
+          horseNo: string | number;
+          hrNm: string;
+          birthDt: string;
+          breed: string;
+          sex: string;
+          horse_url?: string;
+        }>;
         if (!alive) return;
-        const mapped = data.map((h: any) => ({
+        const mapped = data.map((h) => ({
           id: h.id,
           horseNo: String(h.horseNo),
           hrNm: h.hrNm,
@@ -95,7 +112,7 @@ export default function FarmEdit({ params }: PageProps) {
   }, [farm_uuid]);
 
   // 말 등록 처리: 마번 중복이면 교체
-  const handleHorseRegistration = (horseData: any) => {
+  const handleHorseRegistration = (horseData: RegisteredHorse) => {
     setRegisteredHorses((prev) => {
       const existsIdx = prev.findIndex((h) => h.horseNo === horseData.horseNo);
       if (existsIdx >= 0) {

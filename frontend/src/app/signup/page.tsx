@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 
 type UserType = 'donor' | 'ranch_owner';
 
@@ -55,7 +54,7 @@ export default function SignupPage() {
         alert('사업자 등록번호 인증이 완료되었습니다.');
       }, 2000);
       
-    } catch (error) {
+    } catch {
       setIsVerifying(false);
       alert('사업자 등록번호 인증에 실패했습니다. 다시 시도해주세요.');
     }
@@ -87,7 +86,7 @@ export default function SignupPage() {
     
     try {
       // TODO: 백엔드 API 연동
-      const signupData = userType === 'donor' ? donorInfo : ranchInfo;
+      // const signupData = userType === 'donor' ? donorInfo : ranchInfo;
       
       // 임시로 2초 후 완료 처리
       setTimeout(() => {
@@ -96,7 +95,7 @@ export default function SignupPage() {
         window.location.href = '/wallet/create';
       }, 2000);
       
-    } catch (error) {
+    } catch {
       setIsSubmitting(false);
       alert('회원가입에 실패했습니다. 다시 시도해주세요.');
     }

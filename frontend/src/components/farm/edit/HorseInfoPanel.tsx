@@ -3,16 +3,42 @@
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone"; // Import useDropzone from react-dropzone
 
+interface HorseProfileData {
+  horseNo: string | null;
+  hrNm: string | null;
+  sex: string | null;
+  birthDt: string | null;
+  color: string | null;
+  breed: string | null;
+  prdCty: string | null;
+  rcCnt: string | null;
+  fstCnt: string | null;
+  sndCnt: string | null;
+  amt: string | null;
+  discardDt: string | null;
+  fdebutDt: string | null;
+  lchulDt: string | null;
+}
+
+interface RegisteredHorse {
+  id: string;
+  horseNo: string;
+  image: string;
+  hrNm: string;
+  birthDt: string;
+  breed: string;
+  sex: string;
+}
+
 export default function HorseInfoPanel({
-  farm_uuid,
   onHorseRegistered,
 }: {
   farm_uuid: string;
-  onHorseRegistered: (horseData: any) => void;
+  onHorseRegistered: (horseData: RegisteredHorse) => void;
 }) {
   // 상태 관리
   const [horseNo, setHorseNo] = useState(""); // 마번 상태 관리
-  const [profileData, setProfileData] = useState<any | null>(null);
+  const [profileData, setProfileData] = useState<HorseProfileData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [file, setFile] = useState<File | null>(null); // 업로드한 파일 상태 관리
@@ -116,7 +142,7 @@ export default function HorseInfoPanel({
 
   // 말 등록하기
   const registerHorse = () => {
-    if (profileData && filePreview) {
+    if (profileData && filePreview && profileData.horseNo && profileData.hrNm && profileData.birthDt && profileData.breed && profileData.sex) {
       const horseData = {
         id: `${profileData.horseNo}-${Date.now()}`, // 리스트 렌더링용 key
         horseNo: profileData.horseNo, // 중복 체크용
