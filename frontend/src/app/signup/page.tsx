@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { signupComplete, getTokens } from '@/services/authService';
 
 type UserType = 'donor' | 'ranch_owner';
 
@@ -17,6 +19,7 @@ interface RanchOwnerInfo {
 }
 
 export default function SignupPage() {
+  const router = useRouter();
   const [userType, setUserType] = useState<UserType | null>(null);
   const [donorInfo, setDonorInfo] = useState<DonorInfo>({ name: '' });
   const [ranchInfo, setRanchInfo] = useState<RanchOwnerInfo>({
@@ -85,19 +88,57 @@ export default function SignupPage() {
     setIsSubmitting(true);
     
     try {
-      // TODO: 백엔드 API 연동
-      // const signupData = userType === 'donor' ? donorInfo : ranchInfo;
+      // 토큰에서 이메일 정보 가져오기
+      const tokens = getTokens();
+      if (!tokens.tempAccessToken) {
+        alert('로그인 정보가 없습니다. 다시 로그인해주세요.');
+        router.push('/login');
+        return;
+      }
+
+      // 쿠키 상태 확인 (httpOnly 쿠키는 document.cookie에서 보이지 않음)
+      console.log('현재 쿠키:', document.cookie);
+      console.log('session_key 쿠키는 httpOnly이므로 JavaScript에서 직접 확인할 수 없습니다.');
+
+      // API 요청 데이터 구성
+      const signupData = {
+        role: userType === 'donor' ? 'DONOR' : 'RANCH_OWNER',
+        name: userType === 'donor' ? donorInfo.name : ranchInfo.representativeName,
+        email: '', // 백엔드에서 세션에서 가져올 예정
+        farmName: userType === 'ranch_owner' ? ranchInfo.ranchName : '',
+        businessNum: userType === 'ranch_owner' ? ranchInfo.businessNumber : '',
+        openingAt: userType === 'ranch_owner' ? ranchInfo.openingDate : ''
+      };
+
+      // 회원가입 완료 API 호출
+      const response = await signupComplete(signupData);
       
-      // 임시로 2초 후 완료 처리
-      setTimeout(() => {
-        setIsSubmitting(false);
+      if (response.success) {
+        alert('회원가입이 완료되었습니다!');
         // 지갑 생성 페이지로 리다이렉트
-        window.location.href = '/wallet/create';
-      }, 2000);
+        router.push('/wallet/create');
+      } else {
+        alert('회원가입에 실패했습니다: ' + response.message);
+      }
       
-    } catch {
+    } catch (error: unknown) {
+      console.error('회원가입 오류:', error);
+      
+      // 더 자세한 에러 정보 표시
+      let errorMessage = '회원가입에 실패했습니다.';
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        if (axiosError.response?.data?.message) {
+          errorMessage += `\n오류: ${axiosError.response.data.message}`;
+        }
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        const errorWithMessage = error as { message: string };
+        errorMessage += `\n오류: ${errorWithMessage.message}`;
+      }
+      
+      alert(errorMessage);
+    } finally {
       setIsSubmitting(false);
-      alert('회원가입에 실패했습니다. 다시 시도해주세요.');
     }
   };
 

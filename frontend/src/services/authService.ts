@@ -1,59 +1,58 @@
-// 인증 관련 API 서비스
-import { SignInRequest, SignInResponse, UserInfo } from '@/types/auth';
+import axios from 'axios';
+import { LoginResponse, SignupCompleteRequest, SignupCompleteResponse } from '@/types/auth';
 
-export const authService = {
-  // 카카오 로그인
-  signIn: async (request: SignInRequest): Promise<SignInResponse> => {
-    const response = await fetch('/api/auth/sign-in', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-    });
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-test.majoong.site';
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || '로그인 처리 실패');
-    }
-
-    return response.json();
+// axios 인스턴스 생성 (쿠키 포함)
+const authApi = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
   },
+  withCredentials: true, // 쿠키 포함
+});
 
-  // 토큰 저장
-  saveTokens: (accessToken: string, refreshToken: string) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-  },
-
-  // 사용자 정보 저장
-  saveUserInfo: (memberUuid: string, email: string) => {
-    const userInfo: UserInfo = {
-      memberUuid,
-      email
-    };
-    localStorage.setItem('userInfo', JSON.stringify(userInfo));
-  },
-
-  // 토큰 가져오기
-  getAccessToken: (): string | null => {
-    return localStorage.getItem('accessToken');
-  },
-
-  getRefreshToken: (): string | null => {
-    return localStorage.getItem('refreshToken');
-  },
-
-  // 사용자 정보 가져오기
-  getUserInfo: (): UserInfo | null => {
-    const userInfo = localStorage.getItem('userInfo');
-    return userInfo ? JSON.parse(userInfo) : null;
-  },
-
-  // 로그아웃
-  logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('userInfo');
+// 세션 쿠키 기반 로그인 API 호출
+export const signInWithSession = async (): Promise<LoginResponse> => {
+  try {
+    const response = await authApi.post<LoginResponse>('/api/v1/auth/sign-in');
+    return response.data;
+  } catch (error) {
+    console.error('세션 기반 로그인 API 오류:', error);
+    throw error;
   }
+};
+
+// 회원가입 완료 API 호출
+export const signupComplete = async (signupData: SignupCompleteRequest): Promise<SignupCompleteResponse> => {
+  try {
+    const response = await authApi.post<SignupCompleteResponse>('/api/v1/auth/signup-complete', signupData);
+    return response.data;
+  } catch (error) {
+    console.error('회원가입 완료 API 오류:', error);
+    throw error;
+  }
+};
+
+// 토큰을 로컬 스토리지에 저장
+export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string) => {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+  localStorage.setItem('tempAccessToken', tempAccessToken);
+};
+
+// 토큰을 로컬 스토리지에서 가져오기
+export const getTokens = () => {
+  return {
+    accessToken: localStorage.getItem('accessToken'),
+    refreshToken: localStorage.getItem('refreshToken'),
+    tempAccessToken: localStorage.getItem('tempAccessToken'),
+  };
+};
+
+// 토큰 삭제 (로그아웃 시)
+export const clearTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('tempAccessToken');
 };
