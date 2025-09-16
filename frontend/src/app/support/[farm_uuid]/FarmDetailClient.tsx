@@ -14,7 +14,7 @@ import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 type Farm = {
-  farm_uuid: string;
+  id: string;
   farm_name: string;
   total_score: number;
   image_url?: string;
@@ -72,7 +72,12 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   if (loading) return <div className="p-6">로딩 중…</div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
-  const farmId = (farm as any)?.farm_uuid ?? (farm as any)?.id;
+  const farmId = farm.id;
+  
+  // farmId가 없으면 에러 표시
+  if (!farmId) {
+    return <div className="p-6">농장 ID를 찾을 수 없습니다.</div>;
+  }
 
   return (
     <div className="mx-auto max-w-7xl p-6">

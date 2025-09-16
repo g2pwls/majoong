@@ -27,14 +27,7 @@ type Horse = {
 
 type PageProps = { params?: { farm_uuid: string } };  // params가 없을 수 있음을 명시적으로 처리
 
-export default function FarmReport({ params }: PageProps) {
-  // params가 없을 경우 처리
-  if (!params || !params.farm_uuid) {
-    return <div>목장 정보가 없습니다. 다시 시도해주세요.</div>;
-  }
-
-  const farm_uuid = params.farm_uuid;
-
+function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
   // farm 데이터 가져오기
   const [farm, setFarm] = useState<Farm | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,8 +51,9 @@ export default function FarmReport({ params }: PageProps) {
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         const data: Farm = await res.json();
         if (alive) setFarm(data);
-      } catch (e: any) {
-        if (alive) setError(e?.message ?? "불러오기 중 오류가 발생했어요.");
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "불러오기 중 오류가 발생했어요.";
+        if (alive) setError(errorMessage);
       } finally {
         if (alive) setLoading(false);
       }
@@ -72,7 +66,7 @@ export default function FarmReport({ params }: PageProps) {
         if (!res.ok) throw new Error("Failed to fetch horses");
         const data = await res.json();
         // API 응답을 Horse 타입에 맞게 변환
-        const mappedHorses = data.map((h: any) => ({
+        const mappedHorses = data.map((h: { horseNo: string | number; hrNm: string; horse_url?: string }) => ({
           horseNo: String(h.horseNo),
           hrNm: h.hrNm,
           horse_url: h.horse_url,
@@ -268,4 +262,13 @@ export default function FarmReport({ params }: PageProps) {
       </main>
     </div>
   );
+}
+
+export default function FarmReport({ params }: PageProps) {
+  // params가 없을 경우 처리
+  if (!params || !params.farm_uuid) {
+    return <div>목장 정보가 없습니다. 다시 시도해주세요.</div>;
+  }
+
+  return <FarmReportContent farm_uuid={params.farm_uuid} />;
 }

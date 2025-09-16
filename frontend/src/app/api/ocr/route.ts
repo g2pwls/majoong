@@ -10,12 +10,21 @@ type OcrRequestBody = {
   lang?: 'ko' | 'eng' | string; // 복수언어 "kor+eng" 같은 건 Document OCR이 아니라 Tesseract용 표기라 보통 'ko' 권장
 };
 
-function sortFieldsByReadingOrder(fields: any[]) {
+interface BoundingPoly {
+  vertices: Array<{ x?: number; y?: number }>;
+}
+
+interface Field {
+  boundingPoly?: BoundingPoly;
+  inferText: string;
+}
+
+function sortFieldsByReadingOrder(fields: Field[]) {
   // boundingPoly 기준으로 위→아래, 좌→우 정렬 (간단 버전)
-  const getCenter = (fp: any) => {
+  const getCenter = (fp: Field) => {
     const vs = fp?.boundingPoly?.vertices ?? [];
-    const xs = vs.map((v: any) => v.x ?? 0);
-    const ys = vs.map((v: any) => v.y ?? 0);
+    const xs = vs.map((v) => v.x ?? 0);
+    const ys = vs.map((v) => v.y ?? 0);
     const cx = xs.reduce((a: number, b: number) => a + b, 0) / (xs.length || 1);
     const cy = ys.reduce((a: number, b: number) => a + b, 0) / (ys.length || 1);
     return { cx, cy };
@@ -98,7 +107,7 @@ export async function POST(req: NextRequest) {
     let prevCy = -9999;
     for (const f of ordered) {
       const vs = f?.boundingPoly?.vertices ?? [];
-      const cy = vs.reduce((a: number, v: any) => a + (v?.y ?? 0), 0) / (vs.length || 1);
+      const cy = vs.reduce((a: number, v) => a + (v?.y ?? 0), 0) / (vs.length || 1);
       if (Math.abs(cy - prevCy) > 18) {
         // 새 줄로 판단
         if (lines) lines += '\n';
@@ -114,9 +123,10 @@ export async function POST(req: NextRequest) {
       fields: ordered,   // 필요 시 프런트에서 하이라이트/좌표 표시용
       raw: json,         // 디버깅용(운영에선 제거 가능)
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
-      { error: 'INTERNAL', detail: err?.message ?? String(err) },
+      { error: 'INTERNAL', detail: errorMessage },
       { status: 500 },
     );
   }

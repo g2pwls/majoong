@@ -122,7 +122,7 @@ export default function DonationProofUpload({
     if (imageUrl.startsWith("data:")) {
       const [header, b64] = imageUrl.split(",");
       const m = /data:image\/(\w+);base64/.exec(header || "");
-      const fmt = (m?.[1] || "jpg").toLowerCase() as any;
+      const fmt = (m?.[1] || "jpg").toLowerCase() as 'png' | 'jpg' | 'jpeg' | 'webp';
       return { base64: b64, format: fmt === "jpeg" ? "jpg" : fmt };
     }
 
@@ -193,9 +193,10 @@ export default function DonationProofUpload({
       }
 
       setExtractedText(json?.text || "(추출된 텍스트가 없습니다)");
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("OCR 에러:", e);
-      setExtractError(e?.message ?? "추출 중 오류가 발생했어요.");
+      const errorMessage = e instanceof Error ? e.message : "추출 중 오류가 발생했어요.";
+      setExtractError(errorMessage);
     } finally {
       setExtracting(false);
     }
@@ -265,9 +266,10 @@ export default function DonationProofUpload({
       }
 
       setCertificationResult(json);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("인증 사진 검증 에러:", e);
-      setCertificationError(e?.message ?? "종합 검증 중 오류가 발생했어요.");
+      const errorMessage = e instanceof Error ? e.message : "종합 검증 중 오류가 발생했어요.";
+      setCertificationError(errorMessage);
     } finally {
       setCertificationVerifying(false);
     }
