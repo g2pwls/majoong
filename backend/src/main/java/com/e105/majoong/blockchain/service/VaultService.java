@@ -105,10 +105,10 @@ public class VaultService {
       // DB upsert
       FarmVault fv = farmVaultRepository.findByMemberUuid(memberUuid)
           .orElse(FarmVault.builder().memberUuid(memberUuid).build());
-      fv.setFarmId(farmIdHex);
-      fv.setVaultAddress(vaultAddress);
-      fv.setDeployTxHash(txHash);
-      fv.setStatus(FarmVault.Status.ACTIVE);
+      fv.updateFarmId(farmIdHex);
+      fv.updateVaultAddress(vaultAddress);
+      fv.updateDeployTxHash(txHash);
+      fv.updateStatus(FarmVault.Status.ACTIVE);
 
       return farmVaultRepository.save(fv);
 

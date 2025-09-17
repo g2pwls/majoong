@@ -58,4 +58,8 @@ public class Farm extends BaseEntity {
 
     @Column(nullable = false)
     private String profileImage;
+
+    public void updateTotalDonation(Long amount) {
+        this.totalDonation += amount;
+    }
 }
