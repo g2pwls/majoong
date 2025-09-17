@@ -1,6 +1,6 @@
 package com.e105.majoong.farm.dto.out;
 
-import com.e105.majoong.common.domain.Horse;
+import com.e105.majoong.common.model.horse.Horse;
 import lombok.*;
 
 @Getter

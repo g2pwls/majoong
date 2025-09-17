@@ -1,13 +1,13 @@
 package com.e105.majoong.farm.service;
 
-import com.e105.majoong.common.domain.Farm;
+import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
+import com.e105.majoong.common.model.farm.FarmRepository;
+import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.farm.dto.out.*;
-import com.e105.majoong.farm.repository.BookmarkRepository;
-import com.e105.majoong.farm.repository.FarmRepository;
-import com.e105.majoong.farm.repository.HorseRepository;
-import com.e105.majoong.farm.repository.MyScoreRepository;
+import com.e105.majoong.common.model.bookmark.BookmarkRepository;
+import com.e105.majoong.common.model.myScore.MyScoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

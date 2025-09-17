@@ -1,10 +1,10 @@
 package com.e105.majoong.farm.service;
 
-import com.e105.majoong.common.domain.ReceiptHistory;
+import com.e105.majoong.common.model.receiptHistory.ReceiptHistory;
 import com.e105.majoong.farm.dto.out.DonationUsageResponseDto;
 import com.e105.majoong.farm.dto.out.MonthlyDonationUsedDto;
 import com.e105.majoong.farm.dto.out.ReceiptHistoryResponseDto;
-import com.e105.majoong.farm.repository.ReceiptHistoryRepository;
+import com.e105.majoong.common.model.receiptHistory.ReceiptHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

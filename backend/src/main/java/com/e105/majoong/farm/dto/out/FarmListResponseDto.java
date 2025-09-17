@@ -1,6 +1,6 @@
 package com.e105.majoong.farm.dto.out;
 
-import com.e105.majoong.common.domain.Farm;
+import com.e105.majoong.common.model.farm.Farm;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

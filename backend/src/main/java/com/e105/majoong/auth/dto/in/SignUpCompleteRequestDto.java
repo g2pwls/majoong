@@ -1,7 +1,7 @@
 package com.e105.majoong.auth.dto.in;
 
-import com.e105.majoong.common.domain.Donator;
-import com.e105.majoong.common.domain.Farmer;
+import com.e105.majoong.common.model.donator.Donator;
+import com.e105.majoong.common.model.farmer.Farmer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

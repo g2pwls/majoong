@@ -1,6 +1,6 @@
 package com.e105.majoong.farm.dto.out;
 
-import com.e105.majoong.common.domain.ReceiptHistory;
+import com.e105.majoong.common.model.receiptHistory.ReceiptHistory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

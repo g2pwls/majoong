@@ -1,6 +1,6 @@
 package com.e105.majoong.report.repository;
 
-import com.e105.majoong.common.domain.MonthlyReport;
+import com.e105.majoong.common.model.monthlyReport.MonthlyReport;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;

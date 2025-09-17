@@ -1,8 +1,8 @@
 package com.e105.majoong.blockchain.service;
 
 import com.e105.majoong.blockchain.props.ChainProps;
-import com.e105.majoong.common.domain.FarmVault;
-import com.e105.majoong.blockchain.repository.FarmVaultRepository;
+import com.e105.majoong.common.model.farmVault.FarmVault;
+import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

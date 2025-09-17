@@ -2,14 +2,18 @@
 package com.e105.majoong.donation.service;
 
 import com.e105.majoong.blockchain.props.ChainProps;
-import com.e105.majoong.blockchain.repository.FarmVaultRepository;
+import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
 import com.e105.majoong.blockchain.service.OnChainDonationService;
 import com.e105.majoong.blockchain.util.TokenUnits;
-import com.e105.majoong.common.domain.*;
+import com.e105.majoong.common.model.donationHistory.DonationHistory;
+import com.e105.majoong.common.model.donationHistory.DonationHistoryRepository;
+import com.e105.majoong.common.model.donator.Donator;
+import com.e105.majoong.common.model.farm.Farm;
+import com.e105.majoong.common.model.farm.FarmRepository;
+import com.e105.majoong.common.model.farmVault.FarmVault;
 import com.e105.majoong.donation.dto.in.DonationRequestDto;
 import com.e105.majoong.donation.dto.out.DonationResponseDto;
-import com.e105.majoong.donation.repository.*;
-import com.e105.majoong.member.repository.DonatorRepository;
+import com.e105.majoong.common.model.donator.DonatorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
