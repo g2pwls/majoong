@@ -35,7 +35,9 @@ public class FarmController {
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-        Page<FarmListResponseDto> result = farmService.searchFarms(farmName, page, size, user.getMemberUuid());
+        String memberUuid = (user != null) ? user.getMemberUuid() : null;
+
+        Page<FarmListResponseDto> result = farmService.searchFarms(farmName, page, size, memberUuid);
         return new BaseResponse<>(result);
     }
 
@@ -80,4 +82,11 @@ public class FarmController {
         Page<HorseSearchResponseDto> result = horseService.searchHorses(horseName, page, size);
         return new BaseResponse<>(result);
     }
+
+    @GetMapping("/{farmUuid}/donations/usage/last-month")
+    public BaseResponse<LastMonthUsageResponseDto> getLastMonthUsage(
+            @PathVariable String farmUuid) {
+        return new BaseResponse<>(monthlyDonationService.getLastMonthUsage(farmUuid));
+    }
 }
+

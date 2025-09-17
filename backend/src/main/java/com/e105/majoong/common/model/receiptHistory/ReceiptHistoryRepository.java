@@ -19,4 +19,28 @@ public interface ReceiptHistoryRepository extends JpaRepository<ReceiptHistory, 
     List<Object[]> findMonthlyDonationUsed(@Param("farmUuid") String farmUuid);
 
     List<ReceiptHistory> findByFarmUuidAndCreatedAtBetween(String farmUuid, LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+        SELECT rh.categoryId, COUNT(rh.id), SUM(rh.totalAmount)
+        FROM ReceiptHistory rh
+        WHERE rh.farmUuid = :farmUuid
+          AND rh.createdAt BETWEEN :start AND :end
+        GROUP BY rh.categoryId
+    """)
+    List<Object[]> findCategoryStatsLastMonth(
+            @Param("farmUuid") String farmUuid,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    @Query("""
+    SELECT COUNT(rh.id), SUM(rh.totalAmount)
+    FROM ReceiptHistory rh
+    WHERE rh.farmUuid = :farmUuid
+      AND rh.createdAt BETWEEN :start AND :end
+""")
+    Object findTotalStatsLastMonth(
+            @Param("farmUuid") String farmUuid,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
 }
