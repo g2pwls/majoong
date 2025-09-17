@@ -20,27 +20,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class FinApiServiceImpl implements FinApiService {
 
-    private final WebClient webClient = WebClient.builder().build();
+    private final WebClient finApiWebClient; // Config에서 주입
 
-    @Value("${finapi.base-url}")
-    private String baseUrl;
-    @Value("${finapi.api-key}")
-    private String apiKey;
     @Value("${finapi.institution-code}")
     private String institutionCode;
+
     @Value("${finapi.fintech-app-no}")
     private String fintechAppNo;
+
     @Value("${finapi.account-type-unique-no}")
     private String accountTypeUniqueNo;
 
+    @Override
     public FinMemberResponseDto registerMember(String email) {
         Map<String, Object> req = Map.of(
-                "apiKey", apiKey,
                 "userId", email
         );
 
-        return webClient.post()
-                .uri(baseUrl + "/member")
+        return finApiWebClient.post()
+                .uri("/member")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(req)
                 .exchangeToMono(response -> {
@@ -54,9 +52,9 @@ public class FinApiServiceImpl implements FinApiService {
                     return response.bodyToMono(FinMemberResponseDto.class);
                 })
                 .block();
-
     }
 
+    @Override
     public CreateAccountResponseDto createDemandDepositAccount(String userKey) {
         String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
@@ -70,7 +68,6 @@ public class FinApiServiceImpl implements FinApiService {
                 "fintechAppNo", fintechAppNo,
                 "apiServiceCode", "createDemandDepositAccount",
                 "institutionTransactionUniqueNo", uniqueNo,
-                "apiKey", apiKey,
                 "userKey", userKey
         );
 
@@ -79,8 +76,8 @@ public class FinApiServiceImpl implements FinApiService {
                 "accountTypeUniqueNo", accountTypeUniqueNo
         );
 
-        return webClient.post()
-                .uri(baseUrl + "/edu/demandDeposit/createDemandDepositAccount")
+        return finApiWebClient.post()
+                .uri("/edu/demandDeposit/createDemandDepositAccount")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(req)
                 .exchangeToMono(response -> {
