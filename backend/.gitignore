@@ -40,3 +40,6 @@ out/
 ### .yml files ###
 *.yml
 *.yaml
+
+# QueryDSL generated Q-classes
+/src/main/generated/
