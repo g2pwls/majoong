@@ -23,5 +23,5 @@ export interface SignupCompleteResponse {
   isSuccess: boolean;
   message: string;
   code: number;
-  result: any;
+  result: unknown;
 }

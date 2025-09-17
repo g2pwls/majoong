@@ -15,7 +15,7 @@ const authApi = axios.create({
 // 세션 쿠키 기반 로그인 API 호출
 export const signInWithSession = async (): Promise<LoginResponse> => {
   try {
-    const response = await authApi.post<any>('/api/v1/auth/sign-in');
+    const response = await authApi.post<{ result: LoginResponse }>('/api/v1/auth/sign-in');
     // 백엔드 BaseResponse 형태로 래핑된 응답에서 result 추출
     return response.data.result;
   } catch (error) {
@@ -35,7 +35,7 @@ export const signupComplete = async (signupData: SignupCompleteRequest): Promise
       throw new Error('tempAccessToken이 없습니다. 다시 로그인해주세요.');
     }
     
-    const response = await authApi.post<any>('/api/v1/auth/signup-complete', signupData, {
+    const response = await authApi.post<SignupCompleteResponse>('/api/v1/auth/signup-complete', signupData, {
       headers: {
         'Authorization': `Bearer ${tokens.tempAccessToken}`
       }
@@ -44,11 +44,14 @@ export const signupComplete = async (signupData: SignupCompleteRequest): Promise
     console.log('signupComplete API 응답:', response.data);
     // 백엔드 BaseResponse 전체를 반환 (isSuccess, message 등 포함)
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('회원가입 완료 API 오류:', error);
-    console.error('에러 응답:', error.response?.data);
-    console.error('에러 상태:', error.response?.status);
-    console.error('에러 헤더:', error.response?.headers);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
     throw error;
   }
 };

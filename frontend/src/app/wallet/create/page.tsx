@@ -6,6 +6,7 @@ import { signupComplete, getTokens } from '@/services/authService';
 export default function WalletCreatePage() {
   // const [isCreating, setIsCreating] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [userRole, setUserRole] = useState<string>('DONATOR');
   const hasStarted = useRef(false);
 
   useEffect(() => {
@@ -40,8 +41,22 @@ export default function WalletCreatePage() {
         const tokens = getTokens();
         signupData.email = tokens.email || '';
 
-        // 3. 지갑 생성 시뮬레이션 시작 (0-30%)
-        const steps = [
+        // 3. 사용자 역할 설정
+        setUserRole(signupData.role);
+        const isFarmer = signupData.role === 'FARMER';
+        const walletCreationTime = isFarmer ? 10800 : 3800; // 목장주: 10.8초, 기부자: 3.8초
+
+        // 4. 지갑 생성 시뮬레이션 시작 (0-30%)
+        const steps = isFarmer ? [
+          { message: '지갑 초기화 중...', progress: 3 },
+          { message: '개인키 생성 중...', progress: 6 },
+          { message: '공개키 생성 중...', progress: 9 },
+          { message: '지갑 주소 생성 중...', progress: 12 },
+          { message: '목장 전용 지갑 설정 중...', progress: 15 },
+          { message: '사업자 인증서 연동 중...', progress: 18 },
+          { message: '목장 계정 초기화 중...', progress: 21 },
+          { message: '지갑 보안 설정 중...', progress: 30 }
+        ] : [
           { message: '지갑 초기화 중...', progress: 5 },
           { message: '개인키 생성 중...', progress: 10 },
           { message: '공개키 생성 중...', progress: 15 },
@@ -54,18 +69,18 @@ export default function WalletCreatePage() {
           setProgress(step.progress);
         }
 
-        // 4. 실제 회원가입 API 호출 (지갑 생성 포함) - 30-99%
+        // 5. 실제 회원가입 API 호출 (지갑 생성 포함) - 30-99%
         console.log('회원가입 API 호출 시작:', signupData);
         setProgress(30); // API 호출 시작
         
         // API 호출 시작 시간 기록
         const apiStartTime = Date.now();
         
-        // API 호출 중 진행률 업데이트 (실제 시간 기반)
+        // API 호출 중 진행률 업데이트 (역할별 시간 기반)
         const apiProgressInterval = setInterval(() => {
           const elapsed = Date.now() - apiStartTime;
-          // API 호출이 3.8초 이상 걸리면 30%에서 99%까지 점진적으로 증가
-          const apiProgress = Math.min(30 + (elapsed / 3800) * 69, 99);
+          // 역할별 시간에 따라 30%에서 99%까지 점진적으로 증가
+          const apiProgress = Math.min(30 + (elapsed / walletCreationTime) * 69, 99);
           setProgress(Math.floor(apiProgress));
         }, 100); // 100ms마다 업데이트
         
@@ -107,13 +122,31 @@ export default function WalletCreatePage() {
   }, []);
 
   const getProgressMessage = () => {
-    if (progress <= 5) return '지갑 초기화 중...';
-    if (progress <= 10) return '개인키 생성 중...';
-    if (progress <= 15) return '공개키 생성 중...';
-    if (progress <= 20) return '지갑 주소 생성 중...';
-    if (progress <= 30) return '지갑 설정 중...';
-    if (progress < 100) return '회원가입 처리 중...';
-    return '지갑 생성 완료!';
+    // 역할별 메시지
+    const isFarmer = userRole === 'FARMER';
+    
+    if (isFarmer) {
+      // 목장주용 메시지
+      if (progress <= 3) return '지갑 초기화 중...';
+      if (progress <= 6) return '개인키 생성 중...';
+      if (progress <= 9) return '공개키 생성 중...';
+      if (progress <= 12) return '지갑 주소 생성 중...';
+      if (progress <= 15) return '목장 전용 지갑 설정 중...';
+      if (progress <= 18) return '사업자 인증서 연동 중...';
+      if (progress <= 21) return '목장 계정 초기화 중...';
+      if (progress <= 30) return '지갑 보안 설정 중...';
+      if (progress < 100) return '목장주 회원가입 처리 중...';
+      return '목장주 지갑 생성 완료!';
+    } else {
+      // 기부자용 메시지
+      if (progress <= 5) return '지갑 초기화 중...';
+      if (progress <= 10) return '개인키 생성 중...';
+      if (progress <= 15) return '공개키 생성 중...';
+      if (progress <= 20) return '지갑 주소 생성 중...';
+      if (progress <= 30) return '지갑 설정 중...';
+      if (progress < 100) return '회원가입 처리 중...';
+      return '지갑 생성 완료!';
+    }
   };
 
   return (

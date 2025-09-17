@@ -72,9 +72,12 @@ export default function Navbar() {
         <div className="hidden sm:block">
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600">
+              <Link
+                href="/mypage"
+                className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
+              >
                 {userEmail ? userEmail.split('@')[0] : '사용자'}님
-              </span>
+              </Link>
               <button
                 onClick={handleLogout}
                 className="rounded border px-4 py-1 text-sm hover:bg-gray-50"
@@ -115,9 +118,13 @@ export default function Navbar() {
             <li className="pt-2">
               {isLoggedIn ? (
                 <div className="flex flex-col gap-2">
-                  <span className="text-sm text-gray-600">
+                  <Link
+                    href="/mypage"
+                    className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
+                    onClick={() => setOpen(false)}
+                  >
                     {userEmail ? userEmail.split('@')[0] : '사용자'}님
-                  </span>
+                  </Link>
                   <button
                     onClick={() => {
                       handleLogout();

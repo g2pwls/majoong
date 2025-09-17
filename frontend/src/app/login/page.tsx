@@ -2,20 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 // OAuth 콜백 로직은 /login/callback 페이지로 이동
 
 export default function LoginPage() {
   console.log('LoginPage - Component rendering');
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // 로그인 페이지는 단순히 로그인 UI만 표시
   useEffect(() => {
     console.log('Login page loaded - showing login UI');
-    setIsProcessing(false);
   }, []);
 
   const handleKakaoLogin = async () => {
