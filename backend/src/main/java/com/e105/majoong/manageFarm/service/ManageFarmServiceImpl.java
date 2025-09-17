@@ -22,7 +22,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
 
     private final GeoCoding geoCoding;
     private final FarmerRepository farmerRepository;
-    private final FarmRepository farmRepository;
+    private final FarmRepository  farmRepository;
     private final HorseRepository horseRepository;
 
     @Override

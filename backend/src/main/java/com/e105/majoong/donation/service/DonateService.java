@@ -2,6 +2,9 @@
 package com.e105.majoong.donation.service;
 
 import com.e105.majoong.blockchain.props.ChainProps;
+import com.e105.majoong.common.entity.BaseResponse;
+import com.e105.majoong.common.entity.BaseResponseStatus;
+import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
 import com.e105.majoong.blockchain.service.OnChainDonationService;
 import com.e105.majoong.blockchain.util.TokenUnits;
