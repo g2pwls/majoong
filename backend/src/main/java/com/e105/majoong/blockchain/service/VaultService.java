@@ -1,8 +1,8 @@
 package com.e105.majoong.blockchain.service;
 
 import com.e105.majoong.blockchain.props.ChainProps;
-import com.e105.majoong.farmvault.entity.FarmVault;
-import com.e105.majoong.farmvault.repository.FarmVaultRepository;
+import com.e105.majoong.common.model.farmVault.FarmVault;
+import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -105,10 +105,10 @@ public class VaultService {
       // DB upsert
       FarmVault fv = farmVaultRepository.findByMemberUuid(memberUuid)
           .orElse(FarmVault.builder().memberUuid(memberUuid).build());
-      fv.setFarmId(farmIdHex);
-      fv.setVaultAddress(vaultAddress);
-      fv.setDeployTxHash(txHash);
-      fv.setStatus(FarmVault.Status.ACTIVE);
+      fv.updateFarmId(farmIdHex);
+      fv.updateVaultAddress(vaultAddress);
+      fv.updateDeployTxHash(txHash);
+      fv.updateStatus(FarmVault.Status.ACTIVE);
 
       return farmVaultRepository.save(fv);
 

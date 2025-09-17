@@ -1,74 +1,55 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { authService } from '@/services/authService';
+// OAuth 콜백 로직은 /login/callback 페이지로 이동
 
 export default function LoginPage() {
+  console.log('LoginPage - Component rendering');
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+
+  // 로그인 페이지는 단순히 로그인 UI만 표시
+  useEffect(() => {
+    console.log('Login page loaded - showing login UI');
+  }, []);
 
   const handleKakaoLogin = async () => {
     setIsLoading(true);
     
     try {
-      // 백엔드 OAuth2 엔드포인트로 리다이렉트
-      window.location.href = 'https://api-test.majoong.site/oauth2/authorization/kakao';
+      // 백엔드의 카카오 OAuth2 로그인 URL로 리다이렉트
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      window.location.href = `${API_BASE_URL}/oauth2/authorization/kakao`;
       
     } catch (error) {
-      setIsLoading(false);
       console.error('로그인 오류:', error);
       alert('로그인 중 오류가 발생했습니다.');
+      setIsLoading(false);
     }
   };
 
-  // OAuth 콜백 처리 (백엔드에서 리다이렉트된 후)
-  React.useEffect(() => {
-    const handleOAuthCallback = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sessionKey = urlParams.get('session_key');
-      const error = urlParams.get('error');
-      
-      if (error) {
-        console.error('OAuth 에러:', error);
-        alert('OAuth 로그인 중 오류가 발생했습니다.');
-        return;
-      }
-      
-      if (sessionKey) {
-        setIsLoading(true);
-        
-        try {
-          // 백엔드 API로 로그인 요청
-          const response = await authService.signIn({
-            oauthId: sessionKey,
-            oauthProvider: 'kakao'
-          });
-          
-          // 토큰 및 사용자 정보 저장
-          authService.saveTokens(response.accessToken, response.refreshToken);
-          authService.saveUserInfo(response.memberUuid, response.email);
+  // 에러 상태 (로그인 버튼 클릭 시 에러)
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="text-red-500 text-xl mb-4">⚠️</div>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={() => {
+              setError(null);
+            }}
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-          // 회원가입 여부에 따른 페이지 이동
-          if (response.isSignUp) {
-            router.push('/signup');
-          } else {
-            router.push('/');
-          }
-          
-        } catch (error) {
-          console.error('OAuth 콜백 처리 오류:', error);
-          alert('로그인 처리 중 오류가 발생했습니다.');
-        } finally {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    handleOAuthCallback();
-  }, [router]);
-
+  // 일반 로그인 UI
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">

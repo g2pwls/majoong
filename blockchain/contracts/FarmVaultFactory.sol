@@ -7,7 +7,7 @@ pragma solidity ^0.8.24;
 import "./FarmVault.sol";
 // OpenZeppelin 라이브러리에서 AccessControl 계약을 가져옵니다. 권한 관리에 사용됩니다.
 import "@openzeppelin/contracts/access/AccessControl.sol";
-
+ 
 // 'FarmVaultFactory'라는 새로운 스마트 계약을 정의합니다. '농장 금고 공장'이라는 뜻입니다.
 // 이 계약은 AccessControl의 기능을 상속받아 권한 관리를 할 수 있습니다.
 contract FarmVaultFactory is AccessControl {

@@ -1,0 +1,28 @@
+package com.e105.majoong.report.dto.out;
+
+import com.e105.majoong.common.model.monthlyReport.MonthlyReport;
+import com.e105.majoong.common.model.myScore.MyScore;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+@AllArgsConstructor
+public class MonthlyReportListResponseDto {
+    private Long reportId;
+    private int year;
+    private int month;
+    private double score;
+    private String thumbnail;
+
+    public static MonthlyReportListResponseDto toDto(MonthlyReport report, MyScore scoreEntity) {
+        return MonthlyReportListResponseDto.builder()
+                .reportId(report.getId())
+                .year(scoreEntity.getYear())
+                .month(scoreEntity.getMonth())
+                .score(scoreEntity.getScore())
+                .thumbnail(report.getThumbnail())
+                .build();
+    }
+}

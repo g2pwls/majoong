@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/login/**", "/oauth2/**",  "/login/oauth2/**").permitAll()
                         .requestMatchers(
                                 "/login/oauth2/**",
                                 "/api/v1/auth/**",
@@ -56,6 +56,8 @@ public class SecurityConfig {
                                 "swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                        .requestMatchers("/api/v1/members/donators").hasRole("DONATOR")
+                        .requestMatchers("/api/v1/members/farmers").hasRole("FARMER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
