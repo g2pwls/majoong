@@ -164,12 +164,24 @@ pipeline {
                         '''
                     }
 
-                    // 2) frontend/.env 주입
-                    withCredentials([file(credentialsId: 'ENV_FRONTEND', variable: 'FRONT_ENV')]) {
-                        sh '''
-                        install -m 600 -T "$FRONT_ENV" "frontend/.env"
-                        echo "[ENV] frontend/.env installed"
-                        '''
+                    if (env.BRANCH_NAME == 'dev') {
+                        echo "Using frontend .env.development"
+                        withCredentials([file(credentialsId: 'FRONT_ENV_DEV', variable: 'FRONT_ENV')]) {
+                            sh '''
+                            install -m 600 -T "$FRONT_ENV" "frontend/.env"
+                            echo "[ENV] frontend/.env installed"
+                            '''
+                        }
+                    } else if (env.BRANCH_NAME == 'main') {
+                        echo "Using frontend .env.production"
+                        withCredentials([file(credentialsId: 'FRONT_ENV_PROD', variable: 'FRONT_ENV')]) {
+                            sh '''
+                            install -m 600 -T "$FRONT_ENV" "frontend/.env"
+                            echo "[ENV] frontend/.env installed"
+                            '''
+                        }
+                    } else {
+                        error "❌ Unknown branch: ${env.BRANCH_NAME}. Expected 'dev' or 'main'."
                     }
                 }
             }
