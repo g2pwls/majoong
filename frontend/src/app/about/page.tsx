@@ -5,7 +5,7 @@ export default function AboutPage() {
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             마중 소개
-          </h1>
+          </h1> 
           <p className="text-lg text-gray-600">
             말과 목장을 위한 투명한 후원 플랫폼
           </p>
