@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ReceiptHistoryRepository extends JpaRepository<ReceiptHistory, Long> {
@@ -43,4 +44,6 @@ public interface ReceiptHistoryRepository extends JpaRepository<ReceiptHistory, 
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
+
+    Optional<ReceiptHistory> findByIdAndFarmUuid(Long id, String farmUuid);
 }

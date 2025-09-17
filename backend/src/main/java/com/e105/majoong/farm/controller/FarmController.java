@@ -3,6 +3,7 @@ package com.e105.majoong.farm.controller;
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.farm.dto.out.*;
+import com.e105.majoong.farm.service.DonationUsageService;
 import com.e105.majoong.farm.service.FarmService;
 import com.e105.majoong.farm.service.HorseService;
 import com.e105.majoong.farm.service.MonthlyDonationService;
@@ -27,6 +28,7 @@ public class FarmController {
     private final MonthlyReportService monthlyReportService;
     private final MonthlyDonationService monthlyDonationService;
     private final HorseService horseService;
+    private final DonationUsageService donationUsageService;
 
     @GetMapping
     public BaseResponse<Page<FarmListResponseDto>> searchFarms(
@@ -87,6 +89,15 @@ public class FarmController {
     public BaseResponse<LastMonthUsageResponseDto> getLastMonthUsage(
             @PathVariable String farmUuid) {
         return new BaseResponse<>(monthlyDonationService.getLastMonthUsage(farmUuid));
+    }
+
+    @GetMapping("/{farmUuid}/donations/usage/{usageId}")
+    public BaseResponse<UsageDetailResponseDto> getUsageDetail(
+            @PathVariable String farmUuid,
+            @PathVariable Long usageId
+    ) {
+        UsageDetailResponseDto result = donationUsageService.getUsageDetail(farmUuid, usageId);
+        return new BaseResponse<>(result);
     }
 }
 
