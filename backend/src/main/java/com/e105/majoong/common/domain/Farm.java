@@ -55,4 +55,8 @@ public class Farm extends BaseEntity {
     private Long usedAmount;
 
     private String profileImage;
+
+    public void updateTotalDonation(Long amount) {
+        this.totalDonation += amount;
+    }
 }

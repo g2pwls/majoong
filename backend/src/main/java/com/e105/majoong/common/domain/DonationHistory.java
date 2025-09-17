@@ -20,16 +20,46 @@ public class DonationHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 36)
-    private String memberUuid;
-
-    @Column(nullable = false, length = 12 )
-    private String farmUuid;
-
     @Column(nullable = false)
     private Long donationToken;
 
     @CreatedDate
     @Column(nullable = false)
     private LocalDateTime donationDate;
+
+    @Column(nullable = false, length = 36)
+    private String donatorUuid;
+
+    @Column(nullable = false, length = 36)
+    private String farmerUuid;
+
+    @Column(nullable = false, length = 12 )
+    private String farmUuid;
+
+    @Column(name="tx_hash", length = 66)
+    private String txHash;
+
+    public void updateDonationToken(Long donationToken) {
+        this.donationToken = donationToken;
+    }
+
+    public void updateDonationDate(LocalDateTime donationDate) {
+        this.donationDate = donationDate;
+    }
+
+    public void updateFarmUuid(String farmUuid) {
+        this.farmUuid = farmUuid;
+    }
+    public void updateDonatorUuid(String donatorUuid) {
+        this.donatorUuid = donatorUuid;
+    }
+
+    public void updateFarmerUuid(String farmerUuid) {
+        this.farmerUuid = farmerUuid;
+    }
+
+    public void updateTxHash(String txHash) {
+        this.txHash = txHash;
+    }
+
 }

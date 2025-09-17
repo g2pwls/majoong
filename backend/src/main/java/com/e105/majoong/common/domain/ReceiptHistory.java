@@ -38,7 +38,7 @@ public class ReceiptHistory {
     private Integer totalAmount;
 
     @CreatedDate
-    private LocalDateTime craetedAt;
+    private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private String photoUrl;

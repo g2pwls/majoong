@@ -6,7 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @Builder
+@Getter @Builder
 @NoArgsConstructor @AllArgsConstructor
 @Entity @Table(name = "farm_vaults")
 public class FarmVault {
@@ -36,4 +36,9 @@ public class FarmVault {
   private LocalDateTime createdAt;
 
   public enum Status { ACTIVE, CLOSED }
+
+  public void updateFarmId(String farmId) { this.farmId = farmId; }
+  public void updateStatus(Status status) { this.status = status; }
+  public void updateDeployTxHash(String txHash) { this.deployTxHash = txHash;}
+  public void updateVaultAddress(String address) { this.vaultAddress = address;}
 }
