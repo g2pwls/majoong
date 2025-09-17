@@ -12,9 +12,9 @@ public interface ManageFarmService {
     //말 정보 수정
     String updateFarm(String memberUuid, FarmInfoUpdateDto updateDto);
 
-    void updateHorse(String memberUuid, String farmUuid, HorseInfoUpdateDto updateDto);
+    void updateHorse(String memberUuid, HorseInfoUpdateDto updateDto);
 
-    List<HorseListResponseDto> getHorseList(String farmUuid);
+    List<HorseListResponseDto> getHorseList(String memberUuid, String farmUuid);
 
     //말 관리 등록
     //영수증 카테고리 조회

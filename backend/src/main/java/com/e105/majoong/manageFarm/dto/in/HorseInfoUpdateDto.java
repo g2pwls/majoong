@@ -5,10 +5,12 @@ import com.e105.majoong.common.model.horse.Horse;
 import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Builder
 public class HorseInfoUpdateDto {
+    private String farmUuid;
     private Long horseNumber;
     private String horseName;
     private LocalDate birth;
@@ -23,9 +25,9 @@ public class HorseInfoUpdateDto {
     private LocalDate retiredDate;
     private LocalDate firstRaceDate;
     private LocalDate lastRaceDate;
-    private String profileImage;
+    private MultipartFile profileImage;
 
-    public Horse toEntity(Farm farm) {
+    public Horse toEntity(Farm farm, String image) {
         return Horse.builder()
                 .farm(farm)
                 .horseNumber(horseNumber)
@@ -42,7 +44,7 @@ public class HorseInfoUpdateDto {
                 .retiredDate(retiredDate)
                 .firstRaceDate(firstRaceDate)
                 .lastRaceDate(lastRaceDate)
-                .profileImage(profileImage)
+                .profileImage(image)
                 .build();
     }
 }

@@ -1,6 +1,8 @@
 package com.e105.majoong.common.utils;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +26,7 @@ public class S3Uploader {
     private String region;
 
     public String upload(MultipartFile file, String dirName) throws IOException {
-        String originalName = Optional.of(file.getOriginalFilename()).orElse("unknown").replaceAll("\\s", "_");
+        String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("unknown").replaceAll("\\s", "_");
         String uuid = UUID.randomUUID().toString();
         String uniqueFileName = uuid + "_" + originalName;
 
@@ -33,10 +35,10 @@ public class S3Uploader {
         PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(fileName)
-                .contentType(file.getContentType())
+                .contentType(Optional.ofNullable(file.getContentType()).orElse("application/octet-stream"))
                 .build();
         log.info("Content-Type: {}", file.getContentType());
-        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(file.getBytes()));
+        s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
         return getFileUrl(fileName);
     }
 
@@ -56,11 +58,15 @@ public class S3Uploader {
     }
 
     private String getFileUrl(String fileName) {
-        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucket, region, fileName);
+        return s3Client.utilities().getUrl(b -> b.bucket(bucket).key(fileName)).toString();
     }
 
     private String extractFileNameFromUrl(String fileUrl) {
-        String baseUrl = String.format("https://%s.s3.%s.amazonaws.com", bucket, region);
-        return fileUrl.replace(baseUrl + "/", "");
+        try {
+            URI uri = new URI(fileUrl);
+            return uri.getPath().substring(1);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid file URL: " + fileUrl, e);
+        }
     }
 }

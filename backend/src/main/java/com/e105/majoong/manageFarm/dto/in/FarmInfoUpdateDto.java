@@ -6,6 +6,7 @@ import com.e105.majoong.common.utils.CodeGenerator;
 import java.time.LocalDate;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
 @Builder
 @Getter
@@ -15,9 +16,9 @@ public class FarmInfoUpdateDto {
     private LocalDate openingDate;
     private Double area;
     private String description;
-    private String profileImage;
+    private MultipartFile profileImage;
 
-    public Farm toEntity(Farmer farmer, double latitude, double longitude) {
+    public Farm toEntity(Farmer farmer, double latitude, double longitude, String image) {
         return Farm.builder()
                 .memberUuid(farmer.getMemberUuid())
                 .farmUuid("FARM-" + CodeGenerator.generateCode(6))
@@ -28,7 +29,7 @@ public class FarmInfoUpdateDto {
                 .openingDate(farmer.getOpeningAt())
                 .area(area)
                 .description(description)
-                .profileImage(profileImage)
+                .profileImage(image)
                 .latitude(latitude)
                 .longitude(longitude)
                 .horseCount(0)

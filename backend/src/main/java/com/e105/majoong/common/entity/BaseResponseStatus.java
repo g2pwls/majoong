@@ -59,6 +59,8 @@ public enum BaseResponseStatus {
     DUPLICATED_CATEGORY_ORDER(HttpStatus.CONFLICT, false, 3008, "이미 등록된 순서입니다"),
     // Interest
     NO_EXIST_INTEREST(HttpStatus.NOT_FOUND, false, 2501, "존재하지 않는 관심사입니다."),
+    //s3
+    S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 4003, "S3 업로드 중 오류 발생"),
 
     /**
      * 3000: product service error

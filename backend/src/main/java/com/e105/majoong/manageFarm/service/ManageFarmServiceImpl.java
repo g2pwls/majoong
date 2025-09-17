@@ -6,12 +6,14 @@ import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.farm.FarmRepository;
+import com.e105.majoong.common.utils.S3Uploader;
 import com.e105.majoong.manageFarm.dto.in.FarmInfoUpdateDto;
 import com.e105.majoong.manageFarm.dto.in.HorseInfoUpdateDto;
 import com.e105.majoong.manageFarm.dto.out.GeoDto;
 import com.e105.majoong.manageFarm.dto.out.HorseListResponseDto;
 import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
+import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,8 +24,12 @@ public class ManageFarmServiceImpl implements ManageFarmService {
 
     private final GeoCoding geoCoding;
     private final FarmerRepository farmerRepository;
-    private final FarmRepository  farmRepository;
+    private final FarmRepository farmRepository;
     private final HorseRepository horseRepository;
+    private final S3Uploader s3Uploader;
+
+    private static final String FARM_IMAGE_DIR = "farm/";
+    private static final String HORSE_IMAGE_DIR = "horse/";
 
     @Override
     public String updateFarm(String memberUuid, FarmInfoUpdateDto updateDto) {
@@ -33,22 +39,34 @@ public class ManageFarmServiceImpl implements ManageFarmService {
         double[] geo = geoCoding.getCoordinates(updateDto.getAddress());
         double latitude = geo[0];
         double longitude = geo[1];
-
-        Farm farm = farmRepository.save(updateDto.toEntity(farmer, latitude, longitude));
-        return farm.getFarmUuid();
+        try {
+            String imageUrl = s3Uploader.upload(updateDto.getProfileImage(), FARM_IMAGE_DIR);
+            Farm farm = farmRepository.save(updateDto.toEntity(farmer, latitude, longitude, imageUrl));
+            return farm.getFarmUuid();
+        } catch (IOException e) {
+            throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
+        }
     }
 
     @Override
-    public void updateHorse(String memberUuid, String farmUuid, HorseInfoUpdateDto updateDto) {
-        Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
+    public void updateHorse(String memberUuid, HorseInfoUpdateDto updateDto) {
+        Farm farm = farmRepository.findByFarmUuid(updateDto.getFarmUuid()).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
-        Horse horse = horseRepository.save(updateDto.toEntity(farm));
+        try {
+            String imageUrl = s3Uploader.upload(updateDto.getProfileImage(), HORSE_IMAGE_DIR);
+            horseRepository.save(updateDto.toEntity(farm, imageUrl));
+        } catch (IOException e) {
+            throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
+        }
     }
 
     @Override
-    public List<HorseListResponseDto> getHorseList(String farmUuid) {
+    public List<HorseListResponseDto> getHorseList(String memberUuid, String farmUuid) {
         Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+        if (!farm.getMemberUuid().equals(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
         List<Horse> horses = horseRepository.findByFarm(farm);
         return horses.stream().map(HorseListResponseDto::toDto).toList();
     }
