@@ -29,10 +29,9 @@ public class Farm extends BaseEntity {
     @Column(nullable = false, length = 25)
     private String ownerName;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String phoneNumber;
 
-    @Column(nullable = false)
     private String address;
 
     @Column(nullable = false)
@@ -42,10 +41,9 @@ public class Farm extends BaseEntity {
 
     private Double longitude;
 
-    @Column(nullable = false)
     private Double area;
 
-    @Column(nullable = false, length = 1000)
+    @Column(length = 1000)
     private String description;
 
     private Integer horseCount;
@@ -56,6 +54,5 @@ public class Farm extends BaseEntity {
 
     private Long usedAmount;
 
-    @Column(nullable = false)
     private String profileImage;
 }
