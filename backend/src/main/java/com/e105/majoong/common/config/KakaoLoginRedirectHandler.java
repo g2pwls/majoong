@@ -27,7 +27,7 @@ public class KakaoLoginRedirectHandler implements AuthenticationSuccessHandler {
     private String redirectUri;
 
     private final RedisService redisService;
-    private final Duration REDIS_EXPIRATION_TIME = Duration.ofMinutes(5); // 5분으로 임시 데이터 유효 시간 설정
+    private final Duration REDIS_EXPIRATION_TIME = Duration.ofMinutes(30); // 30분으로 연장하여 회원가입 시간 확보
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
