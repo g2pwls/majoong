@@ -102,5 +102,15 @@ public class FarmController {
     public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid,  @RequestParam int year) {
         return new BaseResponse<>(scoreService.getScoreHistory(farmUuid, year));
     }
+
+    @GetMapping("/{farmUuid}/horses/{horseNumber}")
+    public BaseResponse<HorseDetailResponseDto> getHorseDetail(
+            @PathVariable String farmUuid,
+            @PathVariable Long horseNumber,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return new BaseResponse<>(horseService.getHorseDetail(farmUuid, horseNumber, year, month));
+    }
 }
 
