@@ -4,9 +4,16 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { getTokens, clearTokens } from '@/services/authService';
 
 export default function Navbar() {
+  const pathname = usePathname();
+  
+  // intro 페이지에서는 네브바를 표시하지 않음
+  if (pathname === '/intro') {
+    return null;
+  }
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
