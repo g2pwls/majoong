@@ -3,10 +3,7 @@ package com.e105.majoong.farm.controller;
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.farm.dto.out.*;
-import com.e105.majoong.farm.service.DonationUsageService;
-import com.e105.majoong.farm.service.FarmService;
-import com.e105.majoong.farm.service.HorseService;
-import com.e105.majoong.farm.service.MonthlyDonationService;
+import com.e105.majoong.farm.service.*;
 import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
 import com.e105.majoong.report.dto.out.MonthlyReportListResponseDto;
 import com.e105.majoong.report.service.MonthlyReportService;
@@ -29,6 +26,7 @@ public class FarmController {
     private final MonthlyDonationService monthlyDonationService;
     private final HorseService horseService;
     private final DonationUsageService donationUsageService;
+    private final ScoreService scoreService;
 
     @GetMapping
     public BaseResponse<Page<FarmListResponseDto>> searchFarms(
@@ -98,6 +96,11 @@ public class FarmController {
     ) {
         UsageDetailResponseDto result = donationUsageService.getUsageDetail(farmUuid, usageId);
         return new BaseResponse<>(result);
+    }
+
+    @GetMapping("/{farmUuid}/scores")
+    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid,  @RequestParam int year) {
+        return new BaseResponse<>(scoreService.getScoreHistory(farmUuid, year));
     }
 }
 
