@@ -54,7 +54,8 @@ public class SecurityConfig {
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
                                 "swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/v1/farms/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/members/donators").hasRole("DONATOR")
                         .requestMatchers("/api/v1/members/farmers").hasRole("FARMER")
