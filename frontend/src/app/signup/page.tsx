@@ -2,16 +2,16 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signupComplete, getTokens } from '@/services/authService';
+import { verifyBusiness } from '@/services/authService';
 
-type UserType = 'donor' | 'ranch_owner';
+type UserType = 'donor' | 'farmer';
 
 interface DonorInfo {
   name: string;
 }
 
-interface RanchOwnerInfo {
-  ranchName: string;
+interface FarmerInfo {
+  farmName: string;
   representativeName: string;
   businessNumber: string;
   openingDate: string;
@@ -22,44 +22,46 @@ export default function SignupPage() {
   const router = useRouter();
   const [userType, setUserType] = useState<UserType | null>(null);
   const [donorInfo, setDonorInfo] = useState<DonorInfo>({ name: '' });
-  const [ranchInfo, setRanchInfo] = useState<RanchOwnerInfo>({
-    ranchName: '',
+  const [farmerInfo, setFarmerInfo] = useState<FarmerInfo>({
+    farmName: '',
     representativeName: '',
     businessNumber: '',
     openingDate: '',
     businessVerified: false
   });
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleBusinessVerification = async () => {
-    if (!ranchInfo.businessNumber || !ranchInfo.openingDate) {
-      alert('사업자 등록번호와 개업일자를 모두 입력해주세요.');
+    if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
+      alert('모든 필수 정보를 입력해주세요.');
       return;
     }
 
     setIsVerifying(true);
     
     try {
-      // TODO: 백엔드 API 연동
-      // const response = await fetch('/api/verify-business', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     businessNumber: ranchInfo.businessNumber,
-      //     openingDate: ranchInfo.openingDate
-      //   })
-      // });
+      // 실제 백엔드 API 호출
+      const verificationData = {
+        businessNum: farmerInfo.businessNumber,
+        openingDate: farmerInfo.openingDate,
+        name: farmerInfo.representativeName,
+        farmName: farmerInfo.farmName
+      };
+
+      const response = await verifyBusiness(verificationData);
       
-      // 임시로 2초 후 성공 처리
-      setTimeout(() => {
-        setRanchInfo(prev => ({ ...prev, businessVerified: true }));
-        setIsVerifying(false);
+      if (response.isSuccess && response.data?.verified) {
+        setFarmerInfo(prev => ({ ...prev, businessVerified: true }));
         alert('사업자 등록번호 인증이 완료되었습니다.');
-      }, 2000);
+      } else {
+        alert(response.message || '사업자 등록번호 인증에 실패했습니다.');
+      }
       
-    } catch {
-      setIsVerifying(false);
+    } catch (error) {
+      console.error('사업자 인증 오류:', error);
       alert('사업자 등록번호 인증에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -74,72 +76,32 @@ export default function SignupPage() {
       return;
     }
 
-    if (userType === 'ranch_owner') {
-      if (!ranchInfo.ranchName || !ranchInfo.representativeName) {
+    if (userType === 'farmer') {
+      if (!farmerInfo.farmName || !farmerInfo.representativeName) {
         alert('목장명과 대표자 성명을 입력해주세요.');
         return;
       }
-      if (!ranchInfo.businessVerified) {
+      if (!farmerInfo.businessVerified) {
         alert('사업자 등록번호 인증을 완료해주세요.');
         return;
       }
     }
 
-    setIsSubmitting(true);
+    // 가입 완료 버튼을 누르면 즉시 지갑 생성 페이지로 이동
+    // 회원가입 데이터를 localStorage에 임시 저장
+    const signupData = {
+      role: userType === 'donor' ? 'DONATOR' : 'FARMER',
+      name: userType === 'donor' ? donorInfo.name : farmerInfo.representativeName,
+      farmName: userType === 'farmer' ? farmerInfo.farmName : '',
+      businessNum: userType === 'farmer' ? farmerInfo.businessNumber : '',
+      openingAt: userType === 'farmer' ? farmerInfo.openingDate : ''
+    };
+
+    // 회원가입 데이터를 localStorage에 저장
+    localStorage.setItem('pendingSignupData', JSON.stringify(signupData));
     
-    try {
-      // 토큰에서 이메일 정보 가져오기
-      const tokens = getTokens();
-      if (!tokens.tempAccessToken) {
-        alert('로그인 정보가 없습니다. 다시 로그인해주세요.');
-        router.push('/login');
-        return;
-      }
-
-      // 쿠키 상태 확인 (httpOnly 쿠키는 document.cookie에서 보이지 않음)
-      console.log('현재 쿠키:', document.cookie);
-      console.log('session_key 쿠키는 httpOnly이므로 JavaScript에서 직접 확인할 수 없습니다.');
-
-      // API 요청 데이터 구성
-      const signupData = {
-        role: userType === 'donor' ? 'DONOR' : 'RANCH_OWNER',
-        name: userType === 'donor' ? donorInfo.name : ranchInfo.representativeName,
-        email: '', // 백엔드에서 세션에서 가져올 예정
-        farmName: userType === 'ranch_owner' ? ranchInfo.ranchName : '',
-        businessNum: userType === 'ranch_owner' ? ranchInfo.businessNumber : '',
-        openingAt: userType === 'ranch_owner' ? ranchInfo.openingDate : ''
-      };
-
-      // 회원가입 완료 API 호출
-      const response = await signupComplete(signupData);
-      
-      if (response.success) {
-        alert('회원가입이 완료되었습니다!');
-        // 지갑 생성 페이지로 리다이렉트
-        router.push('/wallet/create');
-      } else {
-        alert('회원가입에 실패했습니다: ' + response.message);
-      }
-      
-    } catch (error: unknown) {
-      console.error('회원가입 오류:', error);
-      
-      // 더 자세한 에러 정보 표시
-      let errorMessage = '회원가입에 실패했습니다.';
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string } } };
-        if (axiosError.response?.data?.message) {
-          errorMessage += `\n오류: ${axiosError.response.data.message}`;
-        }
-      } else if (error && typeof error === 'object' && 'message' in error) {
-        const errorWithMessage = error as { message: string };
-        errorMessage += `\n오류: ${errorWithMessage.message}`;
-      }
-      
-      alert(errorMessage);
-    } finally {
-      setIsSubmitting(false);
-    }
+    // 지갑 생성 페이지로 이동
+    router.push('/wallet/create');
   };
 
   return (
@@ -171,9 +133,9 @@ export default function SignupPage() {
                 <div className="text-sm text-gray-500">목장에 기부하고 싶은 분</div>
               </button>
               <button
-                onClick={() => setUserType('ranch_owner')}
+                onClick={() => setUserType('farmer')}
                 className={`p-4 border-2 rounded-lg transition-colors text-left ${
-                  userType === 'ranch_owner'
+                  userType === 'farmer'
                     ? 'border-green-500 bg-green-50'
                     : 'border-gray-200 hover:border-green-500 hover:bg-green-50'
                 }`}
@@ -206,19 +168,19 @@ export default function SignupPage() {
           )}
 
           {/* 목장주 정보 입력 */}
-          {userType === 'ranch_owner' && (
+          {userType === 'farmer' && (
             <div className="space-y-4 animate-fadeIn">
               <h3 className="text-lg font-medium text-gray-900">목장주 정보</h3>
               
               <div>
-                <label htmlFor="ranchName" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="farmName" className="block text-sm font-medium text-gray-700">
                   목장명 *
                 </label>
                 <input
-                  id="ranchName"
+                  id="farmName"
                   type="text"
-                  value={ranchInfo.ranchName}
-                  onChange={(e) => setRanchInfo(prev => ({ ...prev, ranchName: e.target.value }))}
+                  value={farmerInfo.farmName}
+                  onChange={(e) => setFarmerInfo(prev => ({ ...prev, farmName: e.target.value }))}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                   placeholder="목장명을 입력해주세요"
                 />
@@ -231,8 +193,8 @@ export default function SignupPage() {
                 <input
                   id="representativeName"
                   type="text"
-                  value={ranchInfo.representativeName}
-                  onChange={(e) => setRanchInfo(prev => ({ ...prev, representativeName: e.target.value }))}
+                  value={farmerInfo.representativeName}
+                  onChange={(e) => setFarmerInfo(prev => ({ ...prev, representativeName: e.target.value }))}
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                   placeholder="대표자 성명을 입력해주세요"
                 />
@@ -246,8 +208,8 @@ export default function SignupPage() {
                   <input
                     id="businessNumber"
                     type="text"
-                    value={ranchInfo.businessNumber}
-                    onChange={(e) => setRanchInfo(prev => ({ ...prev, businessNumber: e.target.value }))}
+                    value={farmerInfo.businessNumber}
+                    onChange={(e) => setFarmerInfo(prev => ({ ...prev, businessNumber: e.target.value }))}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                     placeholder="000-00-00000"
                     maxLength={12}
@@ -260,8 +222,8 @@ export default function SignupPage() {
                   <input
                     id="openingDate"
                     type="date"
-                    value={ranchInfo.openingDate}
-                    onChange={(e) => setRanchInfo(prev => ({ ...prev, openingDate: e.target.value }))}
+                    value={farmerInfo.openingDate}
+                    onChange={(e) => setFarmerInfo(prev => ({ ...prev, openingDate: e.target.value }))}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                   />
                 </div>
@@ -271,12 +233,14 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <button
                   onClick={handleBusinessVerification}
-                  disabled={isVerifying || ranchInfo.businessVerified}
+                  disabled={isVerifying || farmerInfo.businessVerified || !farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName}
                   className={`w-full py-2 px-4 rounded-md text-sm font-medium ${
-                    ranchInfo.businessVerified
+                    farmerInfo.businessVerified
                       ? 'bg-green-100 text-green-800 cursor-not-allowed'
                       : isVerifying
                       ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                      : (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName)
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
@@ -285,13 +249,13 @@ export default function SignupPage() {
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
                       인증 중...
                     </>
-                  ) : ranchInfo.businessVerified ? (
+                  ) : farmerInfo.businessVerified ? (
                     '✓ 인증 완료'
                   ) : (
                     '사업자 등록번호 인증'
                   )}
                 </button>
-                {ranchInfo.businessVerified && (
+                {farmerInfo.businessVerified && (
                   <p className="text-xs text-green-600">사업자 등록번호 인증이 완료되었습니다.</p>
                 )}
               </div>
@@ -303,24 +267,22 @@ export default function SignupPage() {
             <div className="pt-4">
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting}
+                disabled={userType === 'farmer' && !farmerInfo.businessVerified}
                 className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors duration-200 ${
-                  isSubmitting
+                  userType === 'farmer' && !farmerInfo.businessVerified
                     ? 'bg-gray-400 cursor-not-allowed'
                     : userType === 'donor'
                     ? 'bg-blue-600 hover:bg-blue-700'
                     : 'bg-green-600 hover:bg-green-700'
                 }`}
               >
-                {isSubmitting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    가입 처리 중...
-                  </>
-                ) : (
-                  '가입 완료'
-                )}
+                회원가입
               </button>
+              {userType === 'farmer' && !farmerInfo.businessVerified && (
+                <p className="mt-2 text-xs text-red-600 text-center">
+                  사업자 등록번호 인증을 완료해주세요.
+                </p>
+              )}
             </div>
           )}
         </div>
