@@ -6,9 +6,11 @@ import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.farm.FarmRepository;
+import com.e105.majoong.common.model.horseState.HorseStateRepository;
 import com.e105.majoong.common.utils.S3Uploader;
 import com.e105.majoong.manageFarm.dto.in.FarmInfoUpdateDto;
 import com.e105.majoong.manageFarm.dto.in.HorseInfoUpdateDto;
+import com.e105.majoong.manageFarm.dto.in.ReportHorseStatusDto;
 import com.e105.majoong.manageFarm.dto.out.GeoDto;
 import com.e105.majoong.manageFarm.dto.out.HorseListResponseDto;
 import com.e105.majoong.common.model.horse.HorseRepository;
@@ -27,6 +29,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     private final FarmRepository farmRepository;
     private final HorseRepository horseRepository;
     private final S3Uploader s3Uploader;
+    private final HorseStateRepository horseStateRepository;
 
     private static final String FARM_IMAGE_DIR = "farm/";
     private static final String HORSE_IMAGE_DIR = "horse/";
@@ -76,5 +79,18 @@ public class ManageFarmServiceImpl implements ManageFarmService {
         Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
         return GeoDto.toDto(farm);
+    }
+
+    @Override
+    public void reportHorseState(String memberUuid, String farmUuid, Long horseNumber, ReportHorseStatusDto dto) {
+        Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+        if (!farm.getMemberUuid().equals(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
+        if (!horseRepository.existsByHorseNumber(horseNumber)) {
+            throw new BaseException(BaseResponseStatus.NO_EXIST_HORSE);
+        }
+        horseStateRepository.save(dto.toEntity(farmUuid, memberUuid, horseNumber));
     }
 }

@@ -4,12 +4,12 @@ import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.manageFarm.dto.in.FarmInfoUpdateDto;
 import com.e105.majoong.manageFarm.dto.in.HorseInfoUpdateDto;
+import com.e105.majoong.manageFarm.dto.in.ReportHorseStatusDto;
 import com.e105.majoong.manageFarm.dto.out.GeoDto;
 import com.e105.majoong.manageFarm.dto.out.HorseListResponseDto;
 import com.e105.majoong.manageFarm.service.ManageFarmService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.websocket.server.PathParam;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @Slf4j
-@RequestMapping("/api/v1/farms")
+@RequestMapping("/api/v1")
 @Tag(name = "Farm Manage API", description = "농장 관리 관련 API")
 public class ManageFarmController {
 
@@ -59,4 +60,19 @@ public class ManageFarmController {
     public BaseResponse<GeoDto> getGeo(@PathVariable String farmUuid) {
         return new BaseResponse<>(manageFarmService.getGeo(farmUuid));
     }
+
+    @PostMapping("/farms/{farmUuid}/horses/{horseNumber}")
+    @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님")
+    public BaseResponse<Void> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
+                                               @PathVariable String farmUuid,
+                                               @PathVariable Long horseNumber,
+                                               @RequestBody ReportHorseStatusDto dto) {
+        manageFarmService.reportHorseState(user.getMemberUuid(), farmUuid, horseNumber, dto);
+        return new BaseResponse<>();
+    }
+
+    //카테고리와 영수증 텍스트 일치여부 조회
+
+
+    //
 }

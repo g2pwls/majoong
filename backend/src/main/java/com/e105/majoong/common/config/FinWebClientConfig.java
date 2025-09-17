@@ -8,7 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class WebClientConfig {
+public class FinWebClientConfig {
 
     @Value("${finapi.base-url}")
     private String baseUrl;
@@ -16,7 +16,7 @@ public class WebClientConfig {
     @Value("${finapi.api-key}")
     private String apiKey;
 
-    @Bean
+    @Bean(name="finWebClient")
     public WebClient finApiWebClient(WebClient.Builder builder) {
         return builder
                 .baseUrl(baseUrl)

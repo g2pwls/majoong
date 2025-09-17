@@ -55,6 +55,8 @@ public enum BaseResponseStatus {
 
     // Pet
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
+    NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),
+
     DUPLICATED_CATEGORY(HttpStatus.CONFLICT, false, 3006, "이미 등록된 카테고리입니다"),
     DUPLICATED_CATEGORY_ORDER(HttpStatus.CONFLICT, false, 3008, "이미 등록된 순서입니다"),
     // Interest
