@@ -3,20 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link"; // Import Link from next/link
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
-
-type Horse = {
-  id?: string | number;
-  horseNo: string;
-  hrNm?: string;
-  birthDt?: string;
-  breed?: string;
-  sex?: string;
-  image?: string;
-};
-
-interface Farm {
-  id: string;
-}
+import { Farm, Horse } from "@/types/farm";
+import { FarmService } from "@/services/farmService";
 
 export default function IntroPanel({ farm }: { farm: Farm }) {
   const [horses, setHorses] = useState<Horse[]>([]);
@@ -28,34 +16,9 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     let alive = true;
     (async () => {
       try {
-        const res = await fetch(`/api/horse/${farmId}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
-        const data = (await res.json()) as Array<{
-          id: string;
-          horseNo: string | number;
-          hrNm: string;
-          birthDt: string;
-          breed: string;
-          sex: string;
-          horse_url?: string;
-        }>;
+        const horsesData = await FarmService.getHorses(farmId);
         if (!alive) return;
-        const mapped = data.map((h) => ({
-          id: h.id,
-          horseNo: String(h.horseNo),
-          hrNm: h.hrNm,
-          birthDt:
-            typeof h.birthDt === "string" && h.birthDt.length === 8
-              ? `${h.birthDt.slice(0, 4)}-${h.birthDt.slice(4, 6)}-${h.birthDt.slice(6, 8)}`
-              : h.birthDt,
-          breed: h.breed,
-          sex: h.sex,
-          image: h.horse_url,
-        }));
-        setHorses(mapped);
+        setHorses(horsesData);
       } catch (e) {
         console.error(e);
       }
@@ -100,27 +63,42 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
   }, [farm?.id]);
 
   return (
-    <section id="panel-intro" className="flex flex-col items-end">
-      <div className="flex flex-row">
-        {/* Countdown Text */}
-        {deadlineText && (
-          <div className="mr-4 mb-2 text-sm text-gray-600">
-            {deadlineText}
-          </div>
-        )}
-
-        {/* Reporting Button with Link */}
-        <Link
-          href={`/support/${farm?.id}/report`} // Link to the report page
-        >
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-            목장 운영 보고하기
-          </button>
-        </Link>
-      </div>
+    <section id="panel-intro" className="flex flex-col">
       
-      {/* Horse registry section */}
-      <HorseRegistrySection horses={horses} farmUuid={farm?.id} />
+      {/* 목장 소개 섹션 */}
+      {farm?.description && (
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">목장 소개</h3>
+          <div className="bg-gray-50 rounded-lg p-4 border">
+            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+              {farm.description}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col items-end">
+        <div className="flex flex-row">
+          {/* Countdown Text */}
+          {deadlineText && (
+            <div className="mr-4 mb-2 text-sm text-gray-600">
+              {deadlineText}
+            </div>
+          )}
+
+          {/* Reporting Button with Link */}
+          <Link
+            href={`/support/${farm?.id}/report`} // Link to the report page
+          >
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
+              목장 운영 보고하기
+            </button>
+          </Link>
+        </div>
+        
+        {/* Horse registry section */}
+        <HorseRegistrySection horses={horses} farmUuid={farm?.id} />
+      </div>
     </section>
   );
 }

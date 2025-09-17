@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Search, Star, MapPin, Users } from "lucide-react";
@@ -8,43 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getFarms, getHorses, Farm, Horse, FarmListResponse } from "@/services/apiService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
 // ------------------------------------------------------------------
 
-type Farm = {
-  id: string;
-  farm_name: string;
-  address: string;
-  name: string;
-  horse_count: number;
-  total_score: number;
-  image_url: string;
-  state?: "우수" | "양호" | "보통" | "미흡";
-  horse_url?: (string | undefined)[]; // 말 이미지 4장
-  horses?: Horse[]; // 말 데이터 배열
-};
-
-type Horse = {
-  id: number;
-  farm_id: string;
-  horseNo: string;
-  hrNm: string;
-  birthDt: string;
-  sex?: string;
-  color?: string;
-  breed?: string;
-  prdCty?: string;
-  rcCnt?: number;
-  fstCnt?: number;
-  sndCnt?: number;
-  amt?: number;
-  discardDt?: string | null;
-  fdebutDt?: string | null;
-  lchulDt?: string | null;
-  horse_url?: string;
-};
+// Farm과 Horse 타입은 apiService에서 import
 
 const SearchTypeToggle: React.FC<{
   value: "farm" | "horse";
@@ -200,16 +170,19 @@ export default function SupportPage() {
       try {
         setLoading(true);
 
-        // /api/farms/all 로 전체 배열 호출
-        const res = await fetch(`/api/farms/all`, { cache: "no-store" });
-        const list = res.ok ? ((await res.json()) as Farm[]) : [];
+        // 실제 API 호출
+        const farmListResponse = await getFarms({
+          page: 0,
+          size: 100 // 충분한 수량으로 설정
+        });
+
+        const list = farmListResponse.content || [];
 
         // 각 농장별 말 데이터와 이미지 4장 붙이기
         const withHorses = await Promise.all(
           list.map(async (f) => {
             try {
-              const r = await fetch(`/api/horse/${f.id}`, { cache: "no-store" });
-              const horses = r.ok ? ((await r.json()) as Horse[]) : [];
+              const horses = await getHorses(f.id);
               const imgs = Array.isArray(horses)
                 ? horses.slice(0, 4).map((h) => h.horse_url).filter(Boolean)
                 : [];
@@ -222,7 +195,7 @@ export default function SupportPage() {
 
         if (alive) setFarms(withHorses);
       } catch (e) {
-        console.error(e);
+        console.error('농장 목록 조회 실패:', e);
         if (alive) setFarms([]);
       } finally {
         if (alive) setLoading(false);

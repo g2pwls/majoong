@@ -13,17 +13,8 @@ import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-type Farm = {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  image_url?: string;
-  name?: string;
-  address?: string;
-  farm_phone?: string;
-  area?: number | string;
-  horse_count?: number;
-};
+import { Farm } from "@/types/farm";
+import { FarmService } from "@/services/farmService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
 
@@ -48,8 +39,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     let mounted = true;
     (async () => {
       try {
-        const res = await fetch(`/api/farms/${farm_uuid}`, { cache: "no-store" });
-        const data = (await res.json()) as Farm;
+        const data = await FarmService.getFarm(farm_uuid);
         if (mounted) setFarm(data);
       } catch (e) {
         console.error(e);

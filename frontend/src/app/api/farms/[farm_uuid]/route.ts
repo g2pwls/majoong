@@ -16,6 +16,9 @@ const FARMS = [
     area: 8772.21,
     horse_count: 17,
     image_url: "/horses/farm1.jpg",
+    description: "저희 목장은 20년간 열심히 말을 키우고 있습니다. 도와주세요~~~~~ 리뷰이벤트 남겨드릴게요",
+    latitude:"35.094088889",
+    longitude:"128.853758333",
   },
   {
     id: "2222-3333-4444-5555",

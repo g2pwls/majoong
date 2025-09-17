@@ -1,7 +1,7 @@
 // src/app/support/[farm_uuid]/report/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, use } from "react";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // HorseImageUpload 컴포넌트 불러오기
 import DonationProofUpload from "@/components/farm/report/DonationProofUpload"; // DonationProofUpload 컴포넌트 불러오기
@@ -237,6 +237,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
                     key={selectedHorse.horseNo}
                     horseNo={selectedHorse.horseNo}
                     hrNm={selectedHorse.hrNm}
+                    farmUuid={farm_uuid}
                     imageData={imageData}
                     onImageUpload={handleImageUpload}
                     onImageSwap={handleImageSwap}
@@ -265,10 +266,13 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
 }
 
 export default function FarmReport({ params }: PageProps) {
+  // React.use()를 사용하여 Promise 언래핑
+  const resolvedParams = use(params);
+  
   // params가 없을 경우 처리
-  if (!params || !params.farm_uuid) {
+  if (!resolvedParams || !resolvedParams.farm_uuid) {
     return <div>목장 정보가 없습니다. 다시 시도해주세요.</div>;
   }
 
-  return <FarmReportContent farm_uuid={params.farm_uuid} />;
+  return <FarmReportContent farm_uuid={resolvedParams.farm_uuid} />;
 }
