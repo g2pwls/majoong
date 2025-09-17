@@ -9,11 +9,6 @@ import { getTokens, clearTokens } from '@/services/authService';
 
 export default function Navbar() {
   const pathname = usePathname();
-  
-  // intro 페이지에서는 네브바를 표시하지 않음
-  if (pathname === '/intro') {
-    return null;
-  }
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -58,6 +53,11 @@ export default function Navbar() {
     // 메인 페이지로 리다이렉트
     window.location.href = '/';
   };
+
+  // intro 페이지에서는 네브바를 표시하지 않음
+  if (pathname === '/intro') {
+    return null;
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
