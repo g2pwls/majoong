@@ -1,6 +1,29 @@
 import axios from 'axios';
 import { LoginResponse, SignupCompleteRequest, SignupCompleteResponse } from '@/types/auth';
 
+// 사업자 인증 요청 타입
+export interface BusinessVerificationRequest {
+  businessNum: string;
+  openingDate: string;
+  name: string;
+  farmName: string;
+}
+
+// 사업자 인증 응답 타입
+export interface BusinessVerificationResponse {
+  isSuccess: boolean;
+  message: string;
+  data?: {
+    verified: boolean;
+    businessInfo?: {
+      businessNum: string;
+      businessName: string;
+      representativeName: string;
+      openingDate: string;
+    };
+  };
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // axios 인스턴스 생성 (쿠키 포함)
@@ -88,4 +111,25 @@ export const clearTokens = () => {
   
   // 로그인 상태 변경 이벤트 발생
   window.dispatchEvent(new Event('authStateChanged'));
+};
+
+// 사업자 등록번호 인증 API 호출
+export const verifyBusiness = async (verificationData: BusinessVerificationRequest): Promise<BusinessVerificationResponse> => {
+  try {
+    console.log('사업자 인증 API 호출:', verificationData);
+    
+    const response = await authApi.post<BusinessVerificationResponse>('/api/v1/members/verification', verificationData);
+    
+    console.log('사업자 인증 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('사업자 인증 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
 };

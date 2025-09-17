@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { verifyBusiness } from '@/services/authService';
 
 type UserType = 'donor' | 'farmer';
 
@@ -31,33 +32,36 @@ export default function SignupPage() {
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleBusinessVerification = async () => {
-    if (!farmerInfo.businessNumber || !farmerInfo.openingDate) {
-      alert('사업자 등록번호와 개업일자를 모두 입력해주세요.');
+    if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
+      alert('모든 필수 정보를 입력해주세요.');
       return;
     }
 
     setIsVerifying(true);
     
     try {
-      // TODO: 백엔드 API 연동
-      // const response = await fetch('/api/verify-business', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     businessNumber: farmerInfo.businessNumber,
-      //     openingDate: farmerInfo.openingDate
-      //   })
-      // });
+      // 실제 백엔드 API 호출
+      const verificationData = {
+        businessNum: farmerInfo.businessNumber,
+        openingDate: farmerInfo.openingDate,
+        name: farmerInfo.representativeName,
+        farmName: farmerInfo.farmName
+      };
+
+      const response = await verifyBusiness(verificationData);
       
-      // 임시로 2초 후 성공 처리
-      setTimeout(() => {
+      if (response.isSuccess && response.data?.verified) {
         setFarmerInfo(prev => ({ ...prev, businessVerified: true }));
-        setIsVerifying(false);
         alert('사업자 등록번호 인증이 완료되었습니다.');
-      }, 2000);
+      } else {
+        alert(response.message || '사업자 등록번호 인증에 실패했습니다.');
+      }
       
-    } catch {
-      setIsVerifying(false);
+    } catch (error) {
+      console.error('사업자 인증 오류:', error);
       alert('사업자 등록번호 인증에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -229,12 +233,14 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <button
                   onClick={handleBusinessVerification}
-                  disabled={isVerifying || farmerInfo.businessVerified}
+                  disabled={isVerifying || farmerInfo.businessVerified || !farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName}
                   className={`w-full py-2 px-4 rounded-md text-sm font-medium ${
                     farmerInfo.businessVerified
                       ? 'bg-green-100 text-green-800 cursor-not-allowed'
                       : isVerifying
                       ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
+                      : (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName)
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
