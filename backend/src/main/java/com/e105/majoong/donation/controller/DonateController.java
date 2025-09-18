@@ -21,4 +21,6 @@ public class DonateController {
   public BaseResponse<DonationResponseDto> donate(@Valid @RequestBody DonationRequestDto req) throws Exception {
     return new BaseResponse<>(donateService.donate(req));
   }
+
+
 }
