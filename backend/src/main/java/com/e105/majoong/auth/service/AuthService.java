@@ -64,15 +64,23 @@ public class AuthService {
     Optional<OauthMember> opt = memberRepository.findByOauthIdAndOauthProvider(oauthId, provider);
     if (opt.isPresent()) {
       OauthMember m = opt.get();
+      String memberUuid = m.getMemberUuid();
+      if("farmer".equalsIgnoreCase(m.getRole().name())){
+        email = farmerRepository.findEmailByMemberUuid(memberUuid)
+                .orElseThrow(() -> new RuntimeException("Farmer not found"));
+      }else{
+        email = donatorRepository.findEmailByMemberUuid(memberUuid)
+                .orElseThrow(() -> new RuntimeException("Farmer not found"));
+      }
 
-      String accessToken = jwtTokenProvider.generateAccessToken(m.getMemberUuid(), m.getRole().name());
-      String refreshToken = jwtTokenProvider.generateRefreshToken(m.getMemberUuid(), m.getRole().name());
+      String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, m.getRole().name());
+      String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, m.getRole().name());
       long ttlSec = TimeUnit.MILLISECONDS.toSeconds(jwtTokenProvider.getRefreshExpireTime());
-      redisService.set("rt:" + m.getMemberUuid(), refreshToken, ttlSec);
+      redisService.set("rt:" + memberUuid, refreshToken, ttlSec);
 
       redisService.delete("sess:" + sessionKey);
 
-      return AuthSignInResponseDto.ofLogin(m.getMemberUuid(), accessToken, refreshToken, email);
+      return AuthSignInResponseDto.ofLogin(memberUuid, accessToken, refreshToken, email);
     }
 
     String tempAccessToken = jwtTokenProvider.generateTempAccessToken(oauthId, email, provider);
