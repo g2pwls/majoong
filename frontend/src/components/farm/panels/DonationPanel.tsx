@@ -41,6 +41,17 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
+  // 데이터 캐싱을 위한 상태
+  const [dataCache, setDataCache] = useState<Map<string, DonationUsageResponse>>(new Map());
+  const [yearlyCache, setYearlyCache] = useState<Map<number, MonthlyDonationUsed[]>>(new Map());
+  
+  // 로딩 상태를 세분화
+  const [loadingStates, setLoadingStates] = useState({
+    yearly: false,
+    monthly: false,
+    details: false
+  });
+  
   // 전달 계산
   const getPreviousMonth = () => {
     const now = new Date();
@@ -53,37 +64,63 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
   
   const previousMonth = getPreviousMonth();
 
-  // 기부금 사용 내역 조회 (선택된 월용)
+  // 기부금 사용 내역 조회 (선택된 월용) - 캐싱 적용
   const fetchDonationUsage = async (year: number, month: number) => {
+    const cacheKey = `${year}-${month}`;
+    
+    // 캐시에서 먼저 확인
+    if (dataCache.has(cacheKey)) {
+      console.log('캐시에서 데이터 로드:', cacheKey);
+      setSelectedMonthData(dataCache.get(cacheKey)!);
+      return;
+    }
+    
     try {
-      setLoading(true);
+      setLoadingStates(prev => ({ ...prev, monthly: true }));
       setError(null);
       
       console.log('기부금 사용 내역 조회 시작:', { farmId, year, month });
       const data = await FarmService.getDonationUsage(farmId, year, month);
       console.log('기부금 사용 내역 조회 성공:', data);
+      
+      // 캐시에 저장
+      setDataCache(prev => new Map(prev).set(cacheKey, data));
       setSelectedMonthData(data);
     } catch (e: unknown) {
       console.error('기부금 사용 내역 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "기부금 사용 내역을 불러오는 중 오류가 발생했어요.";
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      setLoadingStates(prev => ({ ...prev, monthly: false }));
     }
   };
 
-  // 연간 기부금 사용 내역 조회 (막대 그래프용)
+  // 연간 기부금 사용 내역 조회 (막대 그래프용) - 캐싱 적용
   const fetchYearlyData = async (year: number) => {
+    // 캐시에서 먼저 확인
+    if (yearlyCache.has(year)) {
+      console.log('연간 데이터 캐시에서 로드:', year);
+      setYearlyData(yearlyCache.get(year)!);
+      return;
+    }
+    
     try {
+      setLoadingStates(prev => ({ ...prev, yearly: true }));
       console.log('연간 기부금 사용 내역 조회 시작:', { farmId, year });
       const monthlyData: MonthlyDonationUsed[] = [];
       
       // 1월부터 12월까지 각 달의 데이터를 가져옴
       for (let month = 1; month <= 12; month++) {
         try {
+          console.log(`${year}년 ${month}월 데이터 조회 중...`);
           const data = await FarmService.getDonationUsage(farmId, year, month);
+          console.log(`${year}년 ${month}월 API 응답:`, data);
+          
           if (data.monthlyDonationUsed && data.monthlyDonationUsed.length > 0) {
+            console.log(`${year}년 ${month}월 데이터 추가:`, data.monthlyDonationUsed);
             monthlyData.push(...data.monthlyDonationUsed);
+          } else {
+            console.log(`${year}년 ${month}월 데이터 없음`);
           }
         } catch (error) {
           console.warn(`${year}년 ${month}월 데이터 조회 실패:`, error);
@@ -91,20 +128,41 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
         }
       }
       
+      console.log('연간 데이터 수집 완료:', { 
+        totalMonths: monthlyData.length, 
+        data: monthlyData 
+      });
+      
+      // 캐시에 저장
+      setYearlyCache(prev => new Map(prev).set(year, monthlyData));
       setYearlyData(monthlyData);
       console.log('연간 기부금 사용 내역 조회 완료:', monthlyData);
     } catch (e: unknown) {
       console.error('연간 기부금 사용 내역 조회 실패:', e);
       setYearlyData([]);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, yearly: false }));
     }
   };
 
-  // 전달 기부금 사용 내역 조회 (원형 그래프용)
+  // 전달 기부금 사용 내역 조회 (원형 그래프용) - 캐싱 적용
   const fetchPreviousMonthData = async () => {
+    const cacheKey = `${previousMonth.year}-${previousMonth.month}`;
+    
+    // 캐시에서 먼저 확인
+    if (dataCache.has(cacheKey)) {
+      console.log('전달 데이터 캐시에서 로드:', cacheKey);
+      setDonationData(dataCache.get(cacheKey)!);
+      return;
+    }
+    
     try {
       console.log('전달 기부금 사용 내역 조회 시작:', { farmId, year: previousMonth.year, month: previousMonth.month });
       const data = await FarmService.getDonationUsage(farmId, previousMonth.year, previousMonth.month);
       console.log('전달 기부금 사용 내역 조회 성공:', data);
+      
+      // 캐시에 저장
+      setDataCache(prev => new Map(prev).set(cacheKey, data));
       setDonationData(data);
     } catch (e: unknown) {
       console.error('전달 기부금 사용 내역 조회 실패:', e);
@@ -113,9 +171,19 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     }
   };
 
-  // 전체 기부금 사용 내역 조회 (현재 년의 모든 월)
+  // 전체 기부금 사용 내역 조회 (현재 년의 모든 월) - 캐싱 적용
   const fetchAllDonationData = async () => {
+    const cacheKey = `all-${currentYear}`;
+    
+    // 캐시에서 먼저 확인
+    if (dataCache.has(cacheKey)) {
+      console.log('전체 데이터 캐시에서 로드:', cacheKey);
+      setSelectedMonthData(dataCache.get(cacheKey)!);
+      return;
+    }
+    
     try {
+      setLoadingStates(prev => ({ ...prev, details: true }));
       console.log('전체 기부금 사용 내역 조회 시작:', { farmId, year: currentYear });
       
       const allReceipts: ReceiptHistory[] = [];
@@ -139,29 +207,42 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
         receiptHistory: allReceipts
       };
       
+      // 캐시에 저장
+      setDataCache(prev => new Map(prev).set(cacheKey, allData));
       console.log('전체 기부금 사용 내역 조회 성공:', allData);
       setSelectedMonthData(allData);
     } catch (e: unknown) {
       console.error('전체 기부금 사용 내역 조회 실패:', e);
       // 에러를 throw하지 않고 null로 설정
       setSelectedMonthData(null);
+    } finally {
+      setLoadingStates(prev => ({ ...prev, details: false }));
     }
   };
 
   useEffect(() => {
-    // 초기 로드 시 연간 데이터, 전달 데이터, 전체 데이터를 가져옴
+    // 초기 로드 시 필요한 데이터만 가져옴
     const initializeData = async () => {
       setLoading(true);
       setError(null);
       
-      // 연간 데이터 조회 (막대 그래프용)
+      // 항상 연간 데이터를 먼저 가져옴 (막대그래프용)
       await fetchYearlyData(selectedYear);
       
-      // 전달 데이터 조회 (원형 그래프용)
-      await fetchPreviousMonthData();
-      
-      // 전체 기부금 사용 내역 조회 (상세 내역용)
-      await fetchAllDonationData();
+      // 현재 월이면 전체 데이터도 가져옴, 아니면 전달 데이터와 선택된 월 데이터를 가져옴
+      if (selectedYear === currentYear && selectedMonth === currentMonth) {
+        // 현재 월이면 전체 데이터도 조회
+        await Promise.all([
+          fetchAllDonationData(),
+          fetchPreviousMonthData()
+        ]);
+      } else {
+        // 다른 월이면 전달 데이터와 선택된 월 데이터를 병렬로 조회
+        await Promise.all([
+          fetchPreviousMonthData(),
+          fetchDonationUsage(selectedYear, selectedMonth)
+        ]);
+      }
       
       setLoading(false);
     };
@@ -169,12 +250,12 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     initializeData();
   }, [farmId, selectedYear]);
 
+  // 선택된 달이 변경될 때만 해당 달의 상세 데이터를 가져옴
   useEffect(() => {
-    // 선택된 달이 변경될 때만 해당 달의 상세 데이터를 가져옴
     if (selectedYear !== currentYear || selectedMonth !== currentMonth) {
       fetchDonationUsage(selectedYear, selectedMonth);
     }
-  }, [selectedYear, selectedMonth]);
+  }, [selectedMonth]);
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
@@ -232,11 +313,26 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
 
   // 연간 데이터를 막대 그래프용으로 변환
   const getBarChartData = (): BarChartData[] => {
-    console.log('막대 그래프 데이터 변환:', { yearlyData, length: yearlyData.length });
+    console.log('막대 그래프 데이터 변환 시작:', { 
+      yearlyData, 
+      length: yearlyData.length,
+      selectedYear 
+    });
+    
+    // yearlyData가 비어있으면 빈 배열 반환
+    if (!yearlyData || yearlyData.length === 0) {
+      console.log('yearlyData가 비어있음, 빈 막대그래프 데이터 반환');
+      return Array.from({ length: 12 }, (_, index) => ({
+        month: index + 1,
+        amount: 0,
+        year: selectedYear,
+      }));
+    }
     
     // 월별로 그룹화 (누적하지 않고 마지막 값만 사용)
     const monthlyMap = new Map<number, number>();
     yearlyData.forEach(usage => {
+      console.log('월별 데이터 처리:', { month: usage.month, amountSpent: usage.amountSpent });
       monthlyMap.set(usage.month, usage.amountSpent);
     });
 
@@ -382,7 +478,10 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     return [];
   };
 
-  if (loading) {
+  // 전체 로딩 상태 (초기 로드 시에만)
+  const isInitialLoading = loading && !yearlyData.length && !selectedMonthData;
+
+  if (isInitialLoading) {
     return (
       <section id="panel-donations" className="space-y-4">
         <div className="text-center py-8">
@@ -508,7 +607,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
             </div>
           </div>
           
-          {loading ? (
+          {loadingStates.details ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
               <p className="text-gray-600">상세 내역을 불러오는 중...</p>
