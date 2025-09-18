@@ -31,7 +31,7 @@ public class MyScore {
     private Long scoreCategoryId;
 
     @Column(nullable = false)
-    private Integer Score;
+    private Integer score;
 
     @Column(nullable = false)
     private Integer year;

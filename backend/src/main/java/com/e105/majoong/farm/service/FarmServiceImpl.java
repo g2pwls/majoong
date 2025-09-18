@@ -36,7 +36,10 @@ public class FarmServiceImpl implements FarmService {
         }
 
         return farms.map(farm -> {
-            boolean isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
+            boolean isBookmark = false;
+            if (memberUuid != null && !memberUuid.isBlank()) {
+                isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
+            }
 
             List<FarmHorseResponseDto> horseList = horseRepository.findByFarm(farm).stream()
                     .map(FarmHorseResponseDto::toDto)

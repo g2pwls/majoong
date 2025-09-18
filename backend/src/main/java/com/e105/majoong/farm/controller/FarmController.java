@@ -3,9 +3,7 @@ package com.e105.majoong.farm.controller;
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.farm.dto.out.*;
-import com.e105.majoong.farm.service.FarmService;
-import com.e105.majoong.farm.service.HorseService;
-import com.e105.majoong.farm.service.MonthlyDonationService;
+import com.e105.majoong.farm.service.*;
 import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
 import com.e105.majoong.report.dto.out.MonthlyReportListResponseDto;
 import com.e105.majoong.report.service.MonthlyReportService;
@@ -27,6 +25,8 @@ public class FarmController {
     private final MonthlyReportService monthlyReportService;
     private final MonthlyDonationService monthlyDonationService;
     private final HorseService horseService;
+    private final DonationUsageService donationUsageService;
+    private final ScoreService scoreService;
 
     @GetMapping
     public BaseResponse<Page<FarmListResponseDto>> searchFarms(
@@ -35,7 +35,9 @@ public class FarmController {
             @RequestParam(defaultValue = "10") int size,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-        Page<FarmListResponseDto> result = farmService.searchFarms(farmName, page, size, user.getMemberUuid());
+        String memberUuid = (user != null) ? user.getMemberUuid() : null;
+
+        Page<FarmListResponseDto> result = farmService.searchFarms(farmName, page, size, memberUuid);
         return new BaseResponse<>(result);
     }
 
@@ -80,4 +82,41 @@ public class FarmController {
         Page<HorseSearchResponseDto> result = horseService.searchHorses(horseName, page, size);
         return new BaseResponse<>(result);
     }
+
+    @GetMapping("/{farmUuid}/donations/usage/last-month")
+    public BaseResponse<LastMonthUsageResponseDto> getLastMonthUsage(
+            @PathVariable String farmUuid) {
+        return new BaseResponse<>(monthlyDonationService.getLastMonthUsage(farmUuid));
+    }
+
+    @GetMapping("/{farmUuid}/donations/usage/{usageId}")
+    public BaseResponse<UsageDetailResponseDto> getUsageDetail(
+            @PathVariable String farmUuid,
+            @PathVariable Long usageId
+    ) {
+        UsageDetailResponseDto result = donationUsageService.getUsageDetail(farmUuid, usageId);
+        return new BaseResponse<>(result);
+    }
+
+    @GetMapping("/{farmUuid}/scores")
+    public BaseResponse<List<ScoreHistoryAvgResponseDto>> getScoreHistory(@PathVariable String farmUuid, @RequestParam int year) {
+        return new BaseResponse<>(scoreService.getScoreHistory(farmUuid, year));
+    }
+
+    @GetMapping("/{farmUuid}/horses/{horseNumber}")
+    public BaseResponse<HorseDetailResponseDto> getHorseDetail(
+            @PathVariable String farmUuid,
+            @PathVariable Long horseNumber,
+            @RequestParam int year,
+            @RequestParam int month
+    ) {
+        return new BaseResponse<>(horseService.getHorseDetail(farmUuid, horseNumber, year, month));
+    }
+
+    @GetMapping("/{farmUuid}/scores/history")
+    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid) {
+        List<ScoreHistoryResponseDto> result = scoreService.getScoreHistory(farmUuid);
+        return new BaseResponse<>(result);
+    }
 }
+
