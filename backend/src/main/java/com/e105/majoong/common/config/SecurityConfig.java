@@ -34,7 +34,11 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of(frontendUrl));
+        config.setAllowedOrigins(List.of(
+                frontendUrl,
+                "https://test.majoong.site",
+                "https://majoong.site",
+                "https://www.majoong.site"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setExposedHeaders(List.of("Authorization"));
@@ -57,8 +61,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api/v1/farms/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/members/donators").hasRole("DONATOR")
-                        .requestMatchers("/api/v1/members/farmers").hasRole("FARMER")
+                        .requestMatchers("/api/v1/members/donators/**").hasRole("DONATOR")
+                        .requestMatchers("/api/v1/members/farmers/**").hasRole("FARMER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
