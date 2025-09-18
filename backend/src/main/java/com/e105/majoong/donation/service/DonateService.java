@@ -37,7 +37,7 @@ public class DonateService {
   private final ChainProps chainProps;
 
   @Transactional
-  public DonationResponseDto donate(DonationRequestDto req) throws Exception {
+  public DonationResponseDto donate(DonationRequestDto req, String memberUuid) throws Exception {
     long unit = chainProps.getKrwPerToken(); // 1000
     long krw  = req.getAmountKrw();
 
@@ -54,7 +54,7 @@ public class DonateService {
         .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM_VAULT));
 
     // 3) 기부자 지갑 조회 (donator.member_uuid == req.memberUuid)
-    Donator donator = donatorRepo.findByMemberUuid(req.getMemberUuid())
+    Donator donator = donatorRepo.findByMemberUuid(memberUuid)
         .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_DONATOR));
 
     // 4) 온체인 민팅 → txHash 획득
@@ -64,14 +64,19 @@ public class DonateService {
     long current = farm.getTotalDonation() == null ? 0L : farm.getTotalDonation();
     farm.updateTotalDonation(current + krw);   // 토큰 개수 대신 원화 금액 누적
 
-
-    // 6) donation_history 저장
-    DonationHistory h = req.toEntity(farm.getFarmUuid(), farm.getMemberUuid(), txHash, tokenCount);
+    // 6) donation_history 저장 (farmUuid + tx_hash)
+    DonationHistory h = new DonationHistory();
+    h.updateDonationDate(LocalDateTime.now());
+    h.updateDonationToken(tokenCount);
+    h.updateDonatorUuid(memberUuid);      // 기부자
+    h.updateFarmUuid(farm.getFarmUuid());
+    h.updateFarmerUuid(farm.getMemberUuid());// 목장 저장
+    h.updateTxHash(txHash);
     historyRepo.save(h);
 
     return new DonationResponseDto(
         txHash,
-        req.getMemberUuid(),
+        memberUuid,
         vault.getVaultAddress(),
         String.valueOf(tokenCount),
         amountWei.toString()

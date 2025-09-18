@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { verifyBusiness } from '@/services/authService';
 
 type UserType = 'donor' | 'farmer';
 
@@ -29,39 +28,23 @@ export default function SignupPage() {
     openingDate: '',
     businessVerified: false
   });
-  const [isVerifying, setIsVerifying] = useState(false);
-
-  const handleBusinessVerification = async () => {
+  const handleBusinessVerification = () => {
     if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
       alert('모든 필수 정보를 입력해주세요.');
       return;
     }
 
-    setIsVerifying(true);
+    // 확인 팝업 표시
+    const confirmed = confirm('입력하신 사업자 정보가 정확한지 확인해주세요.\n\n' +
+      `목장명: ${farmerInfo.farmName}\n` +
+      `대표자: ${farmerInfo.representativeName}\n` +
+      `사업자 등록번호: ${farmerInfo.businessNumber}\n` +
+      `개업일자: ${farmerInfo.openingDate}\n\n` +
+      '위 정보가 정확하다면 확인을 눌러주세요.');
     
-    try {
-      // 실제 백엔드 API 호출
-      const verificationData = {
-        businessNum: farmerInfo.businessNumber,
-        openingDate: farmerInfo.openingDate,
-        name: farmerInfo.representativeName,
-        farmName: farmerInfo.farmName
-      };
-
-      const response = await verifyBusiness(verificationData);
-      
-      if (response.isSuccess && response.data?.verified) {
-        setFarmerInfo(prev => ({ ...prev, businessVerified: true }));
-        alert('사업자 등록번호 인증이 완료되었습니다.');
-      } else {
-        alert(response.message || '사업자 등록번호 인증에 실패했습니다.');
-      }
-      
-    } catch (error) {
-      console.error('사업자 인증 오류:', error);
-      alert('사업자 등록번호 인증에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsVerifying(false);
+    if (confirmed) {
+      setFarmerInfo(prev => ({ ...prev, businessVerified: true }));
+      alert('사업자 정보 확인이 완료되었습니다.');
     }
   };
 
@@ -82,7 +65,7 @@ export default function SignupPage() {
         return;
       }
       if (!farmerInfo.businessVerified) {
-        alert('사업자 등록번호 인증을 완료해주세요.');
+        alert('사업자 정보 확인을 완료해주세요.');
         return;
       }
     }
@@ -229,34 +212,27 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {/* 사업자 인증 */}
+              {/* 사업자 정보 확인 */}
               <div className="space-y-2">
                 <button
                   onClick={handleBusinessVerification}
-                  disabled={isVerifying || farmerInfo.businessVerified || !farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName}
+                  disabled={farmerInfo.businessVerified || !farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName}
                   className={`w-full py-2 px-4 rounded-md text-sm font-medium ${
                     farmerInfo.businessVerified
                       ? 'bg-green-100 text-green-800 cursor-not-allowed'
-                      : isVerifying
-                      ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
                       : (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName)
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {isVerifying ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
-                      인증 중...
-                    </>
-                  ) : farmerInfo.businessVerified ? (
-                    '✓ 인증 완료'
+                  {farmerInfo.businessVerified ? (
+                    '✓ 확인 완료'
                   ) : (
-                    '사업자 등록번호 인증'
+                    '사업자 정보 확인'
                   )}
                 </button>
                 {farmerInfo.businessVerified && (
-                  <p className="text-xs text-green-600">사업자 등록번호 인증이 완료되었습니다.</p>
+                  <p className="text-xs text-green-600">사업자 정보 확인이 완료되었습니다.</p>
                 )}
               </div>
             </div>
@@ -280,7 +256,7 @@ export default function SignupPage() {
               </button>
               {userType === 'farmer' && !farmerInfo.businessVerified && (
                 <p className="mt-2 text-xs text-red-600 text-center">
-                  사업자 등록번호 인증을 완료해주세요.
+                  사업자 정보 확인을 완료해주세요.
                 </p>
               )}
             </div>
