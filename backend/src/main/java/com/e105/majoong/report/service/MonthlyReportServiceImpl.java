@@ -47,7 +47,7 @@ public class MonthlyReportServiceImpl implements MonthlyReportService {
                             report.getCreatedAt().getYear(),
                             report.getCreatedAt().getMonthValue()
                     )
-                    .orElseThrow(() -> new RuntimeException("점수 없음"));
+                    .orElseThrow(() -> new RuntimeException("점수 없음")); //TODO
 
 
             return MonthlyReportListResponseDto.toDto(report, score);
