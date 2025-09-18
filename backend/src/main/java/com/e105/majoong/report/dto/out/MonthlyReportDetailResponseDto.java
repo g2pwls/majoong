@@ -21,8 +21,8 @@ public class MonthlyReportDetailResponseDto {
     public static MonthlyReportDetailResponseDto toDto(MonthlyReport report, MyScore latestScore) {
         return MonthlyReportDetailResponseDto.builder()
                 .reportId(report.getId())
-                .year(latestScore.getYear())
-                .month(latestScore.getMonth())
+                .year(report.getCreatedAt().getYear())
+                .month(report.getCreatedAt().getMonthValue())
                 .content(report.getContent())
                 .score(latestScore.getScore())
                 .build();

@@ -126,8 +126,8 @@ public class FarmController {
 
     @GetMapping("/{farmUuid}/scores/history")
     @Operation(summary = "목장 상세의 신뢰도 내역 목록 조회")
-    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid) {
-        List<ScoreHistoryResponseDto> result = scoreService.getScoreHistory(farmUuid);
+    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid, @RequestParam int year, @RequestParam int month) {
+        List<ScoreHistoryResponseDto> result = scoreService.getScoreHistory(farmUuid, year, month);
         return new BaseResponse<>(result);
     }
 }

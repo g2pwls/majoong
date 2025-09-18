@@ -8,5 +8,5 @@ import java.util.List;
 public interface ScoreService {
     List<ScoreHistoryAvgResponseDto> getScoreHistory(String farmUuid, int year);
 
-    List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid);
+    List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid, int year, int month);
 }

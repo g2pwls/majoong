@@ -19,7 +19,7 @@ public class ScoreServiceImpl implements ScoreService {
     }
 
     @Override
-    public List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid) {
-        return myScoreRepository.findScoreHistory(farmUuid);
+    public List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid, int year, int month) {
+        return myScoreRepository.findScoreHistory(farmUuid, year, month);
     }
 }

@@ -34,13 +34,21 @@ public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
             CONCAT('USE-', FUNCTION('DATE_FORMAT', ms.createdAt, '%Y%m%d'), '-', ms.id),
             ms.createdAt,
             sc.category,
-            ms.score
+            ms.score,
+            ms.month,
+            ms.year
         )
         FROM MyScore ms
         JOIN ScoreCategory sc ON sc.id = ms.scoreCategoryId
         WHERE ms.farmUuid = :farmUuid
+          AND ms.year = :year
+          AND ms.month = :month
         ORDER BY ms.createdAt DESC
     """)
-    List<ScoreHistoryResponseDto> findScoreHistory(@Param("farmUuid") String farmUuid);
+    List<ScoreHistoryResponseDto> findScoreHistory(
+            @Param("farmUuid") String farmUuid,
+            @Param("year") int year,
+            @Param("month") int month
+    );
 
 }
