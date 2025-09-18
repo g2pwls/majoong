@@ -9,12 +9,14 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class ReceiptHistoryResponseDto {
+    private Long recieptHistoryId;
     private LocalDateTime createdAt;
     private String category;
     private Integer totalAmount;
 
     public static ReceiptHistoryResponseDto from(ReceiptHistory history, String categoryName) {
         return new ReceiptHistoryResponseDto(
+                history.getId(),
                 history.getCreatedAt(),
                 categoryName,
                 history.getTotalAmount()

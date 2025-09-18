@@ -64,15 +64,23 @@ public class AuthService {
     Optional<OauthMember> opt = memberRepository.findByOauthIdAndOauthProvider(oauthId, provider);
     if (opt.isPresent()) {
       OauthMember m = opt.get();
+      String memberUuid = m.getMemberUuid();
+      if("farmer".equalsIgnoreCase(m.getRole().name())){
+        email = farmerRepository.findEmailByMemberUuid(memberUuid)
+                .orElseThrow(() -> new RuntimeException("Farmer not found"));
+      }else{
+        email = donatorRepository.findEmailByMemberUuid(memberUuid)
+                .orElseThrow(() -> new RuntimeException("Farmer not found"));
+      }
 
-      String accessToken = jwtTokenProvider.generateAccessToken(m.getMemberUuid(), m.getRole().name());
-      String refreshToken = jwtTokenProvider.generateRefreshToken(m.getMemberUuid(), m.getRole().name());
+      String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, m.getRole().name());
+      String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, m.getRole().name());
       long ttlSec = TimeUnit.MILLISECONDS.toSeconds(jwtTokenProvider.getRefreshExpireTime());
-      redisService.set("rt:" + m.getMemberUuid(), refreshToken, ttlSec);
+      redisService.set("rt:" + memberUuid, refreshToken, ttlSec);
 
       redisService.delete("sess:" + sessionKey);
 
-      return AuthSignInResponseDto.ofLogin(m.getMemberUuid(), accessToken, refreshToken, email);
+      return AuthSignInResponseDto.ofLogin(memberUuid, accessToken, refreshToken, email, m.getRole());
     }
 
     String tempAccessToken = jwtTokenProvider.generateTempAccessToken(oauthId, email, provider);
@@ -96,7 +104,7 @@ public class AuthService {
           .memberUuid(UUID.randomUUID().toString())
           .oauthId(oauthId)
           .oauthProvider(provider)
-          .role(Role.valueOf(req.getRole().toUpperCase()))
+          .role(req.getRole())
           .build();
 
       memberRepository.save(oauth);
@@ -107,7 +115,7 @@ public class AuthService {
     }
 
     // ───────── 역할 분기 ─────────
-    if ("farmer".equalsIgnoreCase(req.getRole())) {
+    if ("farmer".equalsIgnoreCase(req.getRole().name())) {
       // 1) 기본 정보 저장
       Farmer farmer = farmerRepository.save(req.toFarmer(memberUuid));
 
@@ -131,7 +139,7 @@ public class AuthService {
       log.info("Vault created & persisted: memberUuid={}, farmId={}, vault={}, tx={}",
           memberUuid, farmId, fv.getVaultAddress(), fv.getDeployTxHash());
 
-    } else if ("donator".equalsIgnoreCase(req.getRole())) {
+    } else if ("donator".equalsIgnoreCase(req.getRole().name())) {
       // 1) 기본 정보 저장
       Donator donator = donatorRepository.save(req.toDonator(memberUuid));
 
@@ -146,14 +154,14 @@ public class AuthService {
     }
     // ───────── 역할 분기 끝 ─────────
 
-    oauth.updateRole(Role.valueOf(req.getRole().toUpperCase()));
+    oauth.updateRole(req.getRole());
 
-    String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, req.getRole());
-    String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, req.getRole());
+    String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, req.getRole().name());
+    String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, req.getRole().name());
     long ttlSec = TimeUnit.MILLISECONDS.toSeconds(jwtTokenProvider.getRefreshExpireTime());
     redisService.set("rt:" + memberUuid, refreshToken, ttlSec);
 
-    return AuthSignInResponseDto.ofLogin(memberUuid, accessToken, refreshToken, req.getEmail());
+    return AuthSignInResponseDto.ofLogin(memberUuid, accessToken, refreshToken, req.getEmail(), req.getRole());
   }
 
   @Transactional
@@ -180,7 +188,7 @@ public class AuthService {
     long ttlSec = TimeUnit.MILLISECONDS.toSeconds(jwtTokenProvider.getRefreshExpireTime());
     redisService.set("rt:" + memberUuid, newRefresh, ttlSec);
 
-    return AuthSignInResponseDto.ofRefresh(memberUuid, newAccess, newRefresh);
+    return AuthSignInResponseDto.ofRefresh(memberUuid, newAccess, newRefresh, Role.valueOf(role.toUpperCase()));
   }
 
   /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */ //todo

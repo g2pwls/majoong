@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,7 +35,13 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of(frontendUrl));
+        config.setAllowedOrigins(List.of(
+                frontendUrl,
+                "https://test.majoong.site",
+                "https://majoong.site",
+                "https://www.majoong.site",
+                "https://api-test.majoong.site",
+                "http://localhost:3000"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setExposedHeaders(List.of("Authorization"));
@@ -45,9 +52,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/login/**", "/oauth2/**").permitAll()
                         .requestMatchers(
                                 "/login/oauth2/**",
@@ -57,8 +66,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api/v1/farms/**"
                         ).permitAll()
-                        .requestMatchers("/api/v1/members/donators").hasRole("DONATOR")
-                        .requestMatchers("/api/v1/members/farmers").hasRole("FARMER")
+                        .requestMatchers("/api/v1/members/donators/**").hasRole("DONATOR")
+                        .requestMatchers("/api/v1/members/farmers/**").hasRole("FARMER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
