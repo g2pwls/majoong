@@ -2,6 +2,7 @@ package com.e105.majoong.auth.dto.in;
 
 import com.e105.majoong.common.model.donator.Donator;
 import com.e105.majoong.common.model.farmer.Farmer;
+import com.e105.majoong.common.model.oAuthMember.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class SignUpCompleteRequestDto {
-    private String role;
+    private Role role;
     private String name;
     private String email;
     private String farmName;
