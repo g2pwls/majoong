@@ -38,7 +38,8 @@ public class SecurityConfig {
                 frontendUrl,
                 "https://test.majoong.site",
                 "https://majoong.site",
-                "https://www.majoong.site"));
+                "https://www.majoong.site",
+                "https://api-test.majoong.site"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setExposedHeaders(List.of("Authorization"));
