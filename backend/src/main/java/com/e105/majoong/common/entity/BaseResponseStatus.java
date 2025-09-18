@@ -55,6 +55,7 @@ public enum BaseResponseStatus {
 
     // Pet
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
+    NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),
     NO_EXIST_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 금고입니다."),
     NO_EXIST_DONATOR(HttpStatus.NOT_FOUND, false, 2403, "존재하지 않는 기부자입니다."),
 
@@ -62,6 +63,9 @@ public enum BaseResponseStatus {
     DUPLICATED_CATEGORY_ORDER(HttpStatus.CONFLICT, false, 3008, "이미 등록된 순서입니다"),
     // Interest
     NO_EXIST_INTEREST(HttpStatus.NOT_FOUND, false, 2501, "존재하지 않는 관심사입니다."),
+    //s3
+    S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 4003, "S3 업로드 중 오류 발생"),
+
     //Settlement
     SETTLEMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, false, 2601, "이미 처리된 증빙입니다."),
     EVIDENCE_INVALID(HttpStatus.BAD_REQUEST, false, 2602, "증빙 검증에 실패했습니다."),

@@ -28,7 +28,6 @@ public class HorseState {
     private Long horseNumber;
 
     @CreatedDate
-    @Column(nullable = false)
     private LocalDateTime uploadedAt;
 
     private String frontImage;
@@ -40,5 +39,9 @@ public class HorseState {
     private String aiSummary;
     @Column(length = 1000)
     private String content;
+
+    public void updateAISummary(String aiSummary) {
+        this.aiSummary = aiSummary;
+    }
 }
 
