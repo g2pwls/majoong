@@ -26,16 +26,28 @@ export interface BusinessVerificationResponse {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
-// 20글자 랜덤 이메일 생성 함수 (개발용 - 배포 시 제거 필요)
-const generateRandomEmail = (): string => {
-  // 20글자 랜덤 문자열 생성
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 20; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return `${result}@naver.com`;
+// 원본 이메일 + 현재 월일시분초 기반 이메일 생성 함수 (개발용 - 배포 시 제거 필요)
+const generateTimestampEmail = (originalEmail: string): string => {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  const second = String(now.getSeconds()).padStart(2, '0');
+  
+  // 월일시분초 문자열 생성 (예: "1203153045")
+  const timestamp = month + day + hour + minute + second;
+  
+  // 원본 이메일에서 @ 앞부분 추출
+  const emailPrefix = originalEmail.split('@')[0];
+  
+  // 최대 30자 제한: @naver.com(10자) + 이메일접두사 + 타임스탬프(최대 20자)
+  const maxPrefixLength = 30 - 10 - timestamp.length; // 30자 - @naver.com(10자) - 타임스탬프(10자)
+  const truncatedPrefix = emailPrefix.substring(0, Math.max(0, maxPrefixLength));
+  
+  return `${truncatedPrefix}${timestamp}@naver.com`;
 };
+
 
 // 원래 코드 (개발 완료 후 사용):
 // const generateRandomId = (): string => {
@@ -63,11 +75,16 @@ export const signInWithSession = async (): Promise<LoginResponse> => {
     // 백엔드 BaseResponse 형태로 래핑된 응답에서 result 추출
     const loginResponse = response.data.result;
     
-    // 개발용: email을 UUID@naver.com으로 변경 (배포 시 제거 필요)
-    const randomEmail = generateRandomEmail();
-    loginResponse.email = randomEmail;
-    
-    console.log('이메일이 랜덤 ID로 변경됨:', randomEmail);
+    // 신규 회원과 기존 회원 구분 처리
+    if (loginResponse.signUp) {
+      // 신규 회원: 함수로 생성한 이메일 사용 (개발용 - 배포 시 제거 필요)
+      const timestampEmail = generateTimestampEmail(loginResponse.email);
+      loginResponse.email = timestampEmail;
+      console.log('신규 회원 - 이메일이 함수 생성으로 변경됨:', timestampEmail, '원본:', response.data.result.email);
+    } else {
+      // 기존 회원: 원본 이메일을 로그인 ID로 사용
+      console.log('기존 회원 - 원본 이메일을 로그인 ID로 사용:', loginResponse.email);
+    }
     
     return loginResponse;
     

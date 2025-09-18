@@ -38,19 +38,11 @@ public class MonthlyReportServiceImpl implements MonthlyReportService {
         LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0);
         LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59);
 
-        List<MonthlyReport> reports = monthlyReportRepository.findByFarmUuidAndCreatedAtBetween(farmUuid, start, end);
+        List<MonthlyReport> reports = monthlyReportRepository
+                .findByFarmUuidAndCreatedAtBetween(farmUuid, start, end);
 
-        return reports.stream().map(report -> {
-            MyScore score = myScoreRepository
-                    .findByFarmUuidAndYearAndMonth(
-                            farmUuid,
-                            report.getCreatedAt().getYear(),
-                            report.getCreatedAt().getMonthValue()
-                    )
-                    .orElseThrow(() -> new RuntimeException("점수 없음")); //TODO
-
-
-            return MonthlyReportListResponseDto.toDto(report, score);
-        }).collect(Collectors.toList());
+        return reports.stream()
+                .map(MonthlyReportListResponseDto::toDto)
+                .collect(Collectors.toList());
     }
 }

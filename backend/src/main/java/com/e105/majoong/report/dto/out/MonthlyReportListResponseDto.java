@@ -13,15 +13,13 @@ public class MonthlyReportListResponseDto {
     private Long reportId;
     private int year;
     private int month;
-    private double score;
     private String thumbnail;
 
-    public static MonthlyReportListResponseDto toDto(MonthlyReport report, MyScore scoreEntity) {
+    public static MonthlyReportListResponseDto toDto(MonthlyReport report) {
         return MonthlyReportListResponseDto.builder()
                 .reportId(report.getId())
-                .year(scoreEntity.getYear())
-                .month(scoreEntity.getMonth())
-                .score(scoreEntity.getScore())
+                .year(report.getCreatedAt().getYear())
+                .month(report.getCreatedAt().getMonthValue())
                 .thumbnail(report.getThumbnail())
                 .build();
     }
