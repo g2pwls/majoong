@@ -10,7 +10,6 @@ const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
   withCredentials: false, // CORS 문제 방지
@@ -71,7 +70,11 @@ export class FarmService {
   // 농장 정보 조회
   static async getFarm(farmUuid: string): Promise<Farm> {
     try {
-      const response = await apiClient.get(`/api/v1/farms/${farmUuid}`);
+      const response = await apiClient.get(`/api/v1/farms/${farmUuid}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       if (!response.data.isSuccess) {
         throw new Error(`API 호출 실패: ${response.data.message}`);
@@ -201,6 +204,7 @@ export class FarmService {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 30000, // 30초로 늘림
       });
 
       console.log('Response status:', response.status);
@@ -366,7 +370,11 @@ export class FarmService {
         baseURL: API_BASE_URL
       });
 
-      const response = await apiClient.post('/api/v1/members/farmers/my-farm', farmData);
+      const response = await apiClient.post('/api/v1/members/farmers/my-farm', farmData, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
       console.log('농장 정보 등록/수정 API 응답:', {
         status: response.status,
