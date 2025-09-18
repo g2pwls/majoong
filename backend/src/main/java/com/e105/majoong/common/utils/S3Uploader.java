@@ -45,6 +45,22 @@ public class S3Uploader {
         return getFileUrl(fileName);
     }
 
+    public String uploadByBytes(byte[] bytes, String originalName, String dirName, String contentType) {
+        String safeName = Optional.ofNullable(originalName).orElse("unknown").replaceAll("\\s", "_");
+        String uuid = UUID.randomUUID().toString();
+        String uniqueFileName = uuid + "_" + safeName;
+        String fileName = dirName + "/" + uniqueFileName;
+
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(fileName)
+                .contentType(Optional.ofNullable(contentType).orElse("application/octet-stream"))
+                .build();
+
+        s3Client.putObject(putObjectRequest, RequestBody.fromBytes(bytes));
+        return getFileUrl(fileName);
+    }
+
     public void delete(String fileUrl) {
         log.info("delete {}", fileUrl);
         String fileName = extractFileNameFromUrl(fileUrl);
@@ -71,20 +87,6 @@ public class S3Uploader {
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Invalid file URL: " + fileUrl, e);
         }
-    }
-
-    public String generatePresignedUrl(String key, Duration duration) {
-        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
-                .bucket(bucket)
-                .key(key)
-                .build();
-
-        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
-                .signatureDuration(duration)
-                .getObjectRequest(getObjectRequest)
-                .build();
-
-        return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
 }

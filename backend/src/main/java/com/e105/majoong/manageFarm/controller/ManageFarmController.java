@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @RestController
@@ -62,12 +63,13 @@ public class ManageFarmController {
 
     @PostMapping(value = "/farms/{farmUuid}/horses/{horseNumber}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님)")
-    public BaseResponse<String> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
-                                               @PathVariable String farmUuid,
-                                               @PathVariable Long horseNumber,
-                                               @ModelAttribute ReportHorseStatusDto dto) {
-        manageFarmService.reportHorseState(user.getMemberUuid(), farmUuid, horseNumber, dto);
-        return new BaseResponse<>();
+    public Mono<BaseResponse<String>> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
+                                                       @PathVariable String farmUuid,
+                                                       @PathVariable Long horseNumber,
+                                                       @ModelAttribute ReportHorseStatusDto dto) {
+
+        return manageFarmService.reportHorseState(user.getMemberUuid(), farmUuid, horseNumber, dto)
+                .map(BaseResponse::new);
     }
 
     //카테고리와 영수증 텍스트 일치여부 조회
