@@ -48,13 +48,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login/**", "/oauth2/**",  "/login/oauth2/**").permitAll()
+                        .requestMatchers("/login/**", "/oauth2/**").permitAll()
                         .requestMatchers(
                                 "/login/oauth2/**",
                                 "/api/v1/auth/**",
                                 "/swagger-ui/**",
                                 "swagger-ui.html",
-                                "/v3/api-docs/**"
+                                "/v3/api-docs/**",
+                                "/api/v1/farms/**"
                         ).permitAll()
                         .requestMatchers("/api/v1/members/donators").hasRole("DONATOR")
                         .requestMatchers("/api/v1/members/farmers").hasRole("FARMER")

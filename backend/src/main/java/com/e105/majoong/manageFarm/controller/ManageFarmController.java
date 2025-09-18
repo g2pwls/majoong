@@ -72,8 +72,4 @@ public class ManageFarmController {
                 .map(BaseResponse::new);
     }
 
-    //카테고리와 영수증 텍스트 일치여부 조회
-
-
-    //
 }

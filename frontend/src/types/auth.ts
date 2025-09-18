@@ -19,6 +19,9 @@ export interface SignupCompleteRequest {
 }
 
 export interface SignupCompleteResponse {
-  success: boolean;
+  httpStatus: string;
+  isSuccess: boolean;
   message: string;
+  code: number;
+  result: unknown;
 }
