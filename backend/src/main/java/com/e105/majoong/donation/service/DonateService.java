@@ -65,13 +65,13 @@ public class DonateService {
     farm.updateTotalDonation(current + krw);   // 토큰 개수 대신 원화 금액 누적
 
     // 6) donation_history 저장 (farmUuid + tx_hash)
-    DonationHistory h = new DonationHistory();
-    h.updateDonationDate(LocalDateTime.now());
-    h.updateDonationToken(tokenCount);
-    h.updateDonatorUuid(memberUuid);      // 기부자
-    h.updateFarmUuid(farm.getFarmUuid());
-    h.updateFarmerUuid(farm.getMemberUuid());// 목장 저장
-    h.updateTxHash(txHash);
+    DonationHistory h = req.toEntity(
+        farm.getFarmUuid(),
+        farm.getMemberUuid(),
+        memberUuid,
+        txHash,
+        tokenCount
+    );
     historyRepo.save(h);
 
     return new DonationResponseDto(
