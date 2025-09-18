@@ -46,27 +46,33 @@ export default function WalletCreatePage() {
         const isFarmer = signupData.role === 'FARMER';
         const walletCreationTime = isFarmer ? 10800 : 3800; // 목장주: 10.8초, 기부자: 3.8초
 
-        // 4. 지갑 생성 시뮬레이션 시작 (0-30%)
+        // 4. 지갑 생성 시뮬레이션 시작 (0-30%) - 1단위씩 부드럽게 증가
         const steps = isFarmer ? [
-          { message: '지갑 초기화 중...', progress: 3 },
-          { message: '개인키 생성 중...', progress: 6 },
-          { message: '공개키 생성 중...', progress: 9 },
-          { message: '지갑 주소 생성 중...', progress: 12 },
-          { message: '목장 전용 지갑 설정 중...', progress: 15 },
-          { message: '사업자 인증서 연동 중...', progress: 18 },
-          { message: '목장 계정 초기화 중...', progress: 21 },
-          { message: '지갑 보안 설정 중...', progress: 30 }
+          { message: '지갑 초기화 중...', startProgress: 0, endProgress: 3, delay: 800 },
+          { message: '개인키 생성 중...', startProgress: 3, endProgress: 6, delay: 600 },
+          { message: '공개키 생성 중...', startProgress: 6, endProgress: 9, delay: 500 },
+          { message: '지갑 주소 생성 중...', startProgress: 9, endProgress: 12, delay: 700 },
+          { message: '목장 전용 지갑 설정 중...', startProgress: 12, endProgress: 15, delay: 600 },
+          { message: '사업자 인증서 연동 중...', startProgress: 15, endProgress: 18, delay: 800 },
+          { message: '목장 계정 초기화 중...', startProgress: 18, endProgress: 21, delay: 500 },
+          { message: '지갑 보안 설정 중...', startProgress: 21, endProgress: 30, delay: 600 }
         ] : [
-          { message: '지갑 초기화 중...', progress: 5 },
-          { message: '개인키 생성 중...', progress: 10 },
-          { message: '공개키 생성 중...', progress: 15 },
-          { message: '지갑 주소 생성 중...', progress: 20 },
-          { message: '지갑 설정 중...', progress: 30 }
+          { message: '지갑 초기화 중...', startProgress: 0, endProgress: 5, delay: 600 },
+          { message: '개인키 생성 중...', startProgress: 5, endProgress: 10, delay: 500 },
+          { message: '공개키 생성 중...', startProgress: 10, endProgress: 15, delay: 400 },
+          { message: '지갑 주소 생성 중...', startProgress: 15, endProgress: 20, delay: 500 },
+          { message: '지갑 설정 중...', startProgress: 20, endProgress: 30, delay: 600 }
         ];
 
         for (const step of steps) {
-          await new Promise(resolve => setTimeout(resolve, 150));
-          setProgress(step.progress);
+          const progressRange = step.endProgress - step.startProgress;
+          const stepDuration = step.delay;
+          const incrementInterval = stepDuration / progressRange;
+          
+          for (let i = 0; i <= progressRange; i++) {
+            await new Promise(resolve => setTimeout(resolve, incrementInterval));
+            setProgress(step.startProgress + i);
+          }
         }
 
         // 5. 실제 회원가입 API 호출 (지갑 생성 포함) - 30-99%
@@ -76,13 +82,13 @@ export default function WalletCreatePage() {
         // API 호출 시작 시간 기록
         const apiStartTime = Date.now();
         
-        // API 호출 중 진행률 업데이트 (역할별 시간 기반)
+        // API 호출 중 진행률 업데이트 (역할별 시간 기반) - 1단위씩 부드럽게
         const apiProgressInterval = setInterval(() => {
           const elapsed = Date.now() - apiStartTime;
           // 역할별 시간에 따라 30%에서 99%까지 점진적으로 증가
           const apiProgress = Math.min(30 + (elapsed / walletCreationTime) * 69, 99);
           setProgress(Math.floor(apiProgress));
-        }, 100); // 100ms마다 업데이트
+        }, 100); // 100ms마다 업데이트 (1단위씩 부드럽게)
         
         const response = await signupComplete(signupData);
         clearInterval(apiProgressInterval);
@@ -126,25 +132,31 @@ export default function WalletCreatePage() {
     const isFarmer = userRole === 'FARMER';
     
     if (isFarmer) {
-      // 목장주용 메시지
-      if (progress <= 3) return '지갑 초기화 중...';
-      if (progress <= 6) return '개인키 생성 중...';
-      if (progress <= 9) return '공개키 생성 중...';
-      if (progress <= 12) return '지갑 주소 생성 중...';
-      if (progress <= 15) return '목장 전용 지갑 설정 중...';
-      if (progress <= 18) return '사업자 인증서 연동 중...';
-      if (progress <= 21) return '목장 계정 초기화 중...';
-      if (progress <= 30) return '지갑 보안 설정 중...';
-      if (progress < 100) return '목장주 회원가입 처리 중...';
+      // 목장주용 메시지 - 더 세밀한 범위로 조정
+      if (progress < 3) return '지갑 초기화 중...';
+      if (progress < 6) return '개인키 생성 중...';
+      if (progress < 9) return '공개키 생성 중...';
+      if (progress < 12) return '지갑 주소 생성 중...';
+      if (progress < 15) return '목장 전용 지갑 설정 중...';
+      if (progress < 18) return '사업자 인증서 연동 중...';
+      if (progress < 21) return '목장 계정 초기화 중...';
+      if (progress < 30) return '지갑 보안 설정 중...';
+      if (progress < 50) return '목장주 회원가입 처리 중...';
+      if (progress < 70) return '지갑 정보 저장 중...';
+      if (progress < 90) return '목장 계정 설정 중...';
+      if (progress < 100) return '최종 검증 중...';
       return '목장주 지갑 생성 완료!';
     } else {
-      // 기부자용 메시지
-      if (progress <= 5) return '지갑 초기화 중...';
-      if (progress <= 10) return '개인키 생성 중...';
-      if (progress <= 15) return '공개키 생성 중...';
-      if (progress <= 20) return '지갑 주소 생성 중...';
-      if (progress <= 30) return '지갑 설정 중...';
-      if (progress < 100) return '회원가입 처리 중...';
+      // 기부자용 메시지 - 더 세밀한 범위로 조정
+      if (progress < 5) return '지갑 초기화 중...';
+      if (progress < 10) return '개인키 생성 중...';
+      if (progress < 15) return '공개키 생성 중...';
+      if (progress < 20) return '지갑 주소 생성 중...';
+      if (progress < 30) return '지갑 설정 중...';
+      if (progress < 50) return '회원가입 처리 중...';
+      if (progress < 70) return '지갑 정보 저장 중...';
+      if (progress < 90) return '계정 설정 중...';
+      if (progress < 100) return '최종 검증 중...';
       return '지갑 생성 완료!';
     }
   };
@@ -187,7 +199,7 @@ export default function WalletCreatePage() {
               {/* 진행률 바 */}
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-out"
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>

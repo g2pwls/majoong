@@ -13,7 +13,6 @@ public class CustomOAuth2User implements OAuth2User {
     private final Map<String, Object> attributes;
     private final String oauthId;
     private final String email;
-    private final String nickname;
     private String memberUuid;
     private String role;
 
@@ -24,8 +23,6 @@ public class CustomOAuth2User implements OAuth2User {
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         this.email = (String) kakaoAccount.get("email");
 
-        Map<String, Object> properties = (Map<String, Object>) attributes.get("properties");
-        this.nickname = (String) properties.get("nickname");
     }
 
     @Override
