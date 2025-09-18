@@ -1,6 +1,7 @@
 // src/main/java/com/e105/majoong/donation/controller/DonateController.java
 package com.e105.majoong.donation.controller;
 
+import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.donation.dto.in.DonationRequestDto;
 import com.e105.majoong.donation.dto.out.DonationResponseDto;
@@ -8,6 +9,7 @@ import com.e105.majoong.donation.service.DonateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,7 +20,9 @@ public class DonateController {
   private final DonateService donateService;
 
   @PostMapping
-  public BaseResponse<DonationResponseDto> donate(@Valid @RequestBody DonationRequestDto req) throws Exception {
-    return new BaseResponse<>(donateService.donate(req));
+  public BaseResponse<DonationResponseDto> donate(
+          @Valid @RequestBody DonationRequestDto req,
+          @AuthenticationPrincipal CustomUserDetails user) throws Exception {
+    return new BaseResponse<>(donateService.donate(req, user.getMemberUuid()));
   }
 }

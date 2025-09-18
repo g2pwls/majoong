@@ -37,7 +37,7 @@ public class DonateService {
   private final ChainProps chainProps;
 
   @Transactional
-  public DonationResponseDto donate(DonationRequestDto req) throws Exception {
+  public DonationResponseDto donate(DonationRequestDto req, String memberUuid) throws Exception {
     long unit = chainProps.getKrwPerToken(); // 1000
     long krw  = req.getAmountKrw();
 
@@ -54,8 +54,8 @@ public class DonateService {
         .orElseThrow(() -> new IllegalStateException("vault not found for member: " + req.getFarmMemberUuid()));
 
     // 3) 기부자 지갑 조회 (donator.member_uuid == req.memberUuid)
-    Donator donator = donatorRepo.findByMemberUuid(req.getMemberUuid())
-        .orElseThrow(() -> new IllegalStateException("donor wallet not found: " + req.getMemberUuid()));
+    Donator donator = donatorRepo.findByMemberUuid(memberUuid)
+        .orElseThrow(() -> new IllegalStateException("donor wallet not found: " + memberUuid));
 
     // 4) 온체인 민팅 → txHash 획득
     String txHash = onChain.mintToVaultForDonor(donator.getWalletAddress(), vault.getVaultAddress(), amountWei);
@@ -68,7 +68,7 @@ public class DonateService {
     DonationHistory h = new DonationHistory();
     h.updateDonationDate(LocalDateTime.now());
     h.updateDonationToken(tokenCount);
-    h.updateDonatorUuid(req.getMemberUuid());      // 기부자
+    h.updateDonatorUuid(memberUuid);      // 기부자
     h.updateFarmUuid(farm.getFarmUuid());
     h.updateFarmerUuid(farm.getMemberUuid());// 목장 저장
     h.updateTxHash(txHash);
@@ -76,7 +76,7 @@ public class DonateService {
 
     return new DonationResponseDto(
         txHash,
-        req.getMemberUuid(),
+        memberUuid,
         vault.getVaultAddress(),
         String.valueOf(tokenCount),
         amountWei.toString()
