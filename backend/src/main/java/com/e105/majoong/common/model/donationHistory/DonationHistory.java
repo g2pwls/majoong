@@ -7,22 +7,20 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "donation_history")
+@Table(name="donation_history")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class DonationHistory {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private Long donationToken;
 
-    @CreatedDate
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime donationDate;
 
     @Column(nullable = false, length = 36)
@@ -31,11 +29,16 @@ public class DonationHistory {
     @Column(nullable = false, length = 36)
     private String farmerUuid;
 
-    @Column(nullable = false, length = 12 )
+    @Column(nullable = false, length = 12)
     private String farmUuid;
 
     @Column(name="tx_hash", length = 66)
     private String txHash;
+
+    @PrePersist
+    void onCreate() {
+      if (donationDate == null) donationDate = LocalDateTime.now();
+    }
 
     public void updateDonationToken(Long donationToken) {
         this.donationToken = donationToken;

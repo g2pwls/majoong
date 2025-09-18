@@ -55,11 +55,21 @@ public enum BaseResponseStatus {
 
     // Pet
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
+    NO_EXIST_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 금고입니다."),
+    NO_EXIST_DONATOR(HttpStatus.NOT_FOUND, false, 2403, "존재하지 않는 기부자입니다."),
+
     DUPLICATED_CATEGORY(HttpStatus.CONFLICT, false, 3006, "이미 등록된 카테고리입니다"),
     DUPLICATED_CATEGORY_ORDER(HttpStatus.CONFLICT, false, 3008, "이미 등록된 순서입니다"),
     // Interest
     NO_EXIST_INTEREST(HttpStatus.NOT_FOUND, false, 2501, "존재하지 않는 관심사입니다."),
-
+    //Settlement
+    SETTLEMENT_ALREADY_PROCESSED(HttpStatus.CONFLICT, false, 2601, "이미 처리된 증빙입니다."),
+    EVIDENCE_INVALID(HttpStatus.BAD_REQUEST, false, 2602, "증빙 검증에 실패했습니다."),
+    SETTLEMENT_RELEASE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 2603, "정산(출금) 처리에 실패했습니다."),
+    INVALID_FARM_UUID(HttpStatus.BAD_REQUEST, false, 2604, "유효하지 않은 농장 식별자입니다."),
+    INVALID_WALLET_ADDRESS(HttpStatus.BAD_REQUEST, false, 2605, "유효하지 않은 지갑 주소입니다."),
+    INVALID_AMOUNT(HttpStatus.BAD_REQUEST, false, 2606, "유효하지 않은 금액입니다."),
+    NO_ACTIVE_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2607, "활성화된 목장 금고가 없습니다."),
     /**
      * 3000: product service error
      */
@@ -111,8 +121,7 @@ public enum BaseResponseStatus {
      */
     NO_EXIST_MEDIA(HttpStatus.NOT_FOUND, false, 8001, "존재하지 않는 미디어입니다."),
     ;
-
-    private final HttpStatusCode httpStatusCode;
+  private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;
     private final int code;
     private final String message;

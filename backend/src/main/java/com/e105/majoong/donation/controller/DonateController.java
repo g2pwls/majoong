@@ -25,4 +25,6 @@ public class DonateController {
           @AuthenticationPrincipal CustomUserDetails user) throws Exception {
     return new BaseResponse<>(donateService.donate(req, user.getMemberUuid()));
   }
+
+
 }
