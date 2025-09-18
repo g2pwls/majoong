@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone"; // Import useDropzone from react-dropzone
+import { FarmService } from "@/services/farmService";
 
 interface HorseProfileData {
   horseNo: string | null;
@@ -31,6 +32,7 @@ interface RegisteredHorse {
 }
 
 export default function HorseInfoPanel({
+  farm_uuid,
   onHorseRegistered,
 }: {
   farm_uuid: string;
@@ -141,18 +143,60 @@ export default function HorseInfoPanel({
   const isButtonDisabled = !file || !horseNo || !isFetchComplete; // 파일과 마번 조회가 완료되어야만 활성화
 
   // 말 등록하기
-  const registerHorse = () => {
-    if (profileData && filePreview && profileData.horseNo && profileData.hrNm && profileData.birthDt && profileData.breed && profileData.sex) {
-      const horseData = {
-        id: `${profileData.horseNo}-${Date.now()}`, // 리스트 렌더링용 key
-        horseNo: profileData.horseNo, // 중복 체크용
-        image: filePreview,
-        hrNm: profileData.hrNm,
-        birthDt: profileData.birthDt,
-        breed: profileData.breed,
-        sex: profileData.sex,
-      };
-      onHorseRegistered(horseData); // 상위 컴포넌트로 등록된 말 정보 전달
+  const registerHorse = async () => {
+    if (profileData && file && profileData.horseNo && profileData.hrNm && profileData.birthDt && profileData.breed && profileData.sex) {
+      try {
+        setLoading(true);
+        setError("");
+
+        // API에 전달할 데이터 준비
+        const horseData = {
+          farmUuid: farm_uuid,
+          horseNumber: parseInt(profileData.horseNo),
+          horseName: profileData.hrNm,
+          birth: profileData.birthDt,
+          gender: profileData.sex,
+          color: profileData.color || '',
+          breed: profileData.breed,
+          countryOfOrigin: profileData.prdCty || '',
+          raceCount: parseInt(profileData.rcCnt || '0'),
+          firstPlaceCount: parseInt(profileData.fstCnt || '0'),
+          secondPlaceCount: parseInt(profileData.sndCnt || '0'),
+          totalPrize: parseInt(profileData.amt || '0'),
+          retiredDate: profileData.discardDt || undefined,
+          firstRaceDate: profileData.fdebutDt || undefined,
+          lastRaceDate: profileData.lchulDt || undefined,
+          profileImage: file,
+        };
+
+        // API 호출
+        await FarmService.registerHorse(horseData);
+
+        // 성공 시 상위 컴포넌트에 알림
+        const registeredHorseData = {
+          id: `${profileData.horseNo}-${Date.now()}`,
+          horseNo: profileData.horseNo,
+          image: filePreview || '',
+          hrNm: profileData.hrNm,
+          birthDt: profileData.birthDt,
+          breed: profileData.breed,
+          sex: profileData.sex,
+        };
+        onHorseRegistered(registeredHorseData);
+
+        // 폼 초기화
+        setHorseNo("");
+        setProfileData(null);
+        setFile(null);
+        setFilePreview(null);
+        setIsFetchComplete(false);
+
+      } catch (err) {
+        console.error("말 등록 실패:", err);
+        setError(err instanceof Error ? err.message : "말 등록에 실패했습니다.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -290,12 +334,12 @@ export default function HorseInfoPanel({
           )}
           <button
             className={`rounded-2xl px-4 py-2 text-white hover:opacity-90 ${
-              isButtonDisabled ? "bg-gray-500" : "bg-neutral-900"
+              isButtonDisabled || loading ? "bg-gray-500" : "bg-neutral-900"
             }`}
-            disabled={isButtonDisabled} // 버튼 비활성화 처리
+            disabled={isButtonDisabled || loading} // 버튼 비활성화 처리
             onClick={registerHorse} // 말 등록
           >
-            추가하기
+            {loading ? "등록 중..." : "추가하기"}
           </button>
         </div>
       </div>

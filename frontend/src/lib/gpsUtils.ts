@@ -32,7 +32,7 @@ function toRadians(degrees: number): number {
 }
 
 /**
- * 이미지 촬영 날짜 검증 (주말 여부 확인)
+ * 이미지 촬영 날짜 검증 (이번 주의 금요일, 토요일, 일요일 여부 확인)
  * @param imageDate 이미지의 촬영 날짜
  * @returns 검증 결과
  */
@@ -41,23 +41,61 @@ export function validateImageDate(imageDate: Date): {
   message: string;
 } {
   const dayOfWeek = imageDate.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
-  const isWeekend = dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0; // 금요일, 토요일, 일요일
-  
   const dayNames = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
   const dayName = dayNames[dayOfWeek];
-  const imageDateStr = imageDate.toLocaleDateString('ko-KR');
+  const imageDateStr = imageDate.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  // 현재 날짜
+  const now = new Date();
+  const isFutureDate = imageDate > now;
+  
+  // 이번 주의 금요일, 토요일, 일요일인지 확인
+  const isThisWeekend = isThisWeekFridaySaturdaySunday(imageDate, now);
   
   let message = '';
-  if (isWeekend) {
-    message = `✅ 촬영 날짜 검증 성공! ${imageDateStr} (${dayName}) 촬영된 사진입니다.`;
+  if (isFutureDate) {
+    message = `❌ 촬영 날짜 검증 실패! ${imageDateStr} (${dayName})는 미래 날짜입니다.`;
+  } else if (isThisWeekend) {
+    message = `✅ 촬영 날짜 검증 성공! ${imageDateStr} (${dayName}) 촬영된 사진입니다. (이번 주 주말)`;
   } else {
-    message = `❌ 촬영 날짜 검증 실패! ${imageDateStr} (${dayName})는 주말이 아닙니다. (금요일, 토요일, 일요일만 허용)`;
+    message = `❌ 촬영 날짜 검증 실패! ${imageDateStr} (${dayName})는 이번 주 주말이 아닙니다. (이번 주 금요일, 토요일, 일요일만 허용)`;
   }
   
   return {
-    isValid: isWeekend,
+    isValid: isThisWeekend && !isFutureDate,
     message
   };
+}
+
+/**
+ * 해당 날짜가 이번 주의 금요일, 토요일, 일요일인지 확인
+ * @param targetDate 확인할 날짜
+ * @param currentDate 현재 날짜 (기본값: new Date())
+ * @returns 이번 주 주말 여부
+ */
+function isThisWeekFridaySaturdaySunday(targetDate: Date, currentDate: Date = new Date()): boolean {
+  // 현재 날짜의 주 시작일 (월요일) 계산
+  const currentWeekStart = new Date(currentDate);
+  currentWeekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // 월요일로 설정
+  currentWeekStart.setHours(0, 0, 0, 0);
+  
+  // 현재 날짜의 주 종료일 (일요일) 계산
+  const currentWeekEnd = new Date(currentWeekStart);
+  currentWeekEnd.setDate(currentWeekStart.getDate() + 6); // 일요일로 설정
+  currentWeekEnd.setHours(23, 59, 59, 999);
+  
+  // 대상 날짜가 이번 주 범위에 있는지 확인
+  const isInThisWeek = targetDate >= currentWeekStart && targetDate <= currentWeekEnd;
+  
+  // 이번 주 범위에 있고, 금요일(5), 토요일(6), 일요일(0) 중 하나인지 확인
+  const dayOfWeek = targetDate.getDay();
+  const isWeekendDay = dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0;
+  
+  return isInThisWeek && isWeekendDay;
 }
 
 /**

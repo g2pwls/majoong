@@ -3,27 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link"; // Import Link from next/link
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
-import { Farm, Horse } from "@/types/farm";
-import { FarmService } from "@/services/farmService";
+import { Farm } from "@/types/farm";
 
 export default function IntroPanel({ farm }: { farm: Farm }) {
-  const [horses, setHorses] = useState<Horse[]>([]);
   const [deadlineText, setDeadlineText] = useState<string>("");
 
   useEffect(() => {
-    const farmId = farm?.id;
-    if (!farmId) return;
-    let alive = true;
-    (async () => {
-      try {
-        const horsesData = await FarmService.getHorses(farmId);
-        if (!alive) return;
-        setHorses(horsesData);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-
     // Calculate the deadline (Sunday) and show the countdown
     const getDeadlineText = () => {
       const today = new Date();
@@ -56,11 +41,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     };
 
     getDeadlineText();
-
-    return () => {
-      alive = false;
-    };
-  }, [farm?.id]);
+  }, []);
 
   return (
     <section id="panel-intro" className="flex flex-col">
@@ -97,7 +78,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         </div>
         
         {/* Horse registry section */}
-        <HorseRegistrySection horses={horses} farmUuid={farm?.id} />
+        <HorseRegistrySection farmUuid={farm?.id || ""} />
       </div>
     </section>
   );

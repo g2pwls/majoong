@@ -1,9 +1,10 @@
 // src/components/farm/report/HorseImageUpload.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { parse } from "exifr";
 import { validateImageDate } from "@/lib/gpsUtils";
+import { FarmService } from "@/services/farmService";
 
 type HorseImageUploadProps = {
   horseNo: string;
@@ -40,6 +41,39 @@ export default function HorseImageUpload({
   const [isVerifying, setIsVerifying] = useState<Record<string, boolean>>({});
   const [isVerifyingAll, setIsVerifyingAll] = useState(false);
   const [originalFiles, setOriginalFiles] = useState<Record<string, Record<string, File>>>({});
+  const [farmLocation, setFarmLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+
+  // 농장 위치 조회
+  useEffect(() => {
+    const fetchFarmLocation = async () => {
+      try {
+        setIsLoadingLocation(true);
+        const location = await FarmService.getFarmLocation(farmUuid);
+        setFarmLocation(location);
+      } catch (error) {
+        console.error('농장 위치 조회 실패:', error);
+      } finally {
+        setIsLoadingLocation(false);
+      }
+    };
+
+    if (farmUuid) {
+      fetchFarmLocation();
+    }
+  }, [farmUuid]);
+
+  // 두 지점 간의 거리 계산 (Haversine 공식)
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371000; // 지구 반지름 (미터)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // 거리 (미터)
+  };
 
   // 모든 이미지가 업로드되고 검증되었는지 확인
   const isAllImagesValidated = () => {
@@ -180,6 +214,12 @@ export default function HorseImageUpload({
       return;
     }
 
+    // 농장 위치가 로드되지 않았으면 대기
+    if (!farmLocation) {
+      alert('농장 위치 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
      try {
        setIsVerifying(prev => ({ ...prev, [imageType]: true }));
        console.log(`${imageType} 이미지 검증 시작`);
@@ -206,46 +246,52 @@ export default function HorseImageUpload({
       const dateValidation = validateImageDate(imageData.date);
       console.log(`${imageType} 이미지 날짜 검증 결과:`, dateValidation);
 
-      // 서버에 위치 검증 요청
-      const verifyResponse = await fetch('/api/verify-location', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          farmUuid,
-          imageLat: imageData.lat,
-          imageLon: imageData.lon,
-          tolerance: 1000 // 1km 허용 오차
-        }),
-      });
-
-      const result = await verifyResponse.json();
+      // 농장 위치와 이미지 위치 거리 계산
+      const distance = calculateDistance(
+        farmLocation.latitude,
+        farmLocation.longitude,
+        imageData.lat,
+        imageData.lon
+      );
       
-      if (result.success) {
-        // 위치 검증과 날짜 검증 결과를 결합
-        const combinedResult = {
-          ...result.result,
-          dateValidation,
-          isValid: result.result.isValid && dateValidation.isValid,
-          message: `${result.result.message}\n${dateValidation.message}`
-        };
-        
-        setVerificationResults(prev => ({
-          ...prev,
-          [imageType]: combinedResult
-        }));
+      console.log('농장 위치:', farmLocation);
+      console.log('이미지 위치:', { lat: imageData.lat, lon: imageData.lon });
+      console.log('거리:', distance, '미터');
+
+      // 1km(1000m) 허용 오차로 검증
+      const isValidLocation = distance <= 1000;
+
+      // 검증 결과 설정
+      const isValid = isValidLocation && dateValidation.isValid;
+      let message = '';
+      
+      if (isValid) {
+        message = `✅ 위치 및 날짜 검증 성공!\n📍 거리: ${Math.round(distance)}m\n📅 ${dateValidation.message.split('! ')[1]}`;
+      } else if (isValidLocation && !dateValidation.isValid) {
+        message = `⚠️ 위치는 유효하지만 날짜 검증 실패\n📍 거리: ${Math.round(distance)}m\n📅 ${dateValidation.message}`;
+      } else if (!isValidLocation && dateValidation.isValid) {
+        message = `⚠️ 날짜는 유효하지만 위치 검증 실패\n📍 거리: ${Math.round(distance)}m (허용 거리: 1000m)\n📅 ${dateValidation.message.split('! ')[1]}`;
       } else {
-        setVerificationResults(prev => ({
-          ...prev,
-          [imageType]: {
-            isValid: false,
-            distance: 0,
-            message: `❌ 위치 검증 실패: ${result.error}\n${dateValidation.message}`,
-            dateValidation
-          }
-        }));
+        message = `❌ 위치 및 날짜 검증 모두 실패\n📍 거리: ${Math.round(distance)}m (허용 거리: 1000m)\n📅 ${dateValidation.message}`;
       }
+
+      setVerificationResults(prev => ({
+        ...prev,
+        [imageType]: {
+          isValid,
+          distance: Math.round(distance),
+          message,
+          farmCoordinates: { lat: farmLocation.latitude, lon: farmLocation.longitude },
+          imageCoordinates: { lat: imageData.lat, lon: imageData.lon },
+          dateValidation
+        }
+      }));
+
+      console.log(`${imageType} 이미지 검증 완료:`, {
+        isValid,
+        distance: Math.round(distance),
+        message
+      });
     } catch (error) {
       console.error('위치 검증 오류:', error);
       setVerificationResults(prev => ({
@@ -279,6 +325,21 @@ export default function HorseImageUpload({
   return (
     <div className="border p-4 rounded-lg bg-gray-100 mb-4">
       <h3 className="text-lg font-semibold">{hrNm} ({horseNo})</h3>
+      
+      {/* 농장 위치 정보 표시 */}
+      <div className="mt-2 mb-4 p-3 bg-blue-50 rounded-lg">
+        <div className="text-sm text-gray-700">
+          {isLoadingLocation ? (
+            <span className="text-blue-600">📍 농장 위치 정보를 불러오는 중...</span>
+          ) : farmLocation ? (
+            <span className="text-green-600">
+              📍 농장 위치: 위도 {farmLocation.latitude.toFixed(6)}, 경도 {farmLocation.longitude.toFixed(6)}
+            </span>
+          ) : (
+            <span className="text-red-600">❌ 농장 위치 정보를 불러올 수 없습니다.</span>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-3 gap-4 mt-4">
         {["front", "side", "back"].map((view) => (
@@ -328,7 +389,11 @@ export default function HorseImageUpload({
              {/* 검증 결과 표시 */}
              {verificationResults[view] && (
                <div className={`text-xs mt-1 p-2 rounded ${
-                 verificationResults[view].isValid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                 verificationResults[view].isValid 
+                   ? 'bg-green-100 text-green-800' 
+                   : verificationResults[view].message.includes('⚠️')
+                   ? 'bg-yellow-100 text-yellow-800'
+                   : 'bg-red-100 text-red-800'
                }`}>
                  <div className="whitespace-pre-line">{verificationResults[view].message}</div>
                </div>
@@ -393,7 +458,11 @@ export default function HorseImageUpload({
          {/* 마구간 검증 결과 표시 */}
          {verificationResults['barn'] && (
            <div className={`text-xs mt-2 p-2 rounded ${
-             verificationResults['barn'].isValid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+             verificationResults['barn'].isValid 
+               ? 'bg-green-100 text-green-800' 
+               : verificationResults['barn'].message.includes('⚠️')
+               ? 'bg-yellow-100 text-yellow-800'
+               : 'bg-red-100 text-red-800'
            }`}>
              <div className="whitespace-pre-line">{verificationResults['barn'].message}</div>
            </div>
