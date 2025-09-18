@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -61,12 +60,12 @@ public class ManageFarmController {
         return new BaseResponse<>(manageFarmService.getGeo(farmUuid));
     }
 
-    @PostMapping("/farms/{farmUuid}/horses/{horseNumber}")
-    @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님")
-    public BaseResponse<Void> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
+    @PostMapping(value = "/farms/{farmUuid}/horses/{horseNumber}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님)")
+    public BaseResponse<String> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
                                                @PathVariable String farmUuid,
                                                @PathVariable Long horseNumber,
-                                               @RequestBody ReportHorseStatusDto dto) {
+                                               @ModelAttribute ReportHorseStatusDto dto) {
         manageFarmService.reportHorseState(user.getMemberUuid(), farmUuid, horseNumber, dto);
         return new BaseResponse<>();
     }

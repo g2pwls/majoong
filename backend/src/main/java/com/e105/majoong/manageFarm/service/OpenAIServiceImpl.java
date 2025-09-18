@@ -1,8 +1,10 @@
 package com.e105.majoong.manageFarm.service;
 
+import com.e105.majoong.common.utils.S3Uploader;
 import com.e105.majoong.manageFarm.dto.out.HorseImageDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +17,7 @@ import reactor.core.publisher.Mono;
 public class OpenAIServiceImpl implements OpenAIService {
     private final WebClient webClient;
     private final ObjectMapper mapper;
+    private final S3Uploader s3Uploader;
 
     @Value("${openai.text-model}")
     private String textModel;
@@ -23,16 +26,17 @@ public class OpenAIServiceImpl implements OpenAIService {
     private String textUrl;
 
     public OpenAIServiceImpl(@Qualifier("openAiWebClient") WebClient webClient,
-                             ObjectMapper mapper) {
+                             ObjectMapper mapper, S3Uploader s3Uploader) {
         this.webClient = webClient;
         this.mapper = mapper;
+        this.s3Uploader = s3Uploader;
     }
 
     private static final String HORSE_SYSTEM_PROMPT = """
             너는 말 전문 수의사야.
             제공된 사진을 기반으로 다음을 평가해줘:
-            1. 전면, 좌측 측면, 우측 측면 이미지를 분석하여  
-               - 체형  
+            1. 전면, 좌측 측면, 우측 측면 이미지를 분석하여
+               - 체형
                - 보이는 부상  
                - 발굽 상태  
                - 털과 피부 병변  
@@ -40,7 +44,7 @@ public class OpenAIServiceImpl implements OpenAIService {
             2. 마구간 이미지를 분석하여  
                - 위생 상태  
 
-            답변은 약 900자 분량의 한국어 텍스트로, 정확하고 구조적으로 작성해줘.
+            답변은 약 300자 분량의 한국어 텍스트로, 정확하고 구조적으로 작성해줘.
             """;
 
     @Override
@@ -48,7 +52,7 @@ public class OpenAIServiceImpl implements OpenAIService {
         var messages = mapper.createArrayNode();
 
         var systemMessage = mapper.createObjectNode();
-        systemMessage.put("role", "system");
+        systemMessage.put("role", "developer");
         systemMessage.put("content", HORSE_SYSTEM_PROMPT);
         messages.add(systemMessage);
 
@@ -87,9 +91,12 @@ public class OpenAIServiceImpl implements OpenAIService {
         if (url == null || url.isBlank()) {
             return;
         }
+        String key = s3Uploader.extractFileNameFromUrl(url);
+        String presignedUrl = s3Uploader.generatePresignedUrl(key, Duration.ofMinutes(5));
+        System.out.println(presignedUrl);
         var node = mapper.createObjectNode();
         node.put("type", "image_url");
-        node.set("image_url", mapper.createObjectNode().put("url", url));
+        node.set("image_url", mapper.createObjectNode().put("url", presignedUrl));
         content.add(node);
     }
 
