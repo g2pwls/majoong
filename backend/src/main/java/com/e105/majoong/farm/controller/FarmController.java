@@ -99,7 +99,7 @@ public class FarmController {
     }
 
     @GetMapping("/{farmUuid}/scores")
-    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid,  @RequestParam int year) {
+    public BaseResponse<List<ScoreHistoryAvgResponseDto>> getScoreHistory(@PathVariable String farmUuid, @RequestParam int year) {
         return new BaseResponse<>(scoreService.getScoreHistory(farmUuid, year));
     }
 
@@ -111,6 +111,12 @@ public class FarmController {
             @RequestParam int month
     ) {
         return new BaseResponse<>(horseService.getHorseDetail(farmUuid, horseNumber, year, month));
+    }
+
+    @GetMapping("/{farmUuid}/scores/history")
+    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid) {
+        List<ScoreHistoryResponseDto> result = scoreService.getScoreHistory(farmUuid);
+        return new BaseResponse<>(result);
     }
 }
 
