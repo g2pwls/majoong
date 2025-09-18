@@ -1,10 +1,9 @@
 package com.e105.majoong.common.model.settlementHistory;
 
+import com.e105.majoong.common.entity.BaseEntity;
 import com.e105.majoong.settlement.dto.in.ReceiptEvidenceRequest;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(
@@ -17,17 +16,15 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class SettlementHistory {
+public class SettlementHistory extends BaseEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  // 증빙 ID는 유니크 제약만 필드에 직접 지정
   @Column(length = 36, unique = true, nullable = false)
   private String evidenceId;
 
-  // farmUuid는 조회가 자주 일어나므로 인덱스를 잡아주는 게 좋음
   @Column(length = 12, nullable = false)
   private String farmUuid;
 
@@ -38,7 +35,7 @@ public class SettlementHistory {
   private String vaultAddress;
 
   @Column(nullable = false)
-  private String releasedAmount; // 문자열(18 decimals 고려)
+  private String releasedAmount; // 표시용(정수 토큰 문자열 등)
 
   private String txHash;
 
@@ -46,10 +43,6 @@ public class SettlementHistory {
   private String status; // PENDING/RELEASED/FAILED
 
   private String failReason;
-
-  private LocalDateTime createdAt;
-
-  private LocalDateTime updatedAt;
 
   public static SettlementHistory toEntity(
       String farmUuid,
@@ -70,13 +63,6 @@ public class SettlementHistory {
         .txHash(txHash)
         .status(status)
         .failReason(failReason)
-        .createdAt(LocalDateTime.now())
-        .updatedAt(LocalDateTime.now())
         .build();
-  }
-
-  @PreUpdate
-  public void touch() {
-    this.updatedAt = LocalDateTime.now();
   }
 }
