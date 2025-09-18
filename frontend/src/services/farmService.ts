@@ -1,6 +1,6 @@
 // 농장 관련 API 서비스 함수
 
-import { Farm, FarmUpdateRequest, FarmUpdateResponse, Horse } from '@/types/farm';
+import { Farm, FarmUpdateRequest, FarmUpdateResponse, Horse, HorseDetailResponse, MonthlyReportResponse } from '@/types/farm';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
@@ -236,6 +236,54 @@ export class FarmService {
     if (!baseResponse.isSuccess) {
       throw new Error(`API 호출 실패: ${baseResponse.message}`);
     }
+  }
+
+  // 말 상세 정보 조회
+  static async getHorseDetail(farmUuid: string, horseNumber: number, year: number, month: number): Promise<HorseDetailResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${farmUuid}/horses/${horseNumber}?year=${year}&month=${month}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch horse detail: ${response.status}`);
+    }
+
+    const baseResponse = await response.json();
+    
+    if (!baseResponse.isSuccess) {
+      throw new Error(`API 호출 실패: ${baseResponse.message}`);
+    }
+
+    return baseResponse;
+  }
+
+  // 월간 보고서 조회
+  static async getMonthlyReports(farmUuid: string, year: number): Promise<MonthlyReportResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${farmUuid}/monthly-reports?year=${year}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch monthly reports: ${response.status}`);
+    }
+
+    const baseResponse = await response.json();
+    
+    if (!baseResponse.isSuccess) {
+      throw new Error(`API 호출 실패: ${baseResponse.message}`);
+    }
+
+    return baseResponse;
   }
 }
 

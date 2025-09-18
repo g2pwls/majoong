@@ -1,7 +1,7 @@
 // src/app/support/[farm_uuid]/edit/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import FarmBasicInfoPanel from "@/components/farm/edit/FarmBasicInfoPanel";
 import HorseInfoPanel from "@/components/farm/edit/HorseInfoPanel";
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
@@ -9,10 +9,10 @@ import Breadcrumbs from "@/components/common/Breadcrumb";
 import { FarmService } from "@/services/farmService";
 import { Farm } from "@/types/farm";
 
-type PageProps = { params: { farm_uuid: string } };
+type PageProps = { params: Promise<{ farm_uuid: string }> };
 
 export default function FarmEdit({ params }: PageProps) {
-  const farm_uuid = params.farm_uuid;
+  const { farm_uuid } = use(params);
 
   // farm 데이터 가져오기
   const [farm, setFarm] = useState<Farm | null>(null);
