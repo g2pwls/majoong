@@ -6,18 +6,9 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { getFarm, Farm } from "@/services/apiService";
 
-interface FarmData {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  name: string;
-  address: string;
-  farm_phone: string;
-  area: number;
-  horse_count: number;
-  image_url: string;
-}
+// FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
 const predefinedAmounts = [1000, 5000, 10000, 20000, 30000, 50000];
 
@@ -25,7 +16,7 @@ export default function DonatePage() {
   const params = useParams();
   const farm_uuid = params.farm_uuid as string;
   
-  const [farmData, setFarmData] = useState<FarmData | null>(null);
+  const [farmData, setFarmData] = useState<Farm | null>(null);
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -34,11 +25,8 @@ export default function DonatePage() {
   useEffect(() => {
     const fetchFarmData = async () => {
       try {
-        const response = await fetch(`/api/farms/${farm_uuid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFarmData(data);
-        }
+        const data = await getFarm(farm_uuid);
+        setFarmData(data);
       } catch (error) {
         console.error("농장 정보를 가져오는데 실패했습니다:", error);
       } finally {

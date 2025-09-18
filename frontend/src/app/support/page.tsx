@@ -179,19 +179,12 @@ export default function SupportPage() {
         const list = farmListResponse.content || [];
 
         // 각 농장별 말 데이터와 이미지 4장 붙이기
-        const withHorses = await Promise.all(
-          list.map(async (f) => {
-            try {
-              const horses = await getHorses(f.id);
-              const imgs = Array.isArray(horses)
-                ? horses.slice(0, 4).map((h) => h.horse_url).filter(Boolean)
-                : [];
-              return { ...f, horse_url: imgs, horses: horses };
-            } catch {
-              return f;
-            }
-          })
-        );
+        const withHorses = list.map((f) => {
+          const imgs = Array.isArray(f.horses)
+            ? f.horses.slice(0, 4).map((h) => h.horse_url).filter(Boolean)
+            : [];
+          return { ...f, horse_url: imgs };
+        });
 
         if (alive) setFarms(withHorses);
       } catch (e) {

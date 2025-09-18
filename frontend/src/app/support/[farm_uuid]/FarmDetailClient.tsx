@@ -13,8 +13,7 @@ import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Farm } from "@/types/farm";
-import { FarmService } from "@/services/farmService";
+import { getFarm, Farm } from "@/services/apiService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
 
@@ -39,10 +38,11 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     let mounted = true;
     (async () => {
       try {
-        const data = await FarmService.getFarm(farm_uuid);
+        const data = await getFarm(farm_uuid);
+        console.log('농장 상세 데이터:', data);
         if (mounted) setFarm(data);
       } catch (e) {
-        console.error(e);
+        console.error('농장 상세 조회 실패:', e);
       } finally {
         if (mounted) setLoading(false);
       }

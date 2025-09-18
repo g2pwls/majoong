@@ -2,15 +2,22 @@
 
 import { Farm, FarmUpdateRequest, FarmUpdateResponse, Horse } from '@/types/farm';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+
+// 토큰을 로컬 스토리지에서 가져오기
+const getAuthHeaders = (): Record<string, string> => {
+  const accessToken = localStorage.getItem('accessToken');
+  return accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {};
+};
 
 export class FarmService {
   // 농장 정보 조회
   static async getFarm(farmUuid: string): Promise<Farm> {
-    const response = await fetch(`${API_BASE_URL}/api/farms/${farmUuid}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${farmUuid}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
       cache: 'no-store',
     });
@@ -19,15 +26,34 @@ export class FarmService {
       throw new Error(`Failed to fetch farm: ${response.status}`);
     }
 
-    return response.json();
+    const baseResponse = await response.json();
+    
+    if (!baseResponse.isSuccess) {
+      throw new Error(`API 호출 실패: ${baseResponse.message}`);
+    }
+
+    const farm = baseResponse.result;
+    return {
+      id: farm.farmUuid,
+      farm_name: farm.farmName,
+      address: farm.address,
+      name: farm.ownerName,
+      horse_count: farm.horseCount,
+      total_score: farm.totalScore,
+      image_url: farm.profileImage,
+      farm_phone: farm.phoneNumber,
+      area: farm.area,
+      description: farm.description,
+    };
   }
 
   // 농장 정보 수정
   static async updateFarm(farmUuid: string, farmData: FarmUpdateRequest): Promise<FarmUpdateResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/farms/${farmUuid}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${farmUuid}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(farmData),
     });
@@ -36,7 +62,13 @@ export class FarmService {
       throw new Error(`Failed to update farm: ${response.status}`);
     }
 
-    return response.json();
+    const baseResponse = await response.json();
+    
+    if (!baseResponse.isSuccess) {
+      throw new Error(`API 호출 실패: ${baseResponse.message}`);
+    }
+
+    return baseResponse.result;
   }
 
   // 농장 이미지 업로드
@@ -44,8 +76,11 @@ export class FarmService {
     const formData = new FormData();
     formData.append('image', imageFile);
 
-    const response = await fetch(`${API_BASE_URL}/api/farms/${farmUuid}/image`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/farms/${farmUuid}/image`, {
       method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+      },
       body: formData,
     });
 
@@ -53,15 +88,22 @@ export class FarmService {
       throw new Error(`Failed to upload farm image: ${response.status}`);
     }
 
-    return response.json();
+    const baseResponse = await response.json();
+    
+    if (!baseResponse.isSuccess) {
+      throw new Error(`API 호출 실패: ${baseResponse.message}`);
+    }
+
+    return baseResponse.result;
   }
 
   // 농장의 말 목록 조회
   static async getHorses(farmUuid: string): Promise<Horse[]> {
-    const response = await fetch(`${API_BASE_URL}/api/horse/${farmUuid}`, {
+    const response = await fetch(`${API_BASE_URL}/api/v1/horse/${farmUuid}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
     });
 
@@ -69,7 +111,13 @@ export class FarmService {
       throw new Error(`Failed to fetch horses: ${response.status}`);
     }
 
-    const data = await response.json();
+    const baseResponse = await response.json();
+    
+    if (!baseResponse.isSuccess) {
+      throw new Error(`API 호출 실패: ${baseResponse.message}`);
+    }
+
+    const data = baseResponse.result;
     
     // 데이터 변환
     return data.map((h: any) => ({
