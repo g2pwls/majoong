@@ -26,6 +26,27 @@ export interface BusinessVerificationResponse {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
+// 20글자 랜덤 이메일 생성 함수 (개발용 - 배포 시 제거 필요)
+const generateRandomEmail = (): string => {
+  // 20글자 랜덤 문자열 생성
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < 20; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return `${result}@naver.com`;
+};
+
+// 원래 코드 (개발 완료 후 사용):
+// const generateRandomId = (): string => {
+//   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+//   let result = '';
+//   for (let i = 0; i < 10; i++) {
+//     result += characters.charAt(Math.floor(Math.random() * characters.length));
+//   }
+//   return result;
+// };
+
 // axios 인스턴스 생성 (쿠키 포함)
 const authApi = axios.create({
   baseURL: API_BASE_URL,
@@ -40,7 +61,18 @@ export const signInWithSession = async (): Promise<LoginResponse> => {
   try {
     const response = await authApi.post<{ result: LoginResponse }>('/api/v1/auth/sign-in');
     // 백엔드 BaseResponse 형태로 래핑된 응답에서 result 추출
-    return response.data.result;
+    const loginResponse = response.data.result;
+    
+    // 개발용: email을 UUID@naver.com으로 변경 (배포 시 제거 필요)
+    const randomEmail = generateRandomEmail();
+    loginResponse.email = randomEmail;
+    
+    console.log('이메일이 랜덤 ID로 변경됨:', randomEmail);
+    
+    return loginResponse;
+    
+    // 원래 코드 (개발 완료 후 사용):
+    // return response.data.result;
   } catch (error) {
     console.error('세션 기반 로그인 API 오류:', error);
     throw error;
