@@ -8,9 +8,6 @@ import lombok.Setter;
 @Getter @Setter
 public class DonationRequestDto {
   @NotBlank
-  private String memberUuid;       // 기부자(로그인 사용자) UUID
-
-  @NotBlank
   private String farmMemberUuid;   // 목장주 member_uuid (farm.member_uuid)
 
   @Min(1000)
