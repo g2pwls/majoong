@@ -99,3 +99,67 @@ export interface MonthlyReportResponse {
   result: MonthlyReport[];
 }
 
+// 기부금 사용 내역 API 응답 타입
+export interface MonthlyDonationUsed {
+  year: number;
+  month: number;
+  amountSpent: number;
+}
+
+export interface ReceiptHistory {
+  recieptHistoryId: number;
+  createdAt: string;
+  category: string;
+  totalAmount: number;
+}
+
+export interface DonationUsageResponse {
+  monthlyDonationUsed: MonthlyDonationUsed[];
+  receiptHistory: ReceiptHistory[];
+}
+
+// 신뢰도 내역 API 응답 타입
+export interface ScoreHistory {
+  year: number;
+  month: number;
+  avgScore: number;
+}
+
+export interface ScoreHistoryResponse {
+  httpStatus: {
+    error: boolean;
+    is4xxClientError: boolean;
+    is5xxServerError: boolean;
+    is1xxInformational: boolean;
+    is2xxSuccessful: boolean;
+    is3xxRedirection: boolean;
+  };
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: ScoreHistory[];
+}
+
+// 신뢰도 목록 API 응답 타입
+export interface ScoreHistoryItem {
+  createdAt: string;
+  category: string;
+  score: number;
+  sourceId: string;
+}
+
+export interface ScoreHistoryListResponse {
+  httpStatus: {
+    error: boolean;
+    is4xxClientError: boolean;
+    is5xxServerError: boolean;
+    is1xxInformational: boolean;
+    is2xxSuccessful: boolean;
+    is3xxRedirection: boolean;
+  };
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: ScoreHistoryItem[];
+}
+

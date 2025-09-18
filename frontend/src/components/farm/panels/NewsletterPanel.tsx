@@ -24,9 +24,46 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
       setLoading(true);
       setError(null);
       
-      const response = await FarmService.getMonthlyReports(farmId, year);
-      setReports(response.result);
+      console.log('월간 보고서 조회 시작:', { farmId, year });
+      
+      // 임시: API가 500 에러를 반환하는 경우 더미 데이터 사용
+      try {
+        const response = await FarmService.getMonthlyReports(farmId, year);
+        console.log('월간 보고서 조회 성공:', response);
+        setReports(response.result);
+      } catch (apiError) {
+        console.warn('API 호출 실패, 더미 데이터 사용:', apiError);
+        
+        // 더미 데이터 생성
+        const dummyReports: MonthlyReport[] = [
+          {
+            reportId: 1,
+            year: year,
+            month: 12,
+            score: 85,
+            thumbnail: ''
+          },
+          {
+            reportId: 2,
+            year: year,
+            month: 11,
+            score: 92,
+            thumbnail: ''
+          },
+          {
+            reportId: 3,
+            year: year,
+            month: 10,
+            score: 78,
+            thumbnail: ''
+          }
+        ];
+        
+        setReports(dummyReports);
+        setError(`API 서버 오류로 인해 샘플 데이터를 표시합니다. (${apiError instanceof Error ? apiError.message : 'Unknown error'})`);
+      }
     } catch (e: unknown) {
+      console.error('월간 보고서 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "월간 보고서를 불러오는 중 오류가 발생했어요.";
       setError(errorMessage);
     } finally {
