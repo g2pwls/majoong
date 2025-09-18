@@ -1,9 +1,12 @@
 package com.e105.majoong.finance.service;
 
+import com.e105.majoong.common.utils.S3Uploader;
 import com.e105.majoong.finance.dto.out.CreateAccountResponseDto;
 import com.e105.majoong.finance.dto.out.FinMemberResponseDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -17,10 +20,9 @@ import java.util.Map;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class FinApiServiceImpl implements FinApiService {
 
-    private final WebClient webClient = WebClient.builder().build();
+    private final WebClient webClient;
 
     @Value("${finapi.base-url}")
     private String baseUrl;
@@ -32,6 +34,11 @@ public class FinApiServiceImpl implements FinApiService {
     private String fintechAppNo;
     @Value("${finapi.account-type-unique-no}")
     private String accountTypeUniqueNo;
+
+    public FinApiServiceImpl(@Qualifier("finWebClient") WebClient webClient,
+                             ObjectMapper mapper, S3Uploader s3Uploader) {
+        this.webClient = webClient;
+    }
 
     public FinMemberResponseDto registerMember(String email) {
         Map<String, Object> req = Map.of(

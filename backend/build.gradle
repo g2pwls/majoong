@@ -68,7 +68,7 @@ dependencies {
 
 	//s3
 	implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.4.0'
-	implementation 'software.amazon.awssdk:s3:2.25.29'
+	implementation 'software.amazon.awssdk:s3:2.31.54'
 
 	//webflux
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'

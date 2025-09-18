@@ -12,6 +12,7 @@ public class HorseListResponseDto {
     private String breed;
     private String gender;
     private LocalDate birth;
+    private String profileImage;
 
     public static HorseListResponseDto toDto(Horse horse) {
         return HorseListResponseDto.builder()
@@ -19,6 +20,7 @@ public class HorseListResponseDto {
                 .breed(horse.getBreed())
                 .gender(horse.getGender())
                 .birth(horse.getBirth())
+                .profileImage(horse.getProfileImage())
                 .build();
     }
 }

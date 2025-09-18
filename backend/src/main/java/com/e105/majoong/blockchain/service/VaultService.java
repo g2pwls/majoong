@@ -20,11 +20,16 @@ import org.web3j.crypto.TransactionEncoder;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
 import org.web3j.protocol.core.methods.request.Transaction;
-import org.web3j.protocol.core.methods.response.*;
+import org.web3j.protocol.core.methods.response.EthCall;
+import org.web3j.protocol.core.methods.response.EthEstimateGas;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
+import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,12 +37,16 @@ import java.util.*;
 public class VaultService {
 
   private final Web3j web3j;
-  private final Credentials admin;            // admin private key 주입
-  private final ChainProps chainProps;        // factoryAddress, chainId 등
+  private final Credentials admin;            // 관리자 프라이빗키(서명용)
+  private final ChainProps chainProps;        // 체인 설정값(체인ID, 팩토리 주소 등)
   private final FarmVaultRepository farmVaultRepository;
 
   private static final String ADDR_REGEX = "^0x[0-9a-fA-F]{40}$";
   private static final BigInteger GAS_LIMIT_MIN = BigInteger.valueOf(120_000L);
+
+  // ===================================================================================
+  // Vault 생성/조회
+  // ===================================================================================
 
   /** 이미 있으면 반환, 없으면 체인에 생성 후 upsert */
   @Transactional
@@ -47,7 +56,7 @@ public class VaultService {
         .orElseGet(() -> createVaultAndPersist(farmId, owner, memberUuid));
   }
 
-  /** 체인에 Vault 생성 → vaultOf로 주소 조회 → DB upsert (가장 단순/안정 흐름) */
+  /** 체인에 Vault 생성 → vaultOf로 주소 조회 → DB upsert */
   @Transactional
   public FarmVault createVaultAndPersist(BigInteger farmId, String owner, String memberUuid) {
     final String farmIdHex = toHex256(farmId);
@@ -75,15 +84,15 @@ public class VaultService {
       );
       String data = FunctionEncoder.encode(fn);
 
-      // 논스/가스 (하드햇 E2E와 동일한 단순 전략)
+      // 논스/가스 (레거시 gasPrice 전략)
       BigInteger nonce     = web3j.ethGetTransactionCount(admin.getAddress(), DefaultBlockParameterName.PENDING)
           .send().getTransactionCount();
-      BigInteger gasPrice  = web3j.ethGasPrice().send().getGasPrice();               // 레거시 gasPrice
-      BigInteger estimated = estimateGas(factory, data);                              // 실패 시 300k fallback
-      BigInteger gasLimit  = estimated.add(estimated.divide(BigInteger.valueOf(5)))   // +20% 버퍼
+      BigInteger gasPrice  = web3j.ethGasPrice().send().getGasPrice();
+      BigInteger estimated = estimateGas(factory, data);
+      BigInteger gasLimit  = estimated.add(estimated.divide(BigInteger.valueOf(5))) // +20% 버퍼
           .max(GAS_LIMIT_MIN);
 
-      // 레거시 트랜잭션 생성/서명/전송
+      // 트랜잭션 생성/서명/전송
       RawTransaction raw = RawTransaction.createTransaction(
           nonce, gasPrice, gasLimit, factory, BigInteger.ZERO, data
       );
@@ -91,13 +100,13 @@ public class VaultService {
       EthSendTransaction sent = web3j.ethSendRawTransaction(Numeric.toHexString(signed)).send();
       if (sent.hasError()) throw new RuntimeException("TX error: " + sent.getError().getMessage());
       String txHash = sent.getTransactionHash();
-      log.info("[Vault] sent tx={}", txHash);
+      log.info("[VaultFactory.createVault] sent tx={}", txHash);
 
-      // 영수증 대기(간단 폴링)
+      // 영수증 대기
       TransactionReceipt receipt = waitForReceipt(txHash);
-      log.info("[Vault] mined block={}, status={}", receipt.getBlockNumber(), receipt.isStatusOK());
+      log.info("[VaultFactory.createVault] mined block={}, status={}", receipt.getBlockNumber(), receipt.isStatusOK());
 
-      // vaultOf(farmId)로 주소 확인 (테스트와 동일)
+      // vaultOf(farmId) 조회로 실제 vault 주소 확인
       String vaultAddress = callVaultOf(farmId);
       if (!isValidAddress(vaultAddress))
         throw new IllegalStateException("Factory returned invalid vault address: " + vaultAddress);
@@ -122,7 +131,92 @@ public class VaultService {
     return farmVaultRepository.findByFarmId(toHex256(farmId));
   }
 
-  // ────────────── view & util ──────────────
+  // ===================================================================================
+  // RELEASE (정산 출금)
+  // ===================================================================================
+
+  /**
+   * 기존 서비스 호출 호환용 오버로드.
+   * FarmVault는 farmer가 immutable로 고정되어 있으므로, 실제 컨트랙트 호출은 amount만 넘긴다.
+   * @param vaultAddress 금고 컨트랙트 주소
+   * @param to           (무시됨) 컨트랙트 내부 farmer로 전송
+   * @param amountWei    전송량(wei 단위, 18 decimals)
+   * @return txHash
+   */
+  @Transactional
+  public String release(String vaultAddress, String to, BigInteger amountWei) {
+    // 'to'는 FarmVault 컨트랙트에서 사용하지 않지만, 호출부 시그니처 호환을 위해 남겨둔다.
+    if (!isValidAddress(vaultAddress)) {
+      throw new IllegalArgumentException("Invalid vaultAddress: " + vaultAddress);
+    }
+    if (amountWei == null || amountWei.signum() <= 0) {
+      throw new IllegalArgumentException("Invalid amountWei: " + amountWei);
+    }
+    return release(vaultAddress, amountWei);
+  }
+
+  /**
+   * 실제 컨트랙트 시그니처에 맞는 구현: release(uint256 amount)
+   * - AccessControl(RELEASER_ROLE)을 가진 admin 계정으로 호출
+   * - 금고의 farmer(immutable)에게 토큰이 전송됨
+   */
+  @Transactional
+  public String release(String vaultAddress, BigInteger amountWei) {
+    try {
+      // 0) 입력 가드
+      if (!isValidAddress(vaultAddress)) throw new IllegalArgumentException("Invalid vaultAddress: " + vaultAddress);
+      if (amountWei == null || amountWei.signum() <= 0)
+        throw new IllegalArgumentException("Invalid amountWei: " + amountWei);
+
+      // 1) 컨트랙트 코드 존재 확인
+      String code = web3j.ethGetCode(vaultAddress, DefaultBlockParameterName.LATEST).send().getCode();
+      if (code == null || "0x".equalsIgnoreCase(code))
+        throw new IllegalStateException("Vault address has no code: " + vaultAddress);
+
+      // 2) 함수 인코딩: release(uint256)
+      Function fn = new Function(
+          "release",
+          List.of(new Uint256(amountWei)),
+          Collections.emptyList()
+      );
+      String data = FunctionEncoder.encode(fn);
+
+      // 3) nonce / gas (레거시 gasPrice)
+      BigInteger nonce     = web3j.ethGetTransactionCount(admin.getAddress(), DefaultBlockParameterName.PENDING)
+          .send().getTransactionCount();
+      BigInteger gasPrice  = web3j.ethGasPrice().send().getGasPrice();
+      BigInteger estimated = estimateGas(vaultAddress, data);
+      BigInteger gasLimit  = estimated.add(estimated.divide(BigInteger.valueOf(5))) // +20% 버퍼
+          .max(GAS_LIMIT_MIN);
+
+      // 4) 트랜잭션 생성/서명/전송
+      RawTransaction raw = RawTransaction.createTransaction(
+          nonce, gasPrice, gasLimit, vaultAddress, BigInteger.ZERO, data
+      );
+      byte[] signed = TransactionEncoder.signMessage(raw, chainProps.getChainId().longValue(), admin);
+      EthSendTransaction sent = web3j.ethSendRawTransaction(Numeric.toHexString(signed)).send();
+      if (sent.hasError()) throw new RuntimeException("release TX error: " + sent.getError().getMessage());
+
+      String txHash = sent.getTransactionHash();
+      log.info("[Vault.release] sent tx={}", txHash);
+
+      // 5) 영수증 대기 및 상태 확인
+      TransactionReceipt receipt = waitForReceipt(txHash);
+      if (!receipt.isStatusOK()) {
+        throw new RuntimeException("release reverted, status=" + receipt.getStatus());
+      }
+      log.info("[Vault.release] mined block={}, gasUsed={}", receipt.getBlockNumber(), receipt.getGasUsed());
+
+      return txHash;
+
+    } catch (Exception e) {
+      throw new RuntimeException("Vault release failed", e);
+    }
+  }
+
+  // ===================================================================================
+  // VIEW & UTIL
+  // ===================================================================================
 
   /** factory.vaultOf(farmId) */
   private String callVaultOf(BigInteger farmId) throws Exception {
