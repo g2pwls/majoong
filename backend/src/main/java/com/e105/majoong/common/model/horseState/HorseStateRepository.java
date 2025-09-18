@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface HorseStateRepository extends JpaRepository<HorseState, Long> {
     @Query("""
@@ -22,4 +23,5 @@ public interface HorseStateRepository extends JpaRepository<HorseState, Long> {
             @Param("end") LocalDateTime end
     );
 
+    Optional<HorseState> findByIdAndHorseNumber(Long id, Long horseNumber);
 }

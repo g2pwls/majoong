@@ -69,4 +69,23 @@ public class FarmServiceImpl implements FarmService {
         return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
     }
 
+    @Override
+    public FarmDetailResponseDto getMyFarm(String memberUuid) {
+        Farm farm = farmRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); // TODO: 에러 코드 협의
+
+        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
+                .stream()
+                .map(FarmHorseDetailResponseDto::toDto)
+                .collect(Collectors.toList());
+
+        List<MonthlyScoreResponseDto> monthlyScores = myScoreRepository.findByFarmUuid(farm.getFarmUuid())
+                .stream()
+                .map(MonthlyScoreResponseDto::toDto)
+                .collect(Collectors.toList());
+
+        long monthTotalAmount = 0L; // TODO: 블록체인 연동 후 교체
+
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
+    }
 }

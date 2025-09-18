@@ -135,5 +135,20 @@ public class FarmController {
         List<ScoreHistoryResponseDto> result = scoreService.getScoreHistory(farmUuid, year, month);
         return new BaseResponse<>(result);
     }
+
+    @GetMapping("horses/{horseNum}/weekly-reports/{horseStateId}")
+    @Operation(summary = "말 주간 보고서 상세 조회")
+    public BaseResponse<HorseWeeklyReportDetailResponseDto> getWeeklyReportDetail(
+            @PathVariable Long horseNum,
+            @PathVariable Long horseStateId
+    ) {
+        return new BaseResponse<>(horseService.getWeeklyReportDetail(horseNum, horseStateId));
+    }
+
+    @GetMapping("/my-farm")
+    @Operation(summary = "내 목장 조회")
+    public BaseResponse<FarmDetailResponseDto> getMyFarm(@AuthenticationPrincipal CustomUserDetails user) {
+        return new BaseResponse<>(farmService.getMyFarm(user.getMemberUuid()));
+    }
 }
 

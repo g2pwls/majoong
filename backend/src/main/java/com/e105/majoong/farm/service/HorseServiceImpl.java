@@ -8,6 +8,7 @@ import com.e105.majoong.common.model.horseState.HorseState;
 import com.e105.majoong.common.model.horseState.HorseStateRepository;
 import com.e105.majoong.farm.dto.out.HorseDetailResponseDto;
 import com.e105.majoong.farm.dto.out.HorseSearchResponseDto;
+import com.e105.majoong.farm.dto.out.HorseWeeklyReportDetailResponseDto;
 import com.e105.majoong.farm.dto.out.HorseWeeklyReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -69,4 +70,11 @@ public class HorseServiceImpl implements HorseService {
         return HorseDetailResponseDto.toDto(horse, weeklyReports);
     }
 
+    @Override
+    public HorseWeeklyReportDetailResponseDto getWeeklyReportDetail(Long horseNumber, Long horseStateId) {
+        HorseState state = horseStateRepository.findByIdAndHorseNumber(horseStateId, horseNumber)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT));
+
+        return HorseWeeklyReportDetailResponseDto.toDto(state);
+    }
 }
