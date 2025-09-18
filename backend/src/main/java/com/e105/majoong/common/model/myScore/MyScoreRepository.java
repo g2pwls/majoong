@@ -26,7 +26,7 @@ public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
     """)
     List<ScoreHistoryAvgResponseDto> findMonthlyScoreHistory(
             @Param("farmUuid") String farmUuid,
-            @Param("year") int year
+            @Param("year") Integer year
     );
 
     @Query(value = """
@@ -47,8 +47,8 @@ public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
     """)
     List<ScoreHistoryResponseDto> findScoreHistory(
             @Param("farmUuid") String farmUuid,
-            @Param("year") int year,
-            @Param("month") int month
+            @Param("year") Integer year,
+            @Param("month") Integer month
     );
 
 }

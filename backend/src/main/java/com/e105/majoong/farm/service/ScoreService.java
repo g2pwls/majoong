@@ -6,7 +6,7 @@ import com.e105.majoong.farm.dto.out.ScoreHistoryResponseDto;
 import java.util.List;
 
 public interface ScoreService {
-    List<ScoreHistoryAvgResponseDto> getScoreHistory(String farmUuid, int year);
+    List<ScoreHistoryAvgResponseDto> getScoreHistory(String farmUuid, Integer year);
 
-    List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid, int year, int month);
+    List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid, Integer year, Integer month);
 }

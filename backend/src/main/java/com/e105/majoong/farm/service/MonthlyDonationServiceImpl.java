@@ -22,13 +22,17 @@ public class MonthlyDonationServiceImpl implements MonthlyDonationService {
     private final ReceiptHistoryRepository receiptHistoryRepository;
 
     @Override
-    public DonationUsageResponseDto getDonationUsage(String farmUuid, int year, int month) {
+    public DonationUsageResponseDto getDonationUsage(String farmUuid, Integer year, Integer month) {
+        LocalDate now = LocalDate.now();
+        int targetYear = (year != null) ? year : now.getYear();
+        int targetMonth = (month != null) ? month : now.getMonthValue();
+
         List<Object[]> monthlyRaw = receiptHistoryRepository.findMonthlyDonationUsed(farmUuid);
         List<MonthlyDonationUsedDto> monthlyDonationUsed = monthlyRaw.stream()
                 .map(MonthlyDonationUsedDto::from)
                 .collect(Collectors.toList());
 
-        LocalDateTime start = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime start = LocalDateTime.of(targetYear, targetMonth, 1, 0, 0);
         LocalDateTime end = start.plusMonths(1);
 
         List<ReceiptHistory> receipts = receiptHistoryRepository.findByFarmUuidAndCreatedAtBetween(farmUuid, start, end);

@@ -41,11 +41,15 @@ public class HorseServiceImpl implements HorseService {
     }
 
     @Override
-    public HorseDetailResponseDto getHorseDetail(String farmUuid, Long horseNumber, int year, int month) {
+    public HorseDetailResponseDto getHorseDetail(String farmUuid, Long horseNumber, Integer year, Integer month) {
+        LocalDate now = LocalDate.now();
+        int targetYear = (year != null) ? year : now.getYear();
+        int targetMonth = (month != null) ? month : now.getMonthValue();
+
         Horse horse = horseRepository.findByHorseNumberAndFarm_FarmUuid(horseNumber, farmUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT));
 
-        LocalDateTime start = LocalDate.of(year, month, 1).atStartOfDay();
+        LocalDateTime start = LocalDate.of(targetYear, targetMonth, 1).atStartOfDay();
         LocalDateTime end = start.withDayOfMonth(start.toLocalDate().lengthOfMonth()).toLocalDate().atTime(LocalTime.MAX);
 
         List<HorseState> reports = horseStateRepository.findByHorseAndFarmAndPeriod(

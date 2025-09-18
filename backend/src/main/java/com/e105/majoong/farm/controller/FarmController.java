@@ -64,7 +64,7 @@ public class FarmController {
     @Operation(summary = "목장 상세의 월간 보고서 상세 조회")
     public BaseResponse<List<MonthlyReportListResponseDto>> getReports(
             @PathVariable String farmUuid,
-            @RequestParam int year
+            @RequestParam(required = false) Integer year
     ) {
         return new BaseResponse<>(monthlyReportService.getReports(farmUuid, year));
     }
@@ -73,8 +73,8 @@ public class FarmController {
     @Operation(summary = "목장 상세의 기부금 사용 내역 목록 조회")
     public DonationUsageResponseDto getDonationUsage(
             @PathVariable String farmUuid,
-            @RequestParam int year,
-            @RequestParam int month
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
     ) {
         return monthlyDonationService.getDonationUsage(farmUuid, year, month);
     }
@@ -109,7 +109,9 @@ public class FarmController {
 
     @GetMapping("/{farmUuid}/scores")
     @Operation(summary = "목장 상세의 신뢰도 내역 (통계)")
-    public BaseResponse<List<ScoreHistoryAvgResponseDto>> getScoreHistory(@PathVariable String farmUuid, @RequestParam int year) {
+    public BaseResponse<List<ScoreHistoryAvgResponseDto>> getScoreHistory(
+            @PathVariable String farmUuid,
+            @RequestParam(required = false) Integer year) {
         return new BaseResponse<>(scoreService.getScoreHistory(farmUuid, year));
     }
 
@@ -118,15 +120,18 @@ public class FarmController {
     public BaseResponse<HorseDetailResponseDto> getHorseDetail(
             @PathVariable String farmUuid,
             @PathVariable Long horseNumber,
-            @RequestParam int year,
-            @RequestParam int month
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
     ) {
         return new BaseResponse<>(horseService.getHorseDetail(farmUuid, horseNumber, year, month));
     }
 
     @GetMapping("/{farmUuid}/scores/history")
     @Operation(summary = "목장 상세의 신뢰도 내역 목록 조회")
-    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(@PathVariable String farmUuid, @RequestParam int year, @RequestParam int month) {
+    public BaseResponse<List<ScoreHistoryResponseDto>> getScoreHistory(
+            @PathVariable String farmUuid,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
         List<ScoreHistoryResponseDto> result = scoreService.getScoreHistory(farmUuid, year, month);
         return new BaseResponse<>(result);
     }
