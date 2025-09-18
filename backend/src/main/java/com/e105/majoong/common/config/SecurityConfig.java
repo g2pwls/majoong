@@ -39,7 +39,8 @@ public class SecurityConfig {
                 "https://test.majoong.site",
                 "https://majoong.site",
                 "https://www.majoong.site",
-                "https://api-test.majoong.site"));
+                "https://api-test.majoong.site",
+                "http://localhost:3000"));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setExposedHeaders(List.of("Authorization"));
