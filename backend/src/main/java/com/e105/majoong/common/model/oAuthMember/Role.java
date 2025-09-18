@@ -9,6 +9,10 @@ public enum Role {
 
     @JsonCreator
     public static Role from(String value) {
-        return Role.valueOf(value.toUpperCase()); // 소문자 → 대문자 변환
+        try {
+            return Role.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return PENDING;
+        }
     }
 }
