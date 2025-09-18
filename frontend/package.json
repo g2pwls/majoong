@@ -12,8 +12,10 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-tabs": "^1.1.13",
     "axios": "^1.11.0",
+    "beasties": "^0.3.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "critters": "^0.0.25",
     "lucide-react": "^0.543.0",
     "next": "15.5.2",
     "react": "19.1.0",
@@ -36,5 +38,10 @@
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.8",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "overrides": {
+      "critters": "npm:beasties@latest"
+    }
   }
 }

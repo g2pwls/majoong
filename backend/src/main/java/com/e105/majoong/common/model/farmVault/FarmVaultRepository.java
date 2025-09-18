@@ -10,4 +10,5 @@ public interface FarmVaultRepository extends JpaRepository<FarmVault, Long> {
   Optional<FarmVault> findByFarmId(String farmId);
   Optional<FarmVault> findByVaultAddress(String vaultAddress);
   Optional<FarmVault> findTopByMemberUuidOrderByIdDesc(String memberUuid);
+  Optional<FarmVault> findTopByMemberUuidAndStatusOrderByIdDesc(String memberUuid, FarmVault.Status status);
 }
