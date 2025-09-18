@@ -113,6 +113,41 @@ export interface ReceiptHistory {
   totalAmount: number;
 }
 
+// 기부금 사용 내역 상세 조회 API 응답 타입
+export interface ReceiptDetail {
+  certificationImageUrl: string;
+  storeName: string;
+  address: string;
+  storeNumber: string;
+  transactionAt: string;
+  aiSummary: string;
+  content: string;
+  detailList: ReceiptItem[];
+  totalAmount: number;
+}
+
+export interface ReceiptItem {
+  item: string;
+  count: number;
+  pricePerItem: number;
+  amount: number;
+}
+
+export interface ReceiptDetailResponse {
+  httpStatus: {
+    error: boolean;
+    is4xxClientError: boolean;
+    is5xxServerError: boolean;
+    is1xxInformational: boolean;
+    is2xxSuccessful: boolean;
+    is3xxRedirection: boolean;
+  };
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: ReceiptDetail;
+}
+
 export interface DonationUsageResponse {
   monthlyDonationUsed: MonthlyDonationUsed[];
   receiptHistory: ReceiptHistory[];
@@ -161,5 +196,57 @@ export interface ScoreHistoryListResponse {
   message: string;
   code: number;
   result: ScoreHistoryItem[];
+}
+
+// 월간 보고서 상세 조회 API 응답 타입
+export interface MonthlyReportDetail {
+  reportId: number;
+  year: number;
+  month: number;
+  score: number;
+  thumbnail: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonthlyReportDetailResponse {
+  httpStatus: {
+    error: boolean;
+    is4xxClientError: boolean;
+    is5xxServerError: boolean;
+    is1xxInformational: boolean;
+    is2xxSuccessful: boolean;
+    is3xxRedirection: boolean;
+  };
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: MonthlyReportDetail;
+}
+
+// 농장 정보 등록/수정 API 요청 타입
+export interface FarmRegistrationRequest {
+  phoneNumber: string;
+  address: string;
+  openingDate: string; // $date 형식
+  area: number; // $double 형식
+  description: string;
+  profileImage: string; // $binary 형식 (base64 또는 파일)
+}
+
+export interface FarmRegistrationResponse {
+  httpStatus: {
+    error: boolean;
+    is4xxClientError: boolean;
+    is5xxServerError: boolean;
+    is1xxInformational: boolean;
+    is2xxSuccessful: boolean;
+    is3xxRedirection: boolean;
+  };
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result?: any;
 }
 

@@ -109,11 +109,11 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         {/* 오른쪽: 탭 + 패널 */}
         <section>
           <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmId} />
-          <div className="mt-6">
+          <div className="mt-4.5">
             {tab === "intro" && <IntroPanel farm={farm} />}
             {tab === "newsletter" && <NewsletterPanel farmId={farmId} />}
             {tab === "donations" && <DonationPanel farmId={farmId} />}
-            {tab === "trust" && <TrustPanel score={farm.total_score} />}
+            {tab === "trust" && <TrustPanel farmId={farmId} currentScore={farm.total_score} />}
           </div>
         </section>
       </div>

@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReport } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -13,6 +14,7 @@ interface NewsletterPanelProps {
 }
 
 export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
+  const router = useRouter();
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,43 +27,9 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
       setError(null);
       
       console.log('월간 보고서 조회 시작:', { farmId, year });
-      
-      // 임시: API가 500 에러를 반환하는 경우 더미 데이터 사용
-      try {
-        const response = await FarmService.getMonthlyReports(farmId, year);
-        console.log('월간 보고서 조회 성공:', response);
-        setReports(response.result);
-      } catch (apiError) {
-        console.warn('API 호출 실패, 더미 데이터 사용:', apiError);
-        
-        // 더미 데이터 생성
-        const dummyReports: MonthlyReport[] = [
-          {
-            reportId: 1,
-            year: year,
-            month: 12,
-            score: 85,
-            thumbnail: ''
-          },
-          {
-            reportId: 2,
-            year: year,
-            month: 11,
-            score: 92,
-            thumbnail: ''
-          },
-          {
-            reportId: 3,
-            year: year,
-            month: 10,
-            score: 78,
-            thumbnail: ''
-          }
-        ];
-        
-        setReports(dummyReports);
-        setError(`API 서버 오류로 인해 샘플 데이터를 표시합니다. (${apiError instanceof Error ? apiError.message : 'Unknown error'})`);
-      }
+      const response = await FarmService.getMonthlyReports(farmId, year);
+      console.log('월간 보고서 조회 성공:', response);
+      setReports(response.result);
     } catch (e: unknown) {
       console.error('월간 보고서 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "월간 보고서를 불러오는 중 오류가 발생했어요.";
@@ -79,15 +47,13 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
     setSelectedYear(year);
   };
 
+  const handleViewReport = (reportId: number) => {
+    router.push(`/support/${farmId}/report/${reportId}`);
+  };
+
   if (loading) {
     return (
       <section id="panel-newsletter" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            월간 소식지
-          </h3>
-        </div>
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">월간 보고서를 불러오는 중...</p>
@@ -99,12 +65,6 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
   if (error) {
     return (
       <section id="panel-newsletter" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            월간 소식지
-          </h3>
-        </div>
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">{error}</p>
           <Button 
@@ -121,10 +81,6 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
   return (
     <section id="panel-newsletter" className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          월간 소식지
-        </h3>
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-500" />
           <select
@@ -152,7 +108,7 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {reports.map((report) => (
             <Card key={report.reportId} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
+              <CardContent className="p-4 py-0">
                 <div className="space-y-3">
                   {/* 썸네일 이미지 */}
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
@@ -175,15 +131,9 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
                       <h4 className="font-medium text-sm">
                         {report.year}년 {report.month}월 보고서
                       </h4>
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 text-yellow-500" />
+                      <div className="flex items-center">
                         <span className="text-sm font-medium">{report.score}</span>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <Calendar className="h-3 w-3" />
-                      <span>보고서 ID: {report.reportId}</span>
                     </div>
                   </div>
 
@@ -192,10 +142,7 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
                     variant="outline" 
                     size="sm" 
                     className="w-full"
-                    onClick={() => {
-                      // TODO: 보고서 상세 보기 구현
-                      console.log('보고서 상세 보기:', report.reportId);
-                    }}
+                    onClick={() => handleViewReport(report.reportId)}
                   >
                     보고서 보기
                   </Button>
