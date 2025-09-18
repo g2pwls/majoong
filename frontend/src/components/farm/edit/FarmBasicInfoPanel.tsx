@@ -88,25 +88,30 @@ export default function FarmBasicInfoPanel({
         return;
       }
 
-      // 이미지를 base64로 변환
-      let profileImageBase64 = "";
+      // FormData 생성 (multipart/form-data 형식)
+      const formData = new FormData();
+      formData.append('phoneNumber', farm_phone);
+      formData.append('address', address);
+      formData.append('openingDate', openingDate); // YYYY-MM-DD 형식
+      formData.append('area', area);
+      formData.append('description', description);
+      
+      // 파일이 있으면 추가
       if (file) {
-        profileImageBase64 = await fileToBase64(file);
+        formData.append('profileImage', file);
       }
 
-      // 새로운 API 형식에 맞는 데이터 구성
-      const farmRegistrationData: FarmRegistrationRequest = {
+      console.log('농장 정보 등록/수정 요청:', {
         phoneNumber: farm_phone,
         address: address,
-        openingDate: new Date(openingDate).toISOString(), // ISO 형식으로 변환
-        area: Number(area),
+        openingDate: openingDate,
+        area: area,
         description: description,
-        profileImage: profileImageBase64,
-      };
+        hasFile: !!file
+      });
 
-      console.log('농장 정보 등록/수정 요청:', farmRegistrationData);
-
-      await FarmService.registerFarm(farmRegistrationData);
+      // FarmService.registerFarm을 FormData로 호출하도록 수정 필요
+      await FarmService.registerFarmWithFormData(formData);
 
       alert('농장 정보가 성공적으로 수정되었습니다!');
       // 페이지 새로고침 또는 상위 컴포넌트에 업데이트 알림

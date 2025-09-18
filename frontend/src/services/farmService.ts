@@ -12,7 +12,7 @@ const apiClient: AxiosInstance = axios.create({
   headers: {
     'Accept': 'application/json',
   },
-  withCredentials: false, // CORS 문제 방지
+  withCredentials: true, // CORS 문제 해결을 위해 true로 변경
 });
 
 // 요청 인터셉터 - 토큰 자동 추가
@@ -60,7 +60,9 @@ apiClient.interceptors.response.use(
       url: error.config?.url,
       method: error.config?.method,
       baseURL: error.config?.baseURL,
-      fullURL: `${error.config?.baseURL}${error.config?.url}`
+      fullURL: `${error.config?.baseURL}${error.config?.url}`,
+      stack: error.stack,
+      name: error.name
     });
     return Promise.reject(error);
   }
@@ -361,7 +363,63 @@ export class FarmService {
     }
   }
 
-  // 농장 정보 등록/수정
+  // 농장 정보 등록/수정 (FormData 사용)
+  static async registerFarmWithFormData(formData: FormData): Promise<FarmRegistrationResponse> {
+    try {
+      console.log('농장 정보 등록/수정 API 요청 (FormData):', {
+        url: '/api/v1/members/farmers/my-farm',
+        baseURL: API_BASE_URL
+      });
+
+      const response = await apiClient.post('/api/v1/members/farmers/my-farm', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        timeout: 30000, // 30초로 늘림
+      });
+
+      console.log('농장 정보 등록/수정 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error('농장 정보 등록/수정 실패:', {
+        error: error,
+        message: error.message,
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL
+        }
+      });
+      
+      // 더 구체적인 에러 메시지 제공
+      if (error.code === 'NETWORK_ERROR' || error.message === 'Network Error') {
+        throw new Error('서버에 연결할 수 없습니다. API 서버가 실행 중인지 확인해주세요.');
+      } else if (error.response?.status === 404) {
+        throw new Error('API 엔드포인트를 찾을 수 없습니다.');
+      } else if (error.response?.status >= 500) {
+        throw new Error('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+      } else if (error.response?.status === 401) {
+        throw new Error('인증이 필요합니다. 로그인을 다시 해주세요.');
+      } else if (error.response?.status === 403) {
+        throw new Error('권한이 없습니다.');
+      } else {
+        throw new Error(`요청 처리 중 오류가 발생했습니다: ${error.message}`);
+      }
+    }
+  }
+
+  // 농장 정보 등록/수정 (기존 JSON 방식 - 호환성을 위해 유지)
   static async registerFarm(farmData: FarmRegistrationRequest): Promise<FarmRegistrationResponse> {
     try {
       console.log('농장 정보 등록/수정 API 요청:', {
