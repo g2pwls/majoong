@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface DonatorRepository extends JpaRepository<Donator, Long> {
     Optional<Donator> findByMemberUuid(String memberUuid);
 
+    boolean existsByMemberUuid(String memberUuid);
+
     @Query("SELECT d.email FROM Donator d WHERE d.memberUuid = :memberUuid")
     Optional<String> findEmailByMemberUuid(@Param("memberUuid") String memberUuid);
 }
