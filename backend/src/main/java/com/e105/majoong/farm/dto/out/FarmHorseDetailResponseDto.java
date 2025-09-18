@@ -17,7 +17,7 @@ public class FarmHorseDetailResponseDto {
 
     public static FarmHorseDetailResponseDto toDto(Horse horse) {
         return FarmHorseDetailResponseDto.builder()
-                .horseUuid(String.valueOf(horse.getId()))
+                .horseUuid(String.valueOf(horse.getHorseNumber()))
                 .horseUrl(horse.getProfileImage())
                 .horseName(horse.getHorseName())
                 .birth(horse.getBirth() != null ? horse.getBirth().toString() : null)
