@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -30,24 +32,24 @@ public class KakaoPayProvider {
     private String cid;
 
     public ReadyResponse ready(OrderRequestDto request) {
+        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
 
-        Map<String, String> parameters = new HashMap<>();
+        parameters.add("cid", cid);
+        parameters.add("partner_order_id", "1234567890");
+        parameters.add("partner_user_id", "1234567890");
+        parameters.add("item_name", request.getItemName());
+        parameters.add("quantity", request.getQuantity());
+        parameters.add("total_amount", request.getTotalPrice());
+        parameters.add("tax_free_amount", "0");
+        parameters.add("approval_url", "http://localhost:8080/api/v1/kakao-pay/approve");
+        parameters.add("cancel_url", "http://localhost:8080/api/v1/kakao-pay/cancel");
+        parameters.add("fail_url", "http://localhost:8080/kakao-pay/fail");
 
-        parameters.put("cid", cid); // 가맹점 코드, 테스트용은 TC0ONETIME
-        parameters.put("partner_order_id", "1234567890"); // 주문번호, 임시 : 1234567890
-        parameters.put("partner_user_id", "1234567890"); // 회원아이디, 임시 : 1234567890
-        parameters.put("item_name", request.getItemName()); // 상품명
-        parameters.put("quantity", request.getQuantity()); // 상품 수량
-        parameters.put("total_amount", request.getTotalPrice()); // 상품 총액
-        parameters.put("tax_free_amount", "0"); // 상품 비과세 금액
-        parameters.put("approval_url", "http://localhost:8080/api/v1/kakao-pay/approve"); // 결제 성공 시 redirct URL
-        parameters.put("cancel_url", "http://localhost:8080/api/v1/kakao-pay/cancel"); // 결제 취소 시
-        parameters.put("fail_url", "http://localhost:8080/kakao-pay/fail"); // 결제 실패 시
-
-        HttpEntity<Map<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
 
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://open-api.kakaopay.com/online/v1/payment/ready";
+
         ResponseEntity<ReadyResponse> response = restTemplate.postForEntity(url, entity, ReadyResponse.class);
 
         SessionProvider.addAttribute("tid",
