@@ -41,13 +41,13 @@ export default function HorseDetailPage({ params }: PageProps) {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
-  // 말 상세 정보 가져오기
+  // 말 상세 정보 가져오기 (주간 보고서 포함)
   const fetchHorseDetail = async (year: number, month: number) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await FarmService.getHorseDetail(farm_uuid, parseInt(horseNo), year, month);
+      const response = await FarmService.getHorseWeeklyReports(farm_uuid, parseInt(horseNo), year, month);
       setHorse(response.result);
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "말 정보를 불러오는 중 오류가 발생했어요.";
@@ -262,11 +262,16 @@ export default function HorseDetailPage({ params }: PageProps) {
                     {/* 주간 소식 섹션 */}
             <Card className="mt-4">
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold">주간 소식</h2>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold">주간 소식</h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {selectedYear}년 {selectedMonth}월의 주간 보고서를 확인하세요
+                    </p>
+                  </div>
                   <div className="flex gap-2">
                     <select 
-                      className="px-3 py-1 border rounded-md text-sm"
+                      className="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedYear}
                       onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                     >
@@ -277,72 +282,77 @@ export default function HorseDetailPage({ params }: PageProps) {
                       <option value={2021}>2021</option>
                     </select>
                     <select 
-                      className="px-3 py-1 border rounded-md text-sm"
+                      className="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
                     >
-                      <option value={12}>12</option>
-                      <option value={11}>11</option>
-                      <option value={10}>10</option>
-                      <option value={9}>9</option>
-                      <option value={8}>8</option>
-                      <option value={7}>7</option>
-                      <option value={6}>6</option>
-                      <option value={5}>5</option>
-                      <option value={4}>4</option>
-                      <option value={3}>3</option>
-                      <option value={2}>2</option>
-                      <option value={1}>1</option>
+                      <option value={12}>12월</option>
+                      <option value={11}>11월</option>
+                      <option value={10}>10월</option>
+                      <option value={9}>9월</option>
+                      <option value={8}>8월</option>
+                      <option value={7}>7월</option>
+                      <option value={6}>6월</option>
+                      <option value={5}>5월</option>
+                      <option value={4}>4월</option>
+                      <option value={3}>3월</option>
+                      <option value={2}>2월</option>
+                      <option value={1}>1월</option>
                     </select>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {horse.weeklyReport && horse.weeklyReport.length > 0 ? (
-                    horse.weeklyReport.map((report, index) => (
-                      <div key={report.horseReportId} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex items-center gap-3 mb-2">
+                {horse.weeklyReport && horse.weeklyReport.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {horse.weeklyReport.map((report, index) => (
+                      <div key={report.horseReportId} className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-start gap-3 mb-3">
                           {report.frontImageUrl && (
                             <img
                               src={report.frontImageUrl}
                               alt={`${horse.horseName} ${report.month}월 ${report.week}주차`}
-                              className="w-12 h-12 rounded-full object-cover"
+                              className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                             />
                           )}
-                          <div>
-                            <p className="font-medium">{report.month}월 {report.week}주차</p>
-                            <p className="text-sm text-gray-500">{report.aiSummary}</p>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {report.month}월 {report.week}주차
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 line-clamp-3">
+                              {report.aiSummary || "AI 요약이 없습니다."}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  ) : (
-                    <>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-center text-gray-400">
-                          <p className="text-sm">주간 소식이 없습니다</p>
+                        <div className="pt-3 border-t border-gray-100">
+                          <p className="text-xs text-gray-500">
+                            보고서 ID: {report.horseReportId}
+                          </p>
                         </div>
                       </div>
-                      
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-center text-gray-400">
-                          <p className="text-sm">추가 소식</p>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <div className="text-center text-gray-400">
-                          <p className="text-sm">추가 소식</p>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <Calendar className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">주간 소식이 없습니다</h3>
+                    <p className="text-gray-500 mb-4">
+                      {selectedYear}년 {selectedMonth}월에는 아직 주간 보고서가 작성되지 않았습니다.
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      목장 관리자가 운영 보고를 통해 주간 보고서를 작성하면 여기에 표시됩니다.
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
       </div>
     </div>
   );
 }
+
 
 
