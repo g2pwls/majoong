@@ -26,10 +26,10 @@ public class MonthlyReportServiceImpl implements MonthlyReportService {
     @Override
     public MonthlyReportDetailResponseDto getReportDetail(String farmUuid, Long reportId) {
         MonthlyReport report = monthlyReportRepository.findByIdAndFarmUuid(reportId, farmUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); // TODO: 예외 코드 회의 후 수정
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MONTHLY_REPORT));
 
         MyScore latestScore = myScoreRepository.findFirstByFarmUuidOrderByYearDescMonthDesc(farmUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); // TODO: 예외 코드 회의 후 수정
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MY_SCORE));
 
         return MonthlyReportDetailResponseDto.toDto(report, latestScore);
     }

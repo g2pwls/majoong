@@ -45,27 +45,20 @@ public enum BaseResponseStatus {
     PASSWORD_SAME_FAILED(HttpStatus.BAD_REQUEST, false, 2106, "현재 사용중인 비밀번호 입니다."),
     PASSWORD_CONTAIN_NUM_FAILED(HttpStatus.BAD_REQUEST, false, 2107, "휴대폰 번호를 포함한 비밀번호 입니다."),
     PASSWORD_MATCH_FAILED(HttpStatus.BAD_REQUEST, false, 2108, "패스워드를 다시 확인해주세요."),
-    NO_SUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, false, 2109, "지원하지 않는 플랫폼입니다"),
-    DUPLICATED_NICKNAME(HttpStatus.CONFLICT, false, 2010, "이미 사용중인 닉네임입니다."),
-    SAME_NICKNAME(HttpStatus.CONFLICT, false, 2011, "현재 사용중인 닉네임입니다."),
     INVALID_EMAIL_ADDRESS(HttpStatus.BAD_REQUEST, false, 2012, "이메일을 다시 확인해주세요."),
     FAILED_TO_SIGN_UP(HttpStatus.INTERNAL_SERVER_ERROR, false, 2013, "회원가입에 실패했습니다."),
-    LOGINID_SAME_FAILED(HttpStatus.BAD_REQUEST, false, 2014, "현재 사용중인 아이디 입니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, false, 2015, "올바르지 않은 입력값입니다."),
 
-    // Pet
+     // Farm
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
     NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),
-
     FARM_STATE_UPLOAD_ERROR(HttpStatus.BAD_REQUEST, false, 2403, "말 상태 업로드 중 오류가 발생했습니다"),
     NO_EXIST_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 금고입니다."),
     NO_EXIST_DONATOR(HttpStatus.NOT_FOUND, false, 2403, "존재하지 않는 기부자입니다."),
     DUPLICATED_BOOKMARK(HttpStatus.CONFLICT, false, 2404, "이미 등록된 농장입니다."),
+    NO_EXIST_MY_FARM(HttpStatus.NOT_FOUND, false, 2405, "내 농장을 조회할 수 없습니다."),
+    NO_EXIST_HORSE_STATE(HttpStatus.NOT_FOUND, false, 2406, "농장 상태를 조회할 수 없습니다."),
 
-    DUPLICATED_CATEGORY(HttpStatus.CONFLICT, false, 3006, "이미 등록된 카테고리입니다"),
-    DUPLICATED_CATEGORY_ORDER(HttpStatus.CONFLICT, false, 3008, "이미 등록된 순서입니다"),
-    // Interest
-    NO_EXIST_INTEREST(HttpStatus.NOT_FOUND, false, 2501, "존재하지 않는 관심사입니다."),
     //s3
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 4003, "S3 업로드 중 오류 발생"),
 
@@ -77,29 +70,6 @@ public enum BaseResponseStatus {
     INVALID_WALLET_ADDRESS(HttpStatus.BAD_REQUEST, false, 2605, "유효하지 않은 지갑 주소입니다."),
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, false, 2606, "유효하지 않은 금액입니다."),
     NO_ACTIVE_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2607, "활성화된 목장 금고가 없습니다."),
-    /**
-     * 3000: product service error
-     */
-
-    // Shorts
-    NO_EXIST_PRODUCT(HttpStatus.NOT_FOUND, false, 3001, "존재하지 않는 상품입니다"),
-    NO_EXIST_OPTION(HttpStatus.NOT_FOUND, false, 3002, "존재하지 않는 옵션입니다"),
-
-    DUPLICATED_PRODUCT(HttpStatus.CONFLICT, false, 3004, "이미 등록된 상품입니다"),
-    DUPLICATED_OPTION(HttpStatus.CONFLICT, false, 3005, "이미 등록된 옵션입니다"),
-
-    NO_EXIST_OPTIONS_IN_PRODUCT(HttpStatus.NOT_FOUND, false, 3007, "해당 상품에 옵션이 존재하지 않습니다"),
-
-    /**
-     * 4000: comment service error
-     */
-
-    // Comment
-    NO_EXIST_COMMENT(HttpStatus.NOT_FOUND, false, 4001, "존재하지 않는 댓글입니다"),
-    NO_DELETE_COMMENT_AUTHORITY(HttpStatus.BAD_REQUEST, false, 4002, "댓글 삭제 권한이 없습니다"),
-    NO_DELETE_RE_COMMENT_AUTHORITY(HttpStatus.BAD_REQUEST, false, 4003, "대댓글 삭제 권한이 없습니다"),
-    NO_EXIST_RE_COMMENT(HttpStatus.NOT_FOUND, false, 4003, "존재하지 않는 대댓글입니다"),
-    NO_EXIST_PIN_AUTHORITY(HttpStatus.BAD_REQUEST, false, 4004, "고정 권한이 없습니다"),
 
     /**
      * 5000: notification service error
@@ -117,16 +87,11 @@ public enum BaseResponseStatus {
     // Gpt
     GPT_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, false, 6001, "GPT API 호출에 실패했습니다."),
 
-    /**
-     * 7000: review service error
-     */
-    DUPLICATED_REVIEW(HttpStatus.CONFLICT, false, 7001, "이미 리뷰를 작성하셨습니다."),
-    NO_EXIST_REVIEW(HttpStatus.NOT_FOUND, false, 7002, "존재하지 않는 리뷰입니다."),
+    //report
+    NO_EXIST_MONTHLY_REPORT(HttpStatus.NOT_FOUND, false, 7001, "월간 보고서가 존재하지 않습니다."),
+    //score
+    NO_EXIST_MY_SCORE(HttpStatus.NOT_FOUND, false, 7301, "내 신뢰도를 찾을 수 없습니다."),
 
-    /**
-     * 8000: media service error
-     */
-    NO_EXIST_MEDIA(HttpStatus.NOT_FOUND, false, 8001, "존재하지 않는 미디어입니다."),
     ;
   private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

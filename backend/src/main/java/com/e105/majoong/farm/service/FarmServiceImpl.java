@@ -52,7 +52,7 @@ public class FarmServiceImpl implements FarmService {
     @Override
     public FarmDetailResponseDto getFarmDetail(String farmUuid) {
         Farm farm = farmRepository.findByFarmUuid(farmUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); //TODO : 회의 후 수정
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
         List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
                 .stream()
@@ -72,7 +72,7 @@ public class FarmServiceImpl implements FarmService {
     @Override
     public FarmDetailResponseDto getMyFarm(String memberUuid) {
         Farm farm = farmRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); // TODO: 에러 코드 협의
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MY_FARM));
 
         List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
                 .stream()

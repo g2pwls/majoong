@@ -21,7 +21,7 @@ public class DonationUsageServiceImpl implements DonationUsageService {
 
     public UsageDetailResponseDto getUsageDetail(String farmUuid, Long usageId) {
         ReceiptHistory history = receiptHistoryRepository.findByIdAndFarmUuid(usageId, farmUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM)); //TODO
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
         List<ReceiptDetailHistory> details = receiptDetailHistoryRepository.findByReceiptHistory(history);
 
