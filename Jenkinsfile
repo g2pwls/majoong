@@ -164,26 +164,19 @@ pipeline {
                         '''
                     }
 
-                    // 2) frontend/.env 주입 (브랜치별 분기)
-                    String credId
-                    String envName
-                    if (env.BRANCH_NAME == 'main') {
-                        credId  = 'FRONT_ENV_PROD'     // Jenkins에 등록된 .env.production 시크릿 파일
-                        envName = '.env.production'
-                        echo "Using frontend ${envName}"
-                    } else if (env.BRANCH_NAME == 'dev') {
-                        credId  = 'FRONT_ENV_DEV'      // Jenkins에 등록된 .env.development 시크릿 파일
-                        envName = '.env.development'
-                        echo "Using frontend ${envName}"
-                    } else {
-                        error "❌ Unknown branch: ${env.BRANCH_NAME}. Expected 'dev' or 'main'."
+                   // frontend 빌드용 env
+                    withCredentials([file(credentialsId: env.BRANCH_NAME == 'main' ? 'FRONT_ENV_PROD' : 'FRONT_ENV_DEV', variable: 'FRONT_BUILD')]) {
+                        sh '''
+                        install -m 400 -T "$FRONT_BUILD" frontend/.env
+                        echo "[ENV] frontend build .env installed"
+                        '''
                     }
 
-                    withCredentials([file(credentialsId: credId, variable: 'FRONT_ENV')]) {
+                    // frontend 런타임용 env
+                    withCredentials([file(credentialsId: 'FRONT_ENV_RUNTIME', variable: 'FRONT_RUNTIME')]) {
                         sh '''
-                        # frontend/.env (읽기전용)
-                        install -m 400 -T "$FRONT_ENV" "frontend/.env"
-                        echo "[ENV] frontend/.env installed (mode 400)"
+                        install -m 400 -T "$FRONT_RUNTIME" frontend/.env.runtime
+                        echo "[ENV] frontend runtime .env installed"
                         '''
                     }
                 }
@@ -260,17 +253,25 @@ pipeline {
                         script {
                             try {
                                 sh """
-                                    docker build -f frontend/Dockerfile -t majoong/frontend-dev:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                    docker rm -f ${DEV_FRONT_CONTAINER} || true                                  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                    docker run -d \
-                                      --name ${DEV_FRONT_CONTAINER} \
-                                      --network ${TEST_NETWORK} \
-                                      -p ${DEV_FRONT_PORT}:3000 \
-                                      --env-file "$WORKSPACE/frontend/.env" \
-                                      -v next_cache_dev:/app/.next/cache \
-                                      --restart unless-stopped \
-                                      majoong/frontend-dev:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                """
+                                # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
+                                DOCKER_BUILDKIT=1 docker build \
+                                -f frontend/Dockerfile \
+                                --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
+                                -t majoong/frontend-dev:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                # 기존 컨테이너 제거
+                                docker rm -f ${DEV_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                # 런타임은 기존처럼 .env.runtime 전체 주입
+                                docker run -d \
+                                --name ${DEV_FRONT_CONTAINER} \
+                                --network ${TEST_NETWORK} \
+                                -p ${DEV_FRONT_PORT}:3000 \
+                                --env-file "$WORKSPACE/frontend/.env.runtime" \
+                                -v next_cache_dev:/app/.next/cache \
+                                --restart unless-stopped \
+                                majoong/frontend-dev:${TAG} >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            """
                                 echo "✅ DEV Frontend: 배포 완료 (tag=${TAG})"
                             } catch (err) {
                                 sh "echo '[ERROR] Frontend Deploy to Dev failed: ${err}' >> \"$WORKSPACE/${LOG_FILE}\""
@@ -320,18 +321,25 @@ pipeline {
                         script {
                             try {
                                 sh """
-                                    docker build -f frontend/Dockerfile -t majoong/frontend-prod:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                    docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest         >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                    docker rm -f ${PROD_FRONT_CONTAINER} || true                                  >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                    docker run -d \
-                                      --name ${PROD_FRONT_CONTAINER} \
-                                      --network ${PROD_NETWORK} \
-                                      -p ${PROD_FRONT_PORT}:3000 \
-                                      --env-file "$WORKSPACE/frontend/.env" \
-                                      -v next_cache_prod:/app/.next/cache \
-                                      --restart unless-stopped \
-                                      majoong/frontend-prod:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                                """
+                                # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
+                                DOCKER_BUILDKIT=1 docker build \
+                                -f frontend/Dockerfile \
+                                --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
+                                -t majoong/frontend-prod:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                docker run -d \
+                                --name ${PROD_FRONT_CONTAINER} \
+                                --network ${PROD_NETWORK} \
+                                -p ${PROD_FRONT_PORT}:3000 \
+                                --env-file "$WORKSPACE/frontend/.env.runtime" \
+                                -v next_cache_prod:/app/.next/cache \
+                                --restart unless-stopped \
+                                majoong/frontend-prod:${TAG} >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                            """
                                 echo "✅ PROD Frontend: 배포 완료 (tag=${TAG})"
                             } catch(err) {
                                 sh "echo '[ERROR] Frontend Deploy to Main failed: ${err}' >> \"$WORKSPACE/${LOG_FILE}\""
@@ -395,7 +403,8 @@ pipeline {
         always {
             echo "📦 Pipeline finished with status: ${currentBuild.currentResult} – 🔥 민감 파일 정리"
             sh "rm -f ${env.BACKEND_DIR}/src/main/resources/application.yml || true"
-            sh "rm -f blockchain/.env frontend/.env || true"
+            // ⬇️ runtime 파일까지 함께 제거
+            sh "rm -f blockchain/.env frontend/.env frontend/.env.runtime || true"
             echo "🧹 Cleanup: application.yml/.env 삭제 완료"
         }
     }

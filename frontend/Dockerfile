@@ -6,7 +6,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 CI=1
 
 RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN apk add --no-cache libc6-compat
- 
+
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm fetch  
 COPY . .
@@ -14,8 +14,8 @@ COPY . .
 # devDependencies 포함해서 설치 (중요!)
 RUN pnpm install --frozen-lockfile --prod=false
 
-# standalone 산출
-RUN pnpm --reporter=append-only build
+RUN --mount=type=secret,id=buildenv \
+    sh -lc 'set -a; . /run/secrets/buildenv; set +a; pnpm --reporter=append-only build'
  
 # ---- run ----
 FROM node:20-alpine AS run
