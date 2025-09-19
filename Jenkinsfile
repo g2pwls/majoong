@@ -182,7 +182,7 @@ pipeline {
                     withCredentials([file(credentialsId: credId, variable: 'FRONT_ENV')]) {
                         sh '''
                         # 브랜치에 맞는 시크릿 파일을 frontend/.env로 복사
-                        install -m 640 -T "$FRONT_ENV" "frontend/.env"
+                        install -m 644 -T "$FRONT_ENV" "frontend/.env"
                         echo "[ENV] frontend/.env installed"
 
                         # (선택) 런타임 유저가 node(1000)라면 소유권 맞추기 — 필요 없으면 주석 처리

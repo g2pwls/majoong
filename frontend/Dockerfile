@@ -8,7 +8,7 @@ RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN apk add --no-cache libc6-compat
  
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm fetch 
+RUN pnpm fetch  
 COPY . .
 
 # devDependencies 포함해서 설치 (중요!)
