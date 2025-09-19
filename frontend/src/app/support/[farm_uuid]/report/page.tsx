@@ -1,23 +1,14 @@
 // src/app/support/[farm_uuid]/report/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, use } from "react";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // HorseImageUpload 컴포넌트 불러오기
 import DonationProofUpload from "@/components/farm/report/DonationProofUpload"; // DonationProofUpload 컴포넌트 불러오기
+import { FarmService } from "@/services/farmService";
+import { Farm } from "@/types/farm";
 
 // ---- Types ----
-export type Farm = {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  image_url?: string;
-  name?: string; // 대표자명 등
-  address?: string;
-  farm_phone?: string;
-  area?: number;
-  horse_count?: number;
-};
 
 type Horse = {
   horseNo: string;
@@ -25,7 +16,7 @@ type Horse = {
   horse_url?: string;
 };
 
-type PageProps = { params?: { farm_uuid: string } };  // params가 없을 수 있음을 명시적으로 처리
+type PageProps = { params: Promise<{ farm_uuid: string }> };
 
 function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
   // farm 데이터 가져오기
@@ -44,13 +35,8 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`/api/farms/${farm_uuid}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: Farm = await res.json();
-        if (alive) setFarm(data);
+        const farmData = await FarmService.getFarm(farm_uuid);
+        if (alive) setFarm(farmData);
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : "불러오기 중 오류가 발생했어요.";
         if (alive) setError(errorMessage);
@@ -59,24 +45,22 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
       }
     })();
 
-    // Fetch horses data
+    // Fetch horses data using FarmService
     (async () => {
       try {
-        const res = await fetch(`/api/horse/${farm_uuid}`);
-        if (!res.ok) throw new Error("Failed to fetch horses");
-        const data = await res.json();
-        // API 응답을 Horse 타입에 맞게 변환
-        const mappedHorses = data.map((h: { horseNo: string | number; hrNm: string; horse_url?: string }) => ({
-          horseNo: String(h.horseNo),
-          hrNm: h.hrNm,
-          horse_url: h.horse_url,
+        const horsesData = await FarmService.getHorses(farm_uuid);
+        // FarmService에서 반환된 데이터를 Horse 타입에 맞게 변환
+        const mappedHorses = horsesData.map((h) => ({
+          horseNo: h.horseNo,
+          hrNm: h.hrNm || '',
+          horse_url: h.image,
         }));
         setHorses(mappedHorses);
         if (Array.isArray(mappedHorses) && mappedHorses.length > 0) {
           setSelectedHorseNo(mappedHorses[0].horseNo);
         }
       } catch (e) {
-        console.error(e);
+        console.error("Failed to fetch horses:", e);
       }
     })();
 
@@ -153,6 +137,11 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
     : typeof farm?.total_score === "number"
     ? farm!.total_score.toFixed(1)
     : "--";
+
+  // 디버깅을 위한 로그
+  console.log('Farm data:', farm);
+  console.log('Title:', title);
+  console.log('Loading:', loading);
 
   return (
     <div className="min-h-screen">
@@ -237,6 +226,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
                     key={selectedHorse.horseNo}
                     horseNo={selectedHorse.horseNo}
                     hrNm={selectedHorse.hrNm}
+                    farmUuid={farm_uuid}
                     imageData={imageData}
                     onImageUpload={handleImageUpload}
                     onImageSwap={handleImageSwap}
@@ -265,10 +255,8 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
 }
 
 export default function FarmReport({ params }: PageProps) {
-  // params가 없을 경우 처리
-  if (!params || !params.farm_uuid) {
-    return <div>목장 정보가 없습니다. 다시 시도해주세요.</div>;
-  }
-
-  return <FarmReportContent farm_uuid={params.farm_uuid} />;
+  // React.use()를 사용하여 Promise 언래핑
+  const resolvedParams = use(params);
+  
+  return <FarmReportContent farm_uuid={resolvedParams.farm_uuid} />;
 }

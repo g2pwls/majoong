@@ -6,18 +6,9 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { getFarm, Farm } from "@/services/apiService";
 
-interface FarmData {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  name: string;
-  address: string;
-  farm_phone: string;
-  area: number;
-  horse_count: number;
-  image_url: string;
-}
+// FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
 const predefinedAmounts = [1000, 5000, 10000, 20000, 30000, 50000];
 
@@ -25,7 +16,7 @@ export default function DonatePage() {
   const params = useParams();
   const farm_uuid = params.farm_uuid as string;
   
-  const [farmData, setFarmData] = useState<FarmData | null>(null);
+  const [farmData, setFarmData] = useState<Farm | null>(null);
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -34,11 +25,8 @@ export default function DonatePage() {
   useEffect(() => {
     const fetchFarmData = async () => {
       try {
-        const response = await fetch(`/api/farms/${farm_uuid}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFarmData(data);
-        }
+        const data = await getFarm(farm_uuid);
+        setFarmData(data);
       } catch (error) {
         console.error("농장 정보를 가져오는데 실패했습니다:", error);
       } finally {
@@ -79,10 +67,16 @@ export default function DonatePage() {
   };
 
   const handleCustomAmountChange = (value: string) => {
+    // 입력창에는 사용자가 친 그대로 보여주기
     setCustomAmount(value);
-    const numValue = parseInt(value.replace(/,/g, ""));
+
+    // 콤마 제거 후 숫자 변환
+    const numValue = parseInt(value.replace(/,/g, ""), 10);
+
     if (!isNaN(numValue)) {
-      setSelectedAmount(numValue);
+      // 1000 단위로 자동 내림
+      const rounded = Math.floor(numValue / 1000) * 1000;
+      setSelectedAmount(rounded);
     } else {
       setSelectedAmount(0);
     }
@@ -184,7 +178,7 @@ export default function DonatePage() {
               </div>
 
               {/* 직접 입력 */}
-              <div className="space-y-2 flex flex-row items-center justify-end">
+              <div className="space-y-2 flex flex-row items-center justify-end mb-0">
                 <label className="text-sm font-medium text-gray-700 mr-5">직접 입력</label>
                 <div className="flex items-center space-x-2">
                   <Input
@@ -197,6 +191,7 @@ export default function DonatePage() {
                   <span className="text-gray-600">원</span>
                 </div>
               </div>
+              <span className="text-gray-600 flex justify-end mb-5">(1000원 단위로 기부 가능)</span>
 
               {/* 기부 금액 표시 */}
               <div className="bg-gray-50 p-4 rounded-lg">

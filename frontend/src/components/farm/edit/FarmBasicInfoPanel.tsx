@@ -4,17 +4,11 @@
 
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
+import { Farm, FarmRegistrationRequest } from "@/types/farm";
+import { FarmService } from "@/services/farmService";
 
 // 페이지에서 내려주는 최소 팜 타입 (필요한 필드만)
-type FarmMinimal = {
-  farm_name?: string;
-  image_url?: string;
-  name?: string;        // 목장주
-  address?: string;
-  farm_phone?: string;
-  area?: number;
-  horse_count?: number;
-};
+type FarmMinimal = Pick<Farm, 'farm_name' | 'image_url' | 'name' | 'address' | 'farm_phone' | 'area' | 'horse_count' | 'description'>;
 
 export default function FarmBasicInfoPanel({
   farm_uuid,
@@ -33,6 +27,8 @@ export default function FarmBasicInfoPanel({
   const [farm_phone, setfarm_phone] = useState("");
   const [area, setArea] = useState<string>("");
   const [count, setCount] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [openingDate, setOpeningDate] = useState<string>("");
 
   useEffect(() => {
     setfarm_name(farm?.name ?? "");
@@ -40,6 +36,7 @@ export default function FarmBasicInfoPanel({
     setfarm_phone(farm?.farm_phone ?? "");
     setArea(typeof farm?.area === "number" ? String(farm!.area) : "");
     setCount(typeof farm?.horse_count === "number" ? String(farm!.horse_count) : "");
+    setDescription(farm?.description ?? "");
     // 기존 대표 이미지가 있다면 미리보기로 사용 (선택)
     if (farm?.image_url) {
       setFilePreview(farm.image_url);
@@ -68,18 +65,61 @@ export default function FarmBasicInfoPanel({
     };
   }, [filePreview]);
 
-  const handleSubmit = async () => {
-    // TODO: 실제 저장 API 연결 (예: PUT /api/farms/{farm_uuid})
-    // 여기서는 상위에서 내려준 데이터를 쓰기만 하므로 별도 fetch는 생략 가능
-    console.log("submit farm info", {
-      farm_uuid,
-      file,
-      farm_name,
-      address,
-      farm_phone,
-      area: Number(area) || undefined,
-      horse_count: Number(count) || undefined,
+  // 파일을 base64로 변환하는 함수
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const result = reader.result as string;
+        // data:image/jpeg;base64, 부분을 제거하고 base64만 반환
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = error => reject(error);
     });
+  };
+
+  const handleSubmit = async () => {
+    try {
+      // 필수 필드 검증
+      if (!farm_phone || !address || !openingDate || !area || !description) {
+        alert('모든 필수 필드를 입력해주세요.');
+        return;
+      }
+
+      // FormData 생성 (multipart/form-data 형식)
+      const formData = new FormData();
+      formData.append('phoneNumber', farm_phone);
+      formData.append('address', address);
+      formData.append('openingDate', openingDate); // YYYY-MM-DD 형식
+      formData.append('area', area);
+      formData.append('description', description);
+      
+      // 파일이 있으면 추가
+      if (file) {
+        formData.append('profileImage', file);
+      }
+
+      console.log('농장 정보 등록/수정 요청:', {
+        phoneNumber: farm_phone,
+        address: address,
+        openingDate: openingDate,
+        area: area,
+        description: description,
+        hasFile: !!file
+      });
+
+      // FarmService.registerFarm을 FormData로 호출하도록 수정 필요
+      await FarmService.registerFarmWithFormData(formData);
+
+      alert('농장 정보가 성공적으로 수정되었습니다!');
+      // 페이지 새로고침 또는 상위 컴포넌트에 업데이트 알림
+      window.location.reload();
+    } catch (error) {
+      console.error('농장 정보 수정 실패:', error);
+      alert('농장 정보 수정에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   return (
@@ -130,31 +170,34 @@ export default function FarmBasicInfoPanel({
             />
           </label>
           <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">위치</span>
+            <span className="w-16 text-sm text-neutral-600">위치 <span className="text-red-500">*</span></span>
             <input
               className="w-[400px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               placeholder="예: 제주특별자치도 제주시 ..."
+              required
             />
           </label>
           <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">연락처</span>
+            <span className="w-16 text-sm text-neutral-600">연락처 <span className="text-red-500">*</span></span>
             <input
               className="w-[240px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
               value={farm_phone}
               onChange={(e) => setfarm_phone(e.target.value)}
               placeholder="예: 010-0000-0000"
+              required
             />
           </label>
           <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">면적</span>
+            <span className="w-16 text-sm text-neutral-600">면적 <span className="text-red-500">*</span></span>
             <input
               className="w-[160px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
               value={area}
               onChange={(e) => setArea(e.target.value)}
               placeholder="예: 10000 (㎡)"
               inputMode="numeric"
+              required
             />
           </label>
           <label className="flex items-center flex-row gap-5">
@@ -167,7 +210,36 @@ export default function FarmBasicInfoPanel({
               inputMode="numeric"
             />
           </label>
+          <label className="flex items-center flex-row gap-5">
+            <span className="w-16 text-sm text-neutral-600">개업일 <span className="text-red-500">*</span></span>
+            <input
+              type="date"
+              className="w-[200px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
+              value={openingDate}
+              onChange={(e) => setOpeningDate(e.target.value)}
+              required
+            />
+          </label>
         </div>
+      </div>
+
+      {/* 목장 소개 섹션 */}
+      <div className="mt-6">
+        <label className="block">
+          <span className="text-sm font-medium text-neutral-600 mb-2 block">목장 소개 <span className="text-red-500">*</span></span>
+          <textarea
+            className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 resize-none"
+            rows={4}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="목장에 대한 소개글을 작성해주세요. 예: 저희 목장은 20년 전통의 말 사육 경험을 바탕으로..."
+            maxLength={500}
+            required
+          />
+          <div className="mt-1 text-right text-xs text-neutral-400">
+            {description.length}/500
+          </div>
+        </label>
       </div>
 
       <div className="mt-6 flex items-center justify-between">

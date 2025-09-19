@@ -1,31 +1,15 @@
 // src/app/support/[farm_uuid]/[horseNo]/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Trophy, MapPin, Phone } from "lucide-react";
+import { FarmService } from "@/services/farmService";
+import { HorseDetailResult, WeeklyReport } from "@/types/farm";
 
-type Horse = {
-  horseNo: string;
-  hrNm: string;
-  horse_url?: string;
-  farm_name?: string;
-  birthDt?: string;
-  sex?: string;
-  color?: string;
-  breed?: string;
-  prdCty?: string;
-  rcCnt?: number;
-  fstCnt?: number;
-  sndCnt?: number;
-  amt?: number;
-  discardDt?: string;
-  fdebutDt?: string;
-  lchulDt?: string;
-};
 
 type Farm = {
   id: string;
@@ -35,91 +19,58 @@ type Farm = {
   name?: string;
   address?: string;
   farm_phone?: string;
-  area?: number;
+  area?: number | string;
   horse_count?: number;
 };
 
 type PageProps = { 
-  params: { 
+  params: Promise<{ 
     farm_uuid: string; 
     horseNo: string; 
-  } 
+  }>
 };
 
 export default function HorseDetailPage({ params }: PageProps) {
   const router = useRouter();
-  const { farm_uuid, horseNo } = params;
+  const { farm_uuid, horseNo } = use(params);
 
-  const [horse, setHorse] = useState<Horse | null>(null);
+  const [horse, setHorse] = useState<HorseDetailResult | null>(null);
   const [farm, setFarm] = useState<Farm | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+
+  // 말 상세 정보 가져오기
+  const fetchHorseDetail = async (year: number, month: number) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await FarmService.getHorseDetail(farm_uuid, parseInt(horseNo), year, month);
+      setHorse(response.result);
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "말 정보를 불러오는 중 오류가 발생했어요.";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 목장 정보 가져오기
+  const fetchFarmInfo = async () => {
+    try {
+      const farmData = await FarmService.getFarm(farm_uuid);
+      setFarm(farmData);
+    } catch (e: unknown) {
+      console.error("Farm fetch error:", e);
+    }
+  };
 
   useEffect(() => {
-    let alive = true;
-    
-    // 말 정보 가져오기
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const res = await fetch(`/api/horse/${farm_uuid}`);
-        if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
-        const horses = await res.json();
-        
-        const foundHorse = horses.find((h: { horseNo: string | number }) => String(h.horseNo) === horseNo);
-        if (!foundHorse) {
-          throw new Error("말을 찾을 수 없습니다.");
-        }
-        
-        if (alive) {
-          setHorse({
-            horseNo: foundHorse.horseNo,
-            hrNm: foundHorse.hrNm,
-            horse_url: foundHorse.horse_url,
-            farm_name: foundHorse.farm_name,
-            birthDt: foundHorse.birthDt,
-            sex: foundHorse.sex,
-            color: foundHorse.color,
-            breed: foundHorse.breed,
-            prdCty: foundHorse.prdCty,
-            rcCnt: foundHorse.rcCnt,
-            fstCnt: foundHorse.fstCnt,
-            sndCnt: foundHorse.sndCnt,
-            amt: foundHorse.amt,
-            discardDt: foundHorse.discardDt,
-            fdebutDt: foundHorse.fdebutDt,
-            lchulDt: foundHorse.lchulDt,
-          });
-        }
-      } catch (e: unknown) {
-        const errorMessage = e instanceof Error ? e.message : "말 정보를 불러오는 중 오류가 발생했어요.";
-        if (alive) setError(errorMessage);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-
-    // 목장 정보 가져오기
-    (async () => {
-      try {
-        const res = await fetch(`/api/farms/${farm_uuid}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!res.ok) throw new Error(`Failed to fetch farm: ${res.status}`);
-        const data: Farm = await res.json();
-        if (alive) setFarm(data);
-      } catch (e: unknown) {
-        console.error("Farm fetch error:", e);
-      }
-    })();
-
-    return () => {
-      alive = false;
-    };
-  }, [farm_uuid, horseNo]);
+    fetchHorseDetail(selectedYear, selectedMonth);
+    fetchFarmInfo();
+  }, [farm_uuid, horseNo, selectedYear, selectedMonth]);
 
   const handleBack = () => {
     router.push(`/support/${farm_uuid}`);
@@ -156,13 +107,13 @@ export default function HorseDetailPage({ params }: PageProps) {
           items={[
             { label: "목장후원", href: "/support" },
             { label: farm?.farm_name || "목장", href: `/support/${farm_uuid}` },
-            { label: `${horse.horseNo} ${horse.hrNm}` },
+            { label: `${horse.horseNumber} ${horse.horseName}` },
           ]}
         />
 
         {/* 메인 콘텐츠 */}
         <div className="flex flex-row items-center justify-between mt-5">
-          <h1 className="text-3xl font-bold"><span className="text-red-600">{horse.horseNo}</span> {horse.hrNm}</h1>
+          <h1 className="text-3xl font-bold"><span className="text-red-600">{horse.horseNumber}</span> {horse.horseName}</h1>
             <div className="mt-0">
               <Button 
                 variant="outline" 
@@ -179,10 +130,10 @@ export default function HorseDetailPage({ params }: PageProps) {
           <div className="space-y-4">
             <Card className="overflow-hidden">
               <CardContent className="p-0">
-                {horse.horse_url ? (
+                {horse.horseImageUrl ? (
                   <img
-                    src={horse.horse_url}
-                    alt={horse.hrNm}
+                    src={horse.horseImageUrl}
+                    alt={horse.horseName}
                     className="w-full h-64 object-contain"
                   />
                 ) : (
@@ -220,10 +171,10 @@ export default function HorseDetailPage({ params }: PageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                   {/* 출생일: 상단 전폭 */}
-                  {horse.birthDt && (
+                  {horse.birth && (
                     <div className="md:col-span-2 flex items-center gap-2 text-gray-600">
                       <Calendar className="h-4 w-4" />
-                      <span>출생일: {horse.birthDt}</span>
+                      <span>출생일: {horse.birth}</span>
                     </div>
                   )}
 
@@ -233,7 +184,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-gray-500">성별</label>
-                        <p className="text-lg">{horse.sex || "-"}</p>
+                        <p className="text-lg">{horse.gender || "-"}</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">모색</label>
@@ -245,7 +196,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">생산국</label>
-                        <p className="text-lg">{horse.prdCty || "-"}</p>
+                        <p className="text-lg">{horse.countryOfOrigin || "-"}</p>
                       </div>
                     </div>
                   </section>
@@ -259,45 +210,45 @@ export default function HorseDetailPage({ params }: PageProps) {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium text-gray-500">출주횟수</label>
-                        <p className="text-lg font-semibold">{horse.rcCnt || 0}회</p>
+                        <p className="text-lg font-semibold">{horse.raceCount || 0}회</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">일착횟수</label>
-                        <p className="text-lg font-semibold text-yellow-600">{horse.fstCnt || 0}회</p>
+                        <p className="text-lg font-semibold text-yellow-600">{horse.firstPlaceCount || 0}회</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">이착횟수</label>
-                        <p className="text-lg font-semibold text-gray-600">{horse.sndCnt || 0}회</p>
+                        <p className="text-lg font-semibold text-gray-600">{horse.secondPlaceCount || 0}회</p>
                       </div>
                       <div>
                         <label className="text-sm font-medium text-gray-500">상금</label>
                         <p className="text-lg font-semibold text-green-600">
-                          {horse.amt ? `${horse.amt.toLocaleString()}원` : "0원"}
+                          {horse.totalPrize ? `${horse.totalPrize.toLocaleString()}원` : "0원"}
                         </p>
                       </div>
                     </div>
                   </section>
 
                   {/* 하단 추가 정보: 전폭 */}
-                  {(horse.fdebutDt || horse.lchulDt || horse.discardDt) && (
+                  {(horse.firstRaceDate || horse.lastRaceDate || horse.retireDate) && (
                     <div className="md:col-span-2 mt-2 pt-4 border-t">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {horse.fdebutDt && (
+                        {horse.firstRaceDate && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">최초출주일</label>
-                            <p className="text-lg">{horse.fdebutDt}</p>
+                            <p className="text-lg">{horse.firstRaceDate}</p>
                           </div>
                         )}
-                        {horse.lchulDt && (
+                        {horse.lastRaceDate && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">최종출주</label>
-                            <p className="text-lg">{horse.lchulDt}</p>
+                            <p className="text-lg">{horse.lastRaceDate}</p>
                           </div>
                         )}
-                        {horse.discardDt && (
+                        {horse.retireDate && (
                           <div>
                             <label className="text-sm font-medium text-gray-500">경주마불용일</label>
-                            <p className="text-lg">{horse.discardDt}</p>
+                            <p className="text-lg">{horse.retireDate}</p>
                           </div>
                         )}
                       </div>
@@ -314,59 +265,78 @@ export default function HorseDetailPage({ params }: PageProps) {
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-semibold">주간 소식</h2>
                   <div className="flex gap-2">
-                    <select className="px-3 py-1 border rounded-md text-sm">
-                      <option>2025</option>
-                      <option>2024</option>
-                      <option>2023</option>
-                      <option>2022</option>
-                      <option>2021</option>
+                    <select 
+                      className="px-3 py-1 border rounded-md text-sm"
+                      value={selectedYear}
+                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                    >
+                      <option value={2025}>2025</option>
+                      <option value={2024}>2024</option>
+                      <option value={2023}>2023</option>
+                      <option value={2022}>2022</option>
+                      <option value={2021}>2021</option>
                     </select>
-                    <select className="px-3 py-1 border rounded-md text-sm">
-                      <option>12</option>
-                      <option>11</option>
-                      <option>10</option>
-                      <option>9</option>
-                      <option>8</option>
-                      <option>7</option>
-                      <option>6</option>
-                      <option>5</option>
-                      <option>4</option>
-                      <option>3</option>
-                      <option>2</option>
-                      <option>1</option>
-
+                    <select 
+                      className="px-3 py-1 border rounded-md text-sm"
+                      value={selectedMonth}
+                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                    >
+                      <option value={12}>12</option>
+                      <option value={11}>11</option>
+                      <option value={10}>10</option>
+                      <option value={9}>9</option>
+                      <option value={8}>8</option>
+                      <option value={7}>7</option>
+                      <option value={6}>6</option>
+                      <option value={5}>5</option>
+                      <option value={4}>4</option>
+                      <option value={3}>3</option>
+                      <option value={2}>2</option>
+                      <option value={1}>1</option>
                     </select>
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex items-center gap-3 mb-2">
-                      {horse.horse_url && (
-                        <img
-                          src={horse.horse_url}
-                          alt={horse.hrNm}
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      )}
-                      <div>
-                        <p className="font-medium">9월 1주차</p>
-                        <p className="text-sm text-gray-500">보고서 기반 2줄 정도만 간단하게 넣을 예정</p>
+                  {horse.weeklyReport && horse.weeklyReport.length > 0 ? (
+                    horse.weeklyReport.map((report, index) => (
+                      <div key={report.horseReportId} className="bg-gray-50 p-4 rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          {report.frontImageUrl && (
+                            <img
+                              src={report.frontImageUrl}
+                              alt={`${horse.horseName} ${report.month}월 ${report.week}주차`}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          )}
+                          <div>
+                            <p className="font-medium">{report.month}월 {report.week}주차</p>
+                            <p className="text-sm text-gray-500">{report.aiSummary}</p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="text-center text-gray-400">
-                      <p className="text-sm">추가 소식</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="text-center text-gray-400">
-                      <p className="text-sm">추가 소식</p>
-                    </div>
-                  </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-center text-gray-400">
+                          <p className="text-sm">주간 소식이 없습니다</p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-center text-gray-400">
+                          <p className="text-sm">추가 소식</p>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="text-center text-gray-400">
+                          <p className="text-sm">추가 소식</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

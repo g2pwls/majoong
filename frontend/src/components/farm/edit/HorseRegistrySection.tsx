@@ -2,6 +2,8 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { FarmService } from "@/services/farmService";
 
 type Horse = {
   id?: string | number;
@@ -14,20 +16,59 @@ type Horse = {
 };
 
 type Props = {
-  horses: Horse[];
-  farmUuid?: string;
+  farmUuid: string;
 };
 
-export default function HorseRegistrySection({ horses, farmUuid }: Props) {
+export default function HorseRegistrySection({ farmUuid }: Props) {
+  const [horses, setHorses] = useState<Horse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchHorses = async () => {
+      try {
+        setLoading(true);
+        const horsesData = await FarmService.getHorses(farmUuid);
+        setHorses(horsesData);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '말 목록을 불러오는데 실패했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (farmUuid) {
+      fetchHorses();
+    }
+  }, [farmUuid]);
   return (
     <section>
       <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>
-      {horses.length > 0 && (
+      
+      {loading && (
+        <div className="mt-6 flex justify-center items-center py-8">
+          <div className="text-gray-500">말 목록을 불러오는 중...</div>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-6 flex justify-center items-center py-8">
+          <div className="text-red-500">오류: {error}</div>
+        </div>
+      )}
+
+      {!loading && !error && horses.length === 0 && (
+        <div className="mt-6 flex justify-center items-center py-8">
+          <div className="text-gray-500">등록된 말이 없습니다.</div>
+        </div>
+      )}
+
+      {!loading && !error && horses.length > 0 && (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {horses.map((horse) => (
             <Link
               key={horse.id ?? horse.horseNo}
-              href={farmUuid ? `/support/${farmUuid}/${horse.horseNo}` : '#'}
+              href={`/support/${farmUuid}/${horse.horseNo}`}
               className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
             >
               {horse.image ? (

@@ -1,29 +1,18 @@
 // src/app/support/[farm_uuid]/edit/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import FarmBasicInfoPanel from "@/components/farm/edit/FarmBasicInfoPanel";
 import HorseInfoPanel from "@/components/farm/edit/HorseInfoPanel";
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 import Breadcrumbs from "@/components/common/Breadcrumb";
+import { FarmService } from "@/services/farmService";
+import { Farm } from "@/types/farm";
 
-// ---- Types ----
-export type Farm = {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  image_url?: string;
-  name?: string; // 대표자명 등
-  address?: string;
-  farm_phone?: string;
-  area?: number;
-  horse_count?: number;
-};
-
-type PageProps = { params: { farm_uuid: string } };
+type PageProps = { params: Promise<{ farm_uuid: string }> };
 
 export default function FarmEdit({ params }: PageProps) {
-  const farm_uuid = params.farm_uuid;
+  const { farm_uuid } = use(params);
 
   // farm 데이터 가져오기
   const [farm, setFarm] = useState<Farm | null>(null);
@@ -36,15 +25,8 @@ export default function FarmEdit({ params }: PageProps) {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`/api/farms/${farm_uuid}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-          // 캐시 무효화가 필요하면 다음 옵션 사용
-          // cache: "no-store",
-        });
-        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
-        const data: Farm = await res.json();
-        if (alive) setFarm(data);
+        const farmData = await FarmService.getFarm(farm_uuid);
+        if (alive) setFarm(farmData);
       } catch (e: unknown) {
         const errorMessage = e instanceof Error ? e.message : "불러오기 중 오류가 발생했어요.";
         if (alive) setError(errorMessage);
@@ -57,71 +39,10 @@ export default function FarmEdit({ params }: PageProps) {
     };
   }, [farm_uuid]);
 
-  // 등록된 말 정보 상태 관리
-  interface RegisteredHorse {
-    id: string;
-    horseNo: string;
-    hrNm: string;
-    birthDt: string;
-    breed: string;
-    sex: string;
-    image?: string;
-  }
-  const [registeredHorses, setRegisteredHorses] = useState<RegisteredHorse[]>([]);
-
-  // 초기 더미 말 목록 불러와 카드로 표시
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch(`/api/horse/${farm_uuid}`, {
-          method: "GET",
-          headers: { "Content-Type": "application/json" },
-        });
-        if (!res.ok) throw new Error(`Failed to fetch horses: ${res.status}`);
-        const data = (await res.json()) as Array<{
-          id: string;
-          horseNo: string | number;
-          hrNm: string;
-          birthDt: string;
-          breed: string;
-          sex: string;
-          horse_url?: string;
-        }>;
-        if (!alive) return;
-        const mapped = data.map((h) => ({
-          id: h.id,
-          horseNo: String(h.horseNo),
-          hrNm: h.hrNm,
-          birthDt:
-            typeof h.birthDt === "string" && h.birthDt.length === 8
-              ? `${h.birthDt.slice(0, 4)}-${h.birthDt.slice(4, 6)}-${h.birthDt.slice(6, 8)}`
-              : h.birthDt,
-          breed: h.breed,
-          sex: h.sex,
-          image: h.horse_url,
-        }));
-        setRegisteredHorses(mapped);
-      } catch (e) {
-        console.error(e);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [farm_uuid]);
-
-  // 말 등록 처리: 마번 중복이면 교체
-  const handleHorseRegistration = (horseData: RegisteredHorse) => {
-    setRegisteredHorses((prev) => {
-      const existsIdx = prev.findIndex((h) => h.horseNo === horseData.horseNo);
-      if (existsIdx >= 0) {
-        const next = [...prev];
-        next[existsIdx] = { ...prev[existsIdx], ...horseData };
-        return next;
-      }
-      return [...prev, horseData];
-    });
+  // 말 등록 처리 (HorseInfoPanel에서 사용)
+  const handleHorseRegistration = (horseData: unknown) => {
+    // HorseRegistrySection이 자체적으로 API를 호출하므로 여기서는 상태 업데이트만
+    console.log("Horse registered:", horseData);
   };
 
   const title = loading ? "불러오는 중..." : farm?.farm_name ?? "목장 이름";
@@ -169,7 +90,7 @@ export default function FarmEdit({ params }: PageProps) {
         <h2 className="mt-6 text-lg font-semibold mb-2">말 정보 수정</h2>
         <HorseInfoPanel farm_uuid={farm_uuid} onHorseRegistered={handleHorseRegistration} />
 
-        <HorseRegistrySection horses={registeredHorses} />
+        <HorseRegistrySection farmUuid={farm_uuid} />
       </main>
     </div>
   );
