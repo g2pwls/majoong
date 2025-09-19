@@ -5,10 +5,13 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Getter @Builder
 @NoArgsConstructor @AllArgsConstructor
 @Entity @Table(name = "farm_vaults")
+@EntityListeners(AuditingEntityListener.class)
 public class FarmVault {
 
   @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,8 +34,8 @@ public class FarmVault {
   @Column(name = "status", nullable = false)
   private Status status;
 
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
+  @CreatedDate
+  @Column(updatable = false)
   private LocalDateTime createdAt;
 
   public enum Status { ACTIVE, CLOSED }

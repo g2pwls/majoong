@@ -28,13 +28,13 @@ import reactor.core.publisher.Mono;
 @RestController
 @Slf4j
 @RequestMapping("/api/v1")
-@Tag(name = "Farm Manage API", description = "농장 관리 관련 API")
+@Tag(name = "Farm Manage API", description = "목장 관리 관련 API")
 public class ManageFarmController {
 
     private final ManageFarmService manageFarmService;
 
     @PostMapping(value = "/members/farmers/my-farm", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "농장 정보 등록")
+    @Operation(summary = "목장 정보 등록")
     public BaseResponse<String> updateFarm(@AuthenticationPrincipal CustomUserDetails user,
                                            @ModelAttribute FarmInfoCreateDto dto) {
         return new BaseResponse<>(manageFarmService.updateFarm(user.getMemberUuid(), dto));
@@ -56,7 +56,7 @@ public class ManageFarmController {
     }
 
     @GetMapping("/farms/{farmUuid}/location")
-    @Operation(summary = "농장 주소의 위도, 경도 조회")
+    @Operation(summary = "목장 주소의 위도, 경도 조회")
     public BaseResponse<GeoDto> getGeo(@PathVariable String farmUuid) {
         return new BaseResponse<>(manageFarmService.getGeo(farmUuid));
     }

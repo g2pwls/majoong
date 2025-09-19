@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequestMapping("/api/v1/members/donators")
-@Tag(name = "Donater MyPage API", description = "기부자 마이페이지 API")
+@Tag(name = "Member API", description = "회원관리 API")
 public class DonatorMyPageController {
 
     private final DonatorMyPageService donatorMyPageService;
