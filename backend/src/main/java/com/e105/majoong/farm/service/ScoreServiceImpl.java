@@ -24,8 +24,7 @@ public class ScoreServiceImpl implements ScoreService {
     public List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid, Integer year, Integer month) {
         LocalDate now = LocalDate.now();
         int targetYear = (year != null) ? year : now.getYear();
-        int targetMonth = (month != null) ? month : now.getMonthValue();
 
-        return myScoreRepository.findScoreHistory(farmUuid, targetYear, targetMonth);
+        return myScoreRepository.findScoreHistory(farmUuid, targetYear, month);
     }
 }
