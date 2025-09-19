@@ -166,11 +166,11 @@ export class FarmService {
   }): Promise<void> {
     const formData = new FormData();
     
-    // 기본 정보 추가
+    // 기본 정보 추가 (백엔드 DTO 필드명과 정확히 일치)
     formData.append('farmUuid', horseData.farmUuid);
     formData.append('horseNumber', horseData.horseNumber.toString());
     formData.append('horseName', horseData.horseName);
-    formData.append('birth', horseData.birth);
+    formData.append('birth', horseData.birth); // YYYY-MM-DD 형식
     formData.append('gender', horseData.gender);
     formData.append('color', horseData.color);
     formData.append('breed', horseData.breed);
@@ -215,8 +215,14 @@ export class FarmService {
       if (!response.data.isSuccess) {
         throw new Error(`API 호출 실패: ${response.data.message}`);
       }
-    } catch (error) {
-      console.error('말 등록 실패:', error);
+    } catch (error: any) {
+      console.error('말 등록 실패:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: error.config
+      });
       throw error;
     }
   }

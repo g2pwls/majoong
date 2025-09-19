@@ -197,7 +197,7 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-blue-600" />
-                <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 변화</h4>
+                <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 평균 변화</h4>
                 <span className="text-sm text-red-500 font-medium">기준 38°C</span>
               </div>
               <div className="text-right">
