@@ -383,7 +383,7 @@ pipeline {
                     .replaceAll(/(?i)(token|secret|password|passwd|apikey|api_key)\\s*[:=]\\s*\\S+/, '$1=[REDACTED]')
                     .replaceAll(/AKIA[0-9A-Z]{16}/, 'AKIA[REDACTED]')
 
-                def detailsBlock = tail ? "```\n${tail}\n```" : ""
+                def detailsBlock = tail ? "```text\n${tail}\n```" : ""
 
                 sendMMNotify(false, [
                     branch   : branch,
