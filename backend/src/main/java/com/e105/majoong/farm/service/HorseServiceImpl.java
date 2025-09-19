@@ -8,6 +8,7 @@ import com.e105.majoong.common.model.horseState.HorseState;
 import com.e105.majoong.common.model.horseState.HorseStateRepository;
 import com.e105.majoong.farm.dto.out.HorseDetailResponseDto;
 import com.e105.majoong.farm.dto.out.HorseSearchResponseDto;
+import com.e105.majoong.farm.dto.out.HorseWeeklyReportDetailResponseDto;
 import com.e105.majoong.farm.dto.out.HorseWeeklyReportDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,11 +42,15 @@ public class HorseServiceImpl implements HorseService {
     }
 
     @Override
-    public HorseDetailResponseDto getHorseDetail(String farmUuid, Long horseNumber, int year, int month) {
+    public HorseDetailResponseDto getHorseDetail(String farmUuid, Long horseNumber, Integer year, Integer month) {
+        LocalDate now = LocalDate.now();
+        int targetYear = (year != null) ? year : now.getYear();
+        int targetMonth = (month != null) ? month : now.getMonthValue();
+
         Horse horse = horseRepository.findByHorseNumberAndFarm_FarmUuid(horseNumber, farmUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT));
 
-        LocalDateTime start = LocalDate.of(year, month, 1).atStartOfDay();
+        LocalDateTime start = LocalDate.of(targetYear, targetMonth, 1).atStartOfDay();
         LocalDateTime end = start.withDayOfMonth(start.toLocalDate().lengthOfMonth()).toLocalDate().atTime(LocalTime.MAX);
 
         List<HorseState> reports = horseStateRepository.findByHorseAndFarmAndPeriod(
@@ -65,4 +70,11 @@ public class HorseServiceImpl implements HorseService {
         return HorseDetailResponseDto.toDto(horse, weeklyReports);
     }
 
+    @Override
+    public HorseWeeklyReportDetailResponseDto getWeeklyReportDetail(Long horseNumber, Long horseStateId) {
+        HorseState state = horseStateRepository.findByIdAndHorseNumber(horseStateId, horseNumber)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT));
+
+        return HorseWeeklyReportDetailResponseDto.toDto(state);
+    }
 }

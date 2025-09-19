@@ -11,6 +11,7 @@ import com.e105.majoong.common.model.myScore.MyScoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,9 +35,10 @@ public class MonthlyReportServiceImpl implements MonthlyReportService {
     }
 
     @Override
-    public List<MonthlyReportListResponseDto> getReports(String farmUuid, int year) {
-        LocalDateTime start = LocalDateTime.of(year, 1, 1, 0, 0);
-        LocalDateTime end = LocalDateTime.of(year, 12, 31, 23, 59);
+    public List<MonthlyReportListResponseDto> getReports(String farmUuid, Integer year) {
+        int targetYear = (year != null) ? year : LocalDate.now().getYear();
+        LocalDateTime start = LocalDateTime.of(targetYear, 1, 1, 0, 0);
+        LocalDateTime end = LocalDateTime.of(targetYear, 12, 31, 23, 59);
 
         List<MonthlyReport> reports = monthlyReportRepository
                 .findByFarmUuidAndCreatedAtBetween(farmUuid, start, end);

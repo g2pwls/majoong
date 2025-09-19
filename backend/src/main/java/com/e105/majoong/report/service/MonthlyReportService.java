@@ -7,5 +7,5 @@ import java.util.List;
 
 public interface MonthlyReportService {
     MonthlyReportDetailResponseDto getReportDetail(String farmUuid, Long reportId);
-    List<MonthlyReportListResponseDto> getReports(String farmUuid, int year);
+    List<MonthlyReportListResponseDto> getReports(String farmUuid, Integer year);
 }
