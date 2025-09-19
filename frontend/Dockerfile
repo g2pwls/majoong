@@ -6,7 +6,7 @@ ENV NEXT_TELEMETRY_DISABLED=1 CI=1
 
 RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN apk add --no-cache libc6-compat
- 
+  
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm fetch  
 COPY . .

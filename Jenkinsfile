@@ -255,6 +255,7 @@ pipeline {
                                 sh """
                                 # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
                                 DOCKER_BUILDKIT=1 docker build \
+                                --no-cache \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
                                 -t majoong/frontend-dev:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -323,6 +324,7 @@ pipeline {
                                 sh """
                                 # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
                                 DOCKER_BUILDKIT=1 docker build \
+                                --no-cache \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
                                 -t majoong/frontend-prod:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
