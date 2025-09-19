@@ -168,7 +168,7 @@ pipeline {
                         echo "Using frontend .env.development"
                         withCredentials([file(credentialsId: 'FRONT_ENV_DEV', variable: 'FRONT_ENV')]) {
                             sh '''
-                            install -m 600 -T "$FRONT_ENV" "frontend/.env"
+                            install -m 640 -T "$FRONT_ENV" "frontend/.env"
                             echo "[ENV] frontend/.env installed"
                             '''
                         }
@@ -176,7 +176,7 @@ pipeline {
                         echo "Using frontend .env.production"
                         withCredentials([file(credentialsId: 'FRONT_ENV_PROD', variable: 'FRONT_ENV')]) {
                             sh '''
-                            install -m 600 -T "$FRONT_ENV" "frontend/.env"
+                            install -m 640 -T "$FRONT_ENV" "frontend/.env"
                             echo "[ENV] frontend/.env installed"
                             '''
                         }
