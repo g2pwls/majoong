@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Builder
 @Getter
-public class FarmInfoUpdateDto {
+public class FarmInfoCreateDto {
     private String phoneNumber;
     private String address;
     private LocalDate openingDate;
