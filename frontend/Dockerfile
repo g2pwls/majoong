@@ -21,7 +21,7 @@ RUN pnpm --reporter=append-only build
 FROM node:20-alpine AS run
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOST=0.0.0.0 PORT=3000
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat 
 
 COPY --from=build /app/.next/standalone ./
 COPY --from=build /app/.next/static ./.next/static
