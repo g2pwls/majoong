@@ -56,6 +56,8 @@ public enum BaseResponseStatus {
     // Pet
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
     NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),
+
+    FARM_STATE_UPLOAD_ERROR(HttpStatus.BAD_REQUEST, false, 2403, "말 상태 업로드 중 오류가 발생했습니다"),
     NO_EXIST_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 금고입니다."),
     NO_EXIST_DONATOR(HttpStatus.NOT_FOUND, false, 2403, "존재하지 않는 기부자입니다."),
 

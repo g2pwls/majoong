@@ -6,6 +6,7 @@ import com.e105.majoong.farm.dto.out.ScoreHistoryResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -14,12 +15,17 @@ public class ScoreServiceImpl implements ScoreService {
     private final MyScoreRepository myScoreRepository;
 
     @Override
-    public List<ScoreHistoryAvgResponseDto> getScoreHistory(String farmUuid, int year) {
-        return myScoreRepository.findMonthlyScoreHistory(farmUuid, year);
+    public List<ScoreHistoryAvgResponseDto> getScoreHistory(String farmUuid, Integer year) {
+        int targetYear = (year != null) ? year : LocalDate.now().getYear();
+        return myScoreRepository.findMonthlyScoreHistory(farmUuid, targetYear);
     }
 
     @Override
-    public List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid) {
-        return myScoreRepository.findScoreHistory(farmUuid);
+    public List<ScoreHistoryResponseDto> getScoreHistory(String farmUuid, Integer year, Integer month) {
+        LocalDate now = LocalDate.now();
+        int targetYear = (year != null) ? year : now.getYear();
+        int targetMonth = (month != null) ? month : now.getMonthValue();
+
+        return myScoreRepository.findScoreHistory(farmUuid, targetYear, targetMonth);
     }
 }
