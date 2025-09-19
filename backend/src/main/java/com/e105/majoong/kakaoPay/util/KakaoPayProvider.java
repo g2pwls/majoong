@@ -13,11 +13,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+//... (import 구문은 기존과 동일)
 
 @Slf4j
 @Component
@@ -31,25 +34,40 @@ public class KakaoPayProvider {
     @Value("${kakaopay.cid}")
     private String cid;
 
+    @Value("${kakaopay.url.approve}")
+    private String approveUrl;
+
+    @Value("${kakaopay.url.cancel}")
+    private String cancelUrl;
+
+    @Value("${kakaopay.url.fail}")
+    private String failUrl;
+
+    @Value("${kakaopay.url.ready}")
+    private String readyUrl;
+
+    @Value("${kakaopay.url.approveRedirect}")
+    private String approveRedirect;
+
     public ReadyResponse ready(OrderRequestDto request) {
-        MultiValueMap<String, String> parameters = new LinkedMultiValueMap<>();
 
-        parameters.add("cid", cid);
-        parameters.add("partner_order_id", "1234567890");
-        parameters.add("partner_user_id", "1234567890");
-        parameters.add("item_name", request.getItemName());
-        parameters.add("quantity", request.getQuantity());
-        parameters.add("total_amount", request.getTotalPrice());
-        parameters.add("tax_free_amount", "0");
-        parameters.add("approval_url", "http://localhost:8080/api/v1/kakao-pay/approve");
-        parameters.add("cancel_url", "http://localhost:8080/api/v1/kakao-pay/cancel");
-        parameters.add("fail_url", "http://localhost:8080/kakao-pay/fail");
+        Map<String, String> parameters = new HashMap<>();
 
-        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
+        parameters.put("cid", cid);
+        parameters.put("partner_order_id", "1234567890");
+        parameters.put("partner_user_id", "1234567890");
+        parameters.put("item_name", request.getItemName());
+        parameters.put("quantity", request.getQuantity());
+        parameters.put("total_amount", request.getTotalPrice());
+        parameters.put("tax_free_amount", "0");
+        parameters.put("approval_url", approveUrl);
+        parameters.put("cancel_url", cancelUrl);
+        parameters.put("fail_url", failUrl);
+
+        HttpEntity<Map<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://open-api.kakaopay.com/online/v1/payment/ready";
-
+        String url = readyUrl;
         ResponseEntity<ReadyResponse> response = restTemplate.postForEntity(url, entity, ReadyResponse.class);
 
         SessionProvider.addAttribute("tid",
@@ -71,12 +89,12 @@ public class KakaoPayProvider {
         parameters.put("tid", SessionProvider.getStringAttribute("tid"));
         parameters.put("partner_order_id", "1234567890");
         parameters.put("partner_user_id", "1234567890");
-        parameters.put("pg_token", pgToken); // 결제승인 요청을 인증하는 토큰
+        parameters.put("pg_token", pgToken);
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
 
         RestTemplate restTemplate = new RestTemplate();
-        String url = "https://open-api.kakaopay.com/online/v1/payment/approve";
+        String url = approveRedirect;
         ResponseEntity<ApproveResponse> response = restTemplate.postForEntity(url, entity, ApproveResponse.class);
 
         return response.getBody();
