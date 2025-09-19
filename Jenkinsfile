@@ -274,7 +274,7 @@ pipeline {
                                       --name ${DEV_FRONT_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       -p ${DEV_FRONT_PORT}:3000 \
-                                      -v "$WORKSPACE/.env:/app/.env:ro" \
+                                      -v "$WORKSPACE/frontend/.env:/app/.env:ro" \
                                       -v next_cache_dev:/app/.next/cache \
                                       --restart unless-stopped \
                                       majoong/frontend-dev:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -336,7 +336,7 @@ pipeline {
                                       --name ${PROD_FRONT_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       -p ${PROD_FRONT_PORT}:3000 \
-                                      -v "$WORKSPACE/.env:/app/.env:ro" \
+                                      -v "$WORKSPACE/frontend/.env:/app/.env:ro" \
                                       -v next_cache_prod:/app/.next/cache \
                                       --restart unless-stopped \
                                       majoong/frontend-prod:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1

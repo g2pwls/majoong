@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile --prod=false
 
 # standalone 산출
 RUN pnpm --reporter=append-only build
-
+ 
 # ---- run ----
 FROM node:20-alpine AS run
 WORKDIR /app
