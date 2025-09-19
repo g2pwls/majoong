@@ -29,7 +29,7 @@ public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
             @Param("year") Integer year
     );
 
-    @Query(value = """
+    @Query("""
         SELECT new com.e105.majoong.farm.dto.out.ScoreHistoryResponseDto(
             CONCAT('USE-', FUNCTION('DATE_FORMAT', ms.createdAt, '%Y%m%d'), '-', ms.id),
             ms.createdAt,
@@ -42,7 +42,7 @@ public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
         JOIN ScoreCategory sc ON sc.id = ms.scoreCategoryId
         WHERE ms.farmUuid = :farmUuid
           AND ms.year = :year
-          AND ms.month = :month
+          AND (:month IS NULL OR ms.month = :month)
         ORDER BY ms.createdAt DESC
     """)
     List<ScoreHistoryResponseDto> findScoreHistory(
