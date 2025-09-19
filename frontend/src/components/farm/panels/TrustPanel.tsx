@@ -20,17 +20,18 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null); // null이면 전체, 숫자면 해당 월
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // 신뢰도 내역 조회 (월별 평균)
-  const fetchScoreHistory = async (year: number) => {
+  const fetchScoreHistory = async (year: number, month?: number) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('신뢰도 내역 조회 시작:', { farmId, year });
-      const response = await FarmService.getScoreHistory(farmId, year);
+      console.log('신뢰도 내역 조회 시작:', { farmId, year, month });
+      const response = await FarmService.getScoreHistory(farmId, year, month);
       console.log('신뢰도 내역 조회 성공:', response);
       setScoreHistory(response.result);
     } catch (e: unknown) {
@@ -43,13 +44,13 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
   };
 
   // 신뢰도 목록 조회 (상세 내역)
-  const fetchScoreHistoryList = async () => {
+  const fetchScoreHistoryList = async (year?: number, month?: number) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('신뢰도 목록 조회 시작:', { farmId });
-      const response = await FarmService.getScoreHistoryList(farmId);
+      console.log('신뢰도 목록 조회 시작:', { farmId, year, month });
+      const response = await FarmService.getScoreHistoryList(farmId, year, month);
       console.log('신뢰도 목록 조회 성공:', response);
       setScoreHistoryList(response.result);
     } catch (e: unknown) {
@@ -61,14 +62,30 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     }
   };
 
+  // 년도 변경 시 그래프 데이터와 상세 내역 조회
   useEffect(() => {
     fetchScoreHistory(selectedYear);
-    fetchScoreHistoryList();
+    fetchScoreHistoryList(selectedYear, selectedMonth || undefined);
   }, [farmId, selectedYear]);
+
+  // 월 변경 시 상세 내역만 다시 조회
+  useEffect(() => {
+    if (selectedMonth !== null) {
+      fetchScoreHistoryList(selectedYear, selectedMonth);
+    } else {
+      fetchScoreHistoryList(selectedYear);
+    }
+  }, [selectedMonth]);
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
+    setSelectedMonth(null); // 년도 변경 시 월 선택 초기화
     setCurrentPage(1); // 년도 변경 시 첫 페이지로 리셋
+  };
+
+  const handleMonthChange = (month: number | null) => {
+    setSelectedMonth(month);
+    setCurrentPage(1); // 월 변경 시 첫 페이지로 리셋
   };
 
   const handlePageChange = (page: number) => {
@@ -130,7 +147,7 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     return { currentItems, totalItems, totalPages };
   };
 
-  // 선 그래프용 데이터 변환
+  // 선 그래프용 데이터 변환 (년도별 전체 데이터)
   const getLineChartData = () => {
     if (scoreHistory.length === 0) return [];
     
@@ -269,7 +286,9 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-purple-600" />
-                  <h4 className="text-lg font-semibold">신뢰도 상세 내역</h4>
+                  <h4 className="text-lg font-semibold">
+                    신뢰도 상세 내역 {selectedMonth ? `(${selectedMonth}월)` : ''}
+                  </h4>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />
@@ -283,6 +302,25 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
                     <option value={2023}>2023</option>
                     <option value={2022}>2022</option>
                     <option value={2021}>2021</option>
+                  </select>
+                  <select
+                    value={selectedMonth || ''}
+                    onChange={(e) => handleMonthChange(e.target.value ? parseInt(e.target.value) : null)}
+                    className="px-3 py-1 border rounded-md text-sm"
+                  >
+                    <option value="">전체</option>
+                    <option value={1}>1월</option>
+                    <option value={2}>2월</option>
+                    <option value={3}>3월</option>
+                    <option value={4}>4월</option>
+                    <option value={5}>5월</option>
+                    <option value={6}>6월</option>
+                    <option value={7}>7월</option>
+                    <option value={8}>8월</option>
+                    <option value={9}>9월</option>
+                    <option value={10}>10월</option>
+                    <option value={11}>11월</option>
+                    <option value={12}>12월</option>
                   </select>
                 </div>
               </div>
@@ -368,7 +406,12 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
                 ) : (
                   <div className="text-center py-8">
                     <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">신뢰도 상세 내역이 없습니다.</p>
+                    <p className="text-gray-500">
+                      {selectedMonth 
+                        ? `${selectedYear}년 ${selectedMonth}월의 신뢰도 상세 내역이 없습니다.`
+                        : `${selectedYear}년의 신뢰도 상세 내역이 없습니다.`
+                      }
+                    </p>
                   </div>
                 );
               })()}

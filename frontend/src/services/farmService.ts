@@ -299,15 +299,21 @@ export class FarmService {
   }
 
   // 신뢰도 내역 조회
-  static async getScoreHistory(farmUuid: string, year: number): Promise<ScoreHistoryResponse> {
+  static async getScoreHistory(farmUuid: string, year: number, month?: number): Promise<ScoreHistoryResponse> {
     try {
       console.log('신뢰도 내역 API 요청:', {
         farmUuid,
         year,
+        month,
       });
 
+      const params: { year: number; month?: number } = { year };
+      if (month !== undefined) {
+        params.month = month;
+      }
+
       const response = await apiClient.get(`/api/v1/farms/${farmUuid}/scores`, {
-        params: { year },
+        params,
       });
 
       console.log('신뢰도 내역 API 응답:', {
@@ -323,13 +329,25 @@ export class FarmService {
   }
 
   // 신뢰도 목록 조회
-  static async getScoreHistoryList(farmUuid: string): Promise<ScoreHistoryListResponse> {
+  static async getScoreHistoryList(farmUuid: string, year?: number, month?: number): Promise<ScoreHistoryListResponse> {
     try {
       console.log('신뢰도 목록 API 요청:', {
         farmUuid,
+        year,
+        month,
       });
 
-      const response = await apiClient.get(`/api/v1/farms/${farmUuid}/scores/history`);
+      const params: { year?: number; month?: number } = {};
+      if (year !== undefined) {
+        params.year = year;
+      }
+      if (month !== undefined) {
+        params.month = month;
+      }
+
+      const response = await apiClient.get(`/api/v1/farms/${farmUuid}/scores/history`, {
+        params,
+      });
 
       console.log('신뢰도 목록 API 응답:', {
         status: response.status,
