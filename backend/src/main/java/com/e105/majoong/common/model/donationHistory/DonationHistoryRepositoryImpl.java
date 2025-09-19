@@ -29,7 +29,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
 
     @Override
     public DonationResponseDto findDonationHistoryByPage(
-            int page, int size, LocalDate startDate, LocalDate endDate
+            String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate
     ) {
         BooleanBuilder builder = new BooleanBuilder();
         if (startDate != null) {
@@ -39,6 +39,8 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
         if (endDate != null) {
             builder.and(donationHistory.donationDate.lt(endDate.plusDays(1).atStartOfDay()));
         }
+
+        builder.and(donationHistory.donatorUuid.eq(memberUuid));
 
         int pageSize = size;
         int pageIndex = Integer.max(0, page);
@@ -78,7 +80,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
 
         long totalCoinValue = Optional.ofNullable(totalCoin).orElse(0L);
 
-        return DonationResponseDto.toDto(totalCoinValue, totalCoinValue * 1000, history);
+        return DonationResponseDto.toDto(totalCoinValue, history);
     }
 
     @Override

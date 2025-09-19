@@ -58,6 +58,7 @@ public enum BaseResponseStatus {
     NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),
     NO_EXIST_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 금고입니다."),
     NO_EXIST_DONATOR(HttpStatus.NOT_FOUND, false, 2403, "존재하지 않는 기부자입니다."),
+    DUPLICATED_BOOKMARK(HttpStatus.CONFLICT, false, 2404, "이미 등록된 농장입니다."),
 
     DUPLICATED_CATEGORY(HttpStatus.CONFLICT, false, 3006, "이미 등록된 카테고리입니다"),
     DUPLICATED_CATEGORY_ORDER(HttpStatus.CONFLICT, false, 3008, "이미 등록된 순서입니다"),

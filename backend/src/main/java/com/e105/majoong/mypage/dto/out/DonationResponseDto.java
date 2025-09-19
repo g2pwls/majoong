@@ -13,12 +13,11 @@ public class DonationResponseDto {
 
     public static DonationResponseDto toDto(
             long totalCoin,
-            long totalAmount,
             Page<DonationHistoryResponseDto> donationHistory
     ) {
         return DonationResponseDto.builder()
                 .totalCoin(totalCoin)
-                .totalAmount(totalAmount)
+                .totalAmount(totalCoin*1000)
                 .donationHistory(donationHistory)
                 .build();
     }

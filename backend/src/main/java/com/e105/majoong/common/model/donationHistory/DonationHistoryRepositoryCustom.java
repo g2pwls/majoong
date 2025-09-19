@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public interface DonationHistoryRepositoryCustom {
     DonationResponseDto findDonationHistoryByPage(
-            int page, int size, LocalDate startDate, LocalDate endDate
+            String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate
     );
 
     DonationHistoryDetailResponseDto findDonationHistoryDetail(String memberUuid, Long donationHistoryId);

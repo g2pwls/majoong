@@ -38,7 +38,7 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
             throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
         }
         return donationHistoryRepositoryCustom
-                .findDonationHistoryByPage(page, size, startDate, endDate);
+                .findDonationHistoryByPage(memberUuid, page, size, startDate, endDate);
     }
 
     @Override
@@ -56,6 +56,9 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
         }
         if (!farmRepository.existsByFarmUuid(farmUuid)) {
             throw new BaseException(BaseResponseStatus.INVALID_FARM_UUID);
+        }
+        if (bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid)){
+            throw new BaseException(BaseResponseStatus.DUPLICATED_BOOKMARK);
         }
         bookmarkRepository.save(BookmarkRequestDto.toEntity(memberUuid, farmUuid));
     }
