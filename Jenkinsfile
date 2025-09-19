@@ -185,12 +185,7 @@ pipeline {
                         install -m 640 -T "$FRONT_ENV" "frontend/.env"
                         echo "[ENV] frontend/.env installed"
 
-                        # 루트 .env  ← 컨테이너에서 /app/.env로 마운트할 파일
-                        install -m 640 -T "$FRONT_ENV" ".env"
-                        echo "[ENV] repo root .env installed"
-
-                        # 컨테이너가 USER node(UID=1000)라면 소유권 맞추기(실패 무시)
-                        chown -f 1000:1000 frontend/.env .env || true
+                        chown -f 1000:1000 frontend/.env || true
                         '''
                     }
                 }
@@ -237,7 +232,6 @@ pipeline {
                 script {
                     // 네트워크가 없으면 생성
                     sh "docker network inspect ${TEST_NETWORK} >/dev/null 2>&1 || docker network create ${TEST_NETWORK}"
-                    sh "docker volume inspect next_cache_dev >/dev/null 2>&1 || docker volume create next_cache_dev"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                     if (env.BACK_CHANGED == 'true') {
@@ -274,7 +268,7 @@ pipeline {
                                       --name ${DEV_FRONT_CONTAINER} \
                                       --network ${TEST_NETWORK} \
                                       -p ${DEV_FRONT_PORT}:3000 \
-                                      -v "$WORKSPACE/frontend/.env:/app/.env:ro" \
+                                      --env-file "$WORKSPACE/frontend/.env" \
                                       -v next_cache_dev:/app/.next/cache \
                                       --restart unless-stopped \
                                       majoong/frontend-dev:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -297,7 +291,6 @@ pipeline {
                 echo "🚀 Deploy to Prod: PROD 네트워크/컨테이너 준비"
                 script {
                     sh "docker network inspect ${PROD_NETWORK} >/dev/null 2>&1 || docker network create ${PROD_NETWORK}"
-                    sh "docker volume inspect next_cache_prod >/dev/null 2>&1 || docker volume create next_cache_prod"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
 
                    if (env.BACK_CHANGED == 'true') {
@@ -336,7 +329,7 @@ pipeline {
                                       --name ${PROD_FRONT_CONTAINER} \
                                       --network ${PROD_NETWORK} \
                                       -p ${PROD_FRONT_PORT}:3000 \
-                                      -v "$WORKSPACE/frontend/.env:/app/.env:ro" \
+                                      --env-file "$WORKSPACE/frontend/.env" \
                                       -v next_cache_prod:/app/.next/cache \
                                       --restart unless-stopped \
                                       majoong/frontend-prod:${TAG}                                               >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -381,7 +374,7 @@ pipeline {
 
                 // ci.log이 있으면 마지막 200줄, 없으면 빈 문자열
                 def tail = sh(
-                    script: "tail -n 200 \"$WORKSPACE/${LOG_FILE}\" 2>/dev/null || true",
+                    script: "tail -n 150 \"$WORKSPACE/${LOG_FILE}\" 2>/dev/null || true",
                     returnStdout: true
                 ).trim()
 
@@ -390,7 +383,7 @@ pipeline {
                     .replaceAll(/(?i)(token|secret|password|passwd|apikey|api_key)\\s*[:=]\\s*\\S+/, '$1=[REDACTED]')
                     .replaceAll(/AKIA[0-9A-Z]{16}/, 'AKIA[REDACTED]')
 
-                def detailsBlock = tail ? "```\\n${tail}\\n```" : ""
+                def detailsBlock = tail ? "```\n${tail}\n```" : ""
 
                 sendMMNotify(false, [
                     branch   : branch,
