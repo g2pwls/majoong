@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import reactor.core.publisher.Mono;
 
 public interface ManageFarmService {
     //농장 테이블에 boolean 값을 넣 어서 true일 때만 농장 목록에 뜨도록
@@ -25,6 +26,6 @@ public interface ManageFarmService {
     //영수증 텍스트, 인증사진, 특이사항 등록
     GeoDto getGeo(String farmUuid);
 
-    void reportHorseState(String memberUuid, String farmUuid, Long horseNumber, ReportHorseStatusDto dto);
+    Mono<String> reportHorseState(String memberUuid, String farmUuid, Long horseNumber, ReportHorseStatusDto dto);
 
 }

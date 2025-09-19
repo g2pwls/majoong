@@ -1,7 +1,6 @@
 package com.e105.majoong.manageFarm.service;
 
 import com.e105.majoong.common.utils.S3Uploader;
-import com.e105.majoong.manageFarm.dto.out.HorseImageDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.time.Duration;
@@ -32,28 +31,29 @@ public class OpenAIServiceImpl implements OpenAIService {
         this.s3Uploader = s3Uploader;
     }
 
-    private static final String HORSE_SYSTEM_PROMPT = """
-            너는 말 전문 수의사야.
-            제공된 사진을 기반으로 다음을 평가해줘:
-            1. 전면, 좌측 측면, 우측 측면 이미지를 분석하여
-               - 체형
-               - 보이는 부상  
-               - 발굽 상태  
-               - 털과 피부 병변  
-               - 체중/체형 점수(BCS)  
-            2. 마구간 이미지를 분석하여  
-               - 위생 상태  
-
-            답변은 약 300자 분량의 한국어 텍스트로, 정확하고 구조적으로 작성해줘.
+    private static final String SYSTEM_PROMPT = """
+            너는 말 전문 수의사다. 입력은 사진 1장이다. 사진 종류(정면, 좌측, 우측, 마구간)에 따라 평가 기준이 다르다.
+                    
+            [평가 지침]
+            - 정면 사진: 얼굴, 전신 균형, 체중(BCS), 전방 부상 중심으로 평가. 문장 시작은 '정면:'으로.
+            - 좌측 사진: 왼쪽 몸통 근육 발달, 좌측 발굽 상태, 털/피부 이상 평가. 시작 문장 '좌측:'.
+            - 우측 사진: 오른쪽 몸통 근육 발달, 우측 발굽 상태, 움직임 영향 요소 평가. 시작 문장 '우측:'.
+            - 마구간 사진: 말 상태 언급 금지, 환경·위생 평가(바닥, 깔짚, 환기, 급수/사료). 시작 문장 '마구간:'.
+                    
+            [출력 규칙]
+            - 각 사진별 2~3문장, 약 120자 내외로 작성.
+            - 불필요한 서론/중복/추측 금지.
+            - 사진에서 확인이 어려워도 관찰 가능한 정보와 일반적인 말 체형/건강 기준을 참고해 추정.
+            - 문장 표현 다양화: '관찰됨', '확인됨', '보임', '양호함' 등을 적절히 사용.
             """;
 
     @Override
-    public Mono<String> analyzeHorseImages(HorseImageDto dto) {
+    public Mono<String> analyzeHorseImage(String type, String imageUrl) {
         var messages = mapper.createArrayNode();
 
         var systemMessage = mapper.createObjectNode();
-        systemMessage.put("role", "developer");
-        systemMessage.put("content", HORSE_SYSTEM_PROMPT);
+        systemMessage.put("role", "system");
+        systemMessage.put("content", SYSTEM_PROMPT);
         messages.add(systemMessage);
 
         var userMessage = mapper.createObjectNode();
@@ -61,11 +61,18 @@ public class OpenAIServiceImpl implements OpenAIService {
         var userContent = mapper.createArrayNode();
         userContent.addObject()
                 .put("type", "text")
-                .put("text", "다음 말과 마구간 이미지를 분석해줘");
-        addImage(userContent, dto.getFrontImage());
-        addImage(userContent, dto.getLeftSideImage());
-        addImage(userContent, dto.getRightSideImage());
-        addImage(userContent, dto.getStableImage());
+                .put("text", type + " 사진을 평가해줘");
+
+        /*객체 형태로 전달
+         * url : 분석할 이미지 url
+         * detail: 분석할 수준을 지정하는 것 ("auto-자동으로 적절한 분석 수준 결정)
+         */
+        var imageObj = mapper.createObjectNode()
+                .put("url", imageUrl)
+                .put("detail", "auto");
+        userContent.addObject()
+                .put("type", "image_url")
+                .set("image_url", imageObj);
 
         userMessage.set("content", userContent);
         messages.add(userMessage);
@@ -73,9 +80,11 @@ public class OpenAIServiceImpl implements OpenAIService {
         var requestBody = mapper.createObjectNode();
         requestBody.put("model", textModel);
         requestBody.set("messages", messages);
+        requestBody.put("max_tokens", 120);
+        requestBody.put("temperature", 0.2);
 
         return webClient.post()
-                .uri(textUrl)
+                .uri(b -> b.path(textUrl).build())
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
@@ -84,20 +93,6 @@ public class OpenAIServiceImpl implements OpenAIService {
                     log.error("OpenAI API 호출 실패", e);
                     return Mono.just("분석 중 오류가 발생했습니다.");
                 });
-
-    }
-
-    private void addImage(ArrayNode content, String url) {
-        if (url == null || url.isBlank()) {
-            return;
-        }
-        String key = s3Uploader.extractFileNameFromUrl(url);
-        String presignedUrl = s3Uploader.generatePresignedUrl(key, Duration.ofMinutes(5));
-        System.out.println(presignedUrl);
-        var node = mapper.createObjectNode();
-        node.put("type", "image_url");
-        node.set("image_url", mapper.createObjectNode().put("url", presignedUrl));
-        content.add(node);
     }
 
     private String firstMessageText(String json) {

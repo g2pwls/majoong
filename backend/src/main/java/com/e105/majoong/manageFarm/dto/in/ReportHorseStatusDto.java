@@ -15,7 +15,8 @@ public class ReportHorseStatusDto {
     private String content;
 
     public HorseState toEntity(String farmUuid, String memberUuid, Long horseNumber,
-                               String frontImage, String leftSideImage, String rightSideImage, String stableImage) {
+                               String frontImage, String leftSideImage, String rightSideImage, String stableImage,
+                               String aiSummary) {
         return HorseState.builder()
                 .farmUuid(farmUuid)
                 .memberUuid(memberUuid)
@@ -25,6 +26,7 @@ public class ReportHorseStatusDto {
                 .rightSideImage(rightSideImage)
                 .stableImage(stableImage)
                 .content(content)
+                .aiSummary(aiSummary)
                 .build();
     }
 }

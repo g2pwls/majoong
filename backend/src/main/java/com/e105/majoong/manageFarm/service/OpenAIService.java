@@ -6,5 +6,5 @@ import reactor.core.publisher.Mono;
 
 //todo: 추후 batch 서비스로 분리
 public interface OpenAIService {
-    Mono<String> analyzeHorseImages(HorseImageDto dto);
+    Mono<String> analyzeHorseImage(String type, String imageUrl);
 }
