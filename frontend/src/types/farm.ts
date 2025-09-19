@@ -247,6 +247,6 @@ export interface FarmRegistrationResponse {
   isSuccess: boolean;
   message: string;
   code: number;
-  result?: any;
+  result?: unknown;
 }
 

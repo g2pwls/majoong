@@ -40,7 +40,7 @@ export default function FarmEdit({ params }: PageProps) {
   }, [farm_uuid]);
 
   // 말 등록 처리 (HorseInfoPanel에서 사용)
-  const handleHorseRegistration = (horseData: any) => {
+  const handleHorseRegistration = (horseData: unknown) => {
     // HorseRegistrySection이 자체적으로 API를 호출하므로 여기서는 상태 업데이트만
     console.log("Horse registered:", horseData);
   };

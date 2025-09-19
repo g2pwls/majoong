@@ -144,31 +144,39 @@ export function validateGpsLocation(
  * @param exifData EXIF 데이터 객체
  * @returns GPS 좌표 또는 null
  */
-export function extractGpsFromExif(exifData: any): { lat: number; lon: number } | null {
+export function extractGpsFromExif(exifData: unknown): { lat: number; lon: number } | null {
   try {
     console.log('EXIF 데이터:', exifData);
-    console.log('EXIF 데이터 키들:', Object.keys(exifData));
+    
+    // EXIF 데이터가 객체인지 확인
+    if (!exifData || typeof exifData !== 'object') {
+      console.log('EXIF 데이터가 객체가 아님');
+      return null;
+    }
+    
+    const exif = exifData as Record<string, unknown>;
+    console.log('EXIF 데이터 키들:', Object.keys(exif));
     
     // GPS 섹션 찾기
-    let gps = exifData.GPS;
+    let gps = exif.GPS as Record<string, unknown> | undefined;
     
     // GPS 섹션이 없으면 다른 방법으로 찾기
     if (!gps) {
       console.log('GPS 섹션을 찾을 수 없음, 다른 방법으로 시도...');
       
       // GPS 관련 키들 찾기
-      const gpsKeys = Object.keys(exifData).filter(key => 
+      const gpsKeys = Object.keys(exif).filter(key => 
         key.includes('GPS') || key.includes('gps') || key.includes('Latitude') || key.includes('Longitude')
       );
       console.log('GPS 관련 키들:', gpsKeys);
       
       // GPS 데이터가 직접 EXIF에 있는지 확인
-      if (exifData.GPSLatitude && exifData.GPSLongitude) {
+      if (exif.GPSLatitude && exif.GPSLongitude) {
         gps = {
-          GPSLatitude: exifData.GPSLatitude,
-          GPSLongitude: exifData.GPSLongitude,
-          GPSLatitudeRef: exifData.GPSLatitudeRef,
-          GPSLongitudeRef: exifData.GPSLongitudeRef
+          GPSLatitude: exif.GPSLatitude,
+          GPSLongitude: exif.GPSLongitude,
+          GPSLatitudeRef: exif.GPSLatitudeRef,
+          GPSLongitudeRef: exif.GPSLongitudeRef
         };
         console.log('직접 GPS 데이터 발견:', gps);
       }
@@ -194,8 +202,8 @@ export function extractGpsFromExif(exifData: any): { lat: number; lon: number } 
     }
     
     // GPS 좌표를 십진도로 변환
-    const lat = convertDMSToDD(gps.GPSLatitude, gps.GPSLatitudeRef);
-    const lon = convertDMSToDD(gps.GPSLongitude, gps.GPSLongitudeRef);
+    const lat = convertDMSToDD(gps.GPSLatitude as number[], gps.GPSLatitudeRef as string);
+    const lon = convertDMSToDD(gps.GPSLongitude as number[], gps.GPSLongitudeRef as string);
     
     console.log('변환된 좌표:', { lat, lon });
     

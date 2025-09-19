@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Card, CardContent } from "@/components/ui/card";
 
 // 기부금 사용 내역 차트 데이터 타입
@@ -18,17 +18,6 @@ interface DonationUsageChartProps {
   title: string;
 }
 
-// 색상 팔레트 (사진과 유사한 파란색 계열)
-const COLORS = [
-  '#3B82F6', // blue-500
-  '#60A5FA', // blue-400  
-  '#93C5FD', // blue-300
-  '#DBEAFE', // blue-100
-  '#1E40AF', // blue-800
-  '#1D4ED8', // blue-700
-  '#2563EB', // blue-600
-  '#1E3A8A', // blue-900
-];
 
 export default function DonationUsageChart({ data, totalAmount, title }: DonationUsageChartProps) {
   if (!data || data.length === 0) {
@@ -57,7 +46,7 @@ export default function DonationUsageChart({ data, totalAmount, title }: Donatio
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={data as any}
+                    data={data as any} // eslint-disable-line @typescript-eslint/no-explicit-any
                     cx="50%"
                     cy="50%"
                     innerRadius={40}
@@ -147,7 +136,6 @@ interface MonthlyBarChartProps {
 }
 
 export function MonthlyBarChart({ data, title }: MonthlyBarChartProps) {
-  const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
   
   const chartData = data.map(item => ({
     month: `${item.month}월`,
@@ -162,7 +150,7 @@ export function MonthlyBarChart({ data, title }: MonthlyBarChartProps) {
         
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData as any} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 15, right: 20, left: 15, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
                 dataKey="month" 

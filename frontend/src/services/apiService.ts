@@ -107,7 +107,27 @@ export async function getFarms(params: {
 
     // 백엔드 응답을 프론트엔드 인터페이스에 맞게 변환
     const pageData = response.data.result;
-    const farms: Farm[] = pageData.content.map((farm: any) => ({
+    const farms: Farm[] = pageData.content.map((farm: {
+      farmUuid: string;
+      farmName: string;
+      address: string;
+      ownerName: string;
+      horseCount: number;
+      totalScore: number;
+      profileImage: string;
+      status: string;
+      phoneNumber: string;
+      area: number;
+      description: string;
+      horses?: Array<{
+        horseNumber: number;
+        horseName: string;
+        birth: string;
+        breed: string;
+        gender: string;
+        horseUrl: string;
+      }>;
+    }) => ({
       id: farm.farmUuid,
       farm_name: farm.farmName,
       address: farm.address,
@@ -119,13 +139,20 @@ export async function getFarms(params: {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
-      horses: (farm.horses || []).map((horse: any) => ({
+      horses: (farm.horses || []).map((horse: {
+        horseNumber: number;
+        horseName: string;
+        birth: string;
+        breed: string;
+        gender: string;
+        horseUrl: string;
+      }) => ({
         id: horse.horseNumber,
         farm_id: farm.farmUuid,
         horseNo: horse.horseNumber?.toString() || '',
         hrNm: horse.horseName,
         birthDt: '',
-        horse_url: horse.profileImage
+        horse_url: horse.horseUrl
       }))
     }));
 
@@ -170,13 +197,20 @@ export async function getFarm(farmId: string): Promise<Farm> {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
-      horses: (farm.horses || []).map((horse: any) => ({
+      horses: (farm.horses || []).map((horse: {
+        horseNumber: number;
+        horseName: string;
+        birth: string;
+        breed: string;
+        gender: string;
+        horseUrl: string;
+      }) => ({
         id: horse.horseNumber,
         farm_id: farm.farmUuid,
         horseNo: horse.horseNumber?.toString() || '',
         hrNm: horse.horseName,
         birthDt: '',
-        horse_url: horse.profileImage
+        horse_url: horse.horseUrl
       }))
     };
   } catch (error) {
@@ -186,7 +220,7 @@ export async function getFarm(farmId: string): Promise<Farm> {
 }
 
 // 농장의 말 목록 조회 (현재는 농장 목록에서 함께 반환되므로 별도 호출 불필요)
-export async function getHorses(farmId: string): Promise<Horse[]> {
+export async function getHorses(_farmId: string): Promise<Horse[]> {
   try {
     // 백엔드에서 농장 목록 조회 시 말 정보도 함께 반환하므로
     // 별도의 API 호출이 필요하지 않습니다.

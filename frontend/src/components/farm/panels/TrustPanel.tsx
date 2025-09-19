@@ -3,10 +3,10 @@
 
 import { useEffect, useState } from "react";
 import { FarmService } from "@/services/farmService";
-import { ScoreHistoryResponse, ScoreHistory, ScoreHistoryListResponse, ScoreHistoryItem } from "@/types/farm";
+import { ScoreHistory, ScoreHistoryItem } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Shield, TrendingUp, Star } from "lucide-react";
+import { Calendar, Shield, TrendingUp } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 interface TrustPanelProps {
@@ -110,12 +110,6 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     return "text-red-600";
   };
 
-  // 점수에 따른 배경 색상 결정
-  const getScoreBgColor = (score: number) => {
-    if (score >= 80) return "bg-green-100";
-    if (score >= 60) return "bg-yellow-100";
-    return "bg-red-100";
-  };
 
   // 카테고리별 점수 매핑
   const getCategoryScore = (category: string) => {

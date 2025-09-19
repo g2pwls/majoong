@@ -1,7 +1,7 @@
 // 농장 관련 API 서비스 함수
 
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { Farm, FarmUpdateRequest, FarmUpdateResponse, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse } from '@/types/farm';
+import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse } from '@/types/farm';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
 
@@ -114,7 +114,14 @@ export class FarmService {
       const horses = farmData.horses || [];
       
       // FarmHorseDetailResponseDto를 Horse 타입으로 변환
-      return horses.map((h: any) => ({
+      return horses.map((h: {
+        horseUuid: string;
+        horseName: string;
+        birth: string;
+        breed: string;
+        gender: string;
+        horseUrl: string;
+      }) => ({
         id: h.horseUuid,
         horseNo: h.horseUuid, // horseUuid를 horseNo로 사용
         hrNm: h.horseName,
@@ -215,13 +222,15 @@ export class FarmService {
       if (!response.data.isSuccess) {
         throw new Error(`API 호출 실패: ${response.data.message}`);
       }
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+      const errorMessage = error instanceof Error ? error.message : '말 등록 중 오류가 발생했습니다.';
+      const axiosError = error as { response?: { status?: number; statusText?: string; data?: unknown }; config?: unknown };
       console.error('말 등록 실패:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        config: error.config
+        message: errorMessage,
+        status: axiosError.response?.status,
+        statusText: axiosError.response?.statusText,
+        data: axiosError.response?.data,
+        config: axiosError.config
       });
       throw error;
     }
@@ -412,7 +421,7 @@ export class FarmService {
       }
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error('농장 정보 등록/수정 실패:', {
         error: error,
         message: error.message,
@@ -468,7 +477,7 @@ export class FarmService {
       }
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
       console.error('농장 정보 등록/수정 실패:', {
         error: error,
         message: error.message,

@@ -6,7 +6,7 @@ import { FarmService } from "@/services/farmService";
 import { DonationUsageResponse, MonthlyDonationUsed, ReceiptHistory, ReceiptDetail } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, DollarSign, Receipt, TrendingUp, Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, DollarSign, Receipt, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import DonationUsageChart, { DonationUsageItem } from "./DonationUsageChart";
 import { MonthlyBarChart } from "./DonationUsageChart";
 
@@ -29,8 +29,8 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
+  const [currentYear] = useState(new Date().getFullYear());
+  const [currentMonth] = useState(new Date().getMonth() + 1);
   
   // 상세 조회를 위한 상태
   const [expandedReceipts, setExpandedReceipts] = useState<Set<number>>(new Set());
@@ -352,48 +352,6 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     return barData;
   };
 
-  // 영수증 데이터를 차트용으로 변환 (전달 데이터용)
-  const getPreviousMonthDonationUsageData = (): DonationUsageItem[] => {
-    // 실제 데이터가 있으면 사용
-    if (donationData?.receiptHistory && donationData.receiptHistory.length > 0) {
-      // 카테고리별로 그룹화하고 금액 합계 및 건수 계산
-      const categoryMap = new Map<string, { amount: number; count: number }>();
-      donationData.receiptHistory.forEach(receipt => {
-        const current = categoryMap.get(receipt.category) || { amount: 0, count: 0 };
-        categoryMap.set(receipt.category, {
-          amount: current.amount + receipt.totalAmount,
-          count: current.count + 1
-        });
-      });
-
-      // 총 금액 계산
-      const totalAmount = Array.from(categoryMap.values()).reduce((sum, item) => sum + item.amount, 0);
-
-      // 색상 팔레트 (파란색 계열)
-      const colors = [
-        '#3B82F6', // blue-500
-        '#60A5FA', // blue-400  
-        '#93C5FD', // blue-300
-        '#DBEAFE', // blue-100
-        '#1E40AF', // blue-800
-        '#1D4ED8', // blue-700
-        '#2563EB', // blue-600
-        '#1E3A8A', // blue-900
-      ];
-
-      // DonationUsageItem 배열로 변환
-      return Array.from(categoryMap.entries()).map(([category, data], index) => ({
-        category,
-        amount: data.amount,
-        count: data.count,
-        percentage: totalAmount > 0 ? (data.amount / totalAmount) * 100 : 0,
-        color: colors[index % colors.length],
-      })).sort((a, b) => b.amount - a.amount); // 금액 순으로 정렬
-    }
-
-    // 실제 데이터가 없으면 빈 배열 반환
-    return [];
-  };
 
   // 영수증 데이터를 차트용으로 변환 (선택된 월용)
   const getSelectedMonthDonationUsageData = (): DonationUsageItem[] => {
