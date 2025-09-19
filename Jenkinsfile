@@ -181,11 +181,9 @@ pipeline {
 
                     withCredentials([file(credentialsId: credId, variable: 'FRONT_ENV')]) {
                         sh '''
-                        # frontend/.env
-                        install -m 640 -T "$FRONT_ENV" "frontend/.env"
-                        echo "[ENV] frontend/.env installed"
-
-                        chown -f 1000:1000 frontend/.env || true
+                        # frontend/.env (읽기전용)
+                        install -m 400 -T "$FRONT_ENV" "frontend/.env"
+                        echo "[ENV] frontend/.env installed (mode 400)"
                         '''
                     }
                 }
