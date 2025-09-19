@@ -9,20 +9,16 @@ import com.e105.majoong.common.model.farm.FarmRepository;
 import com.e105.majoong.common.model.horseState.HorseState;
 import com.e105.majoong.common.model.horseState.HorseStateRepository;
 import com.e105.majoong.common.utils.S3Uploader;
-import com.e105.majoong.manageFarm.dto.in.FarmInfoUpdateDto;
+import com.e105.majoong.manageFarm.dto.in.FarmInfoCreateDto;
 import com.e105.majoong.manageFarm.dto.in.HorseInfoUpdateDto;
 import com.e105.majoong.manageFarm.dto.in.ReportHorseStatusDto;
 import com.e105.majoong.manageFarm.dto.out.GeoDto;
-import com.e105.majoong.manageFarm.dto.out.HorseImageDto;
 import com.e105.majoong.manageFarm.dto.out.HorseListResponseDto;
 import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,14 +26,10 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 @Service
 @Slf4j
@@ -59,7 +51,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     private static final String HORSE_STATE_DIR = "horse/state";
 
     @Override
-    public String updateFarm(String memberUuid, FarmInfoUpdateDto updateDto) {
+    public String updateFarm(String memberUuid, FarmInfoCreateDto updateDto) {
         Farmer farmer = farmerRepository.findByMemberUuid(memberUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_USER));
 

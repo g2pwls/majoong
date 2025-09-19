@@ -2,7 +2,7 @@ package com.e105.majoong.manageFarm.controller;
 
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
-import com.e105.majoong.manageFarm.dto.in.FarmInfoUpdateDto;
+import com.e105.majoong.manageFarm.dto.in.FarmInfoCreateDto;
 import com.e105.majoong.manageFarm.dto.in.HorseInfoUpdateDto;
 import com.e105.majoong.manageFarm.dto.in.ReportHorseStatusDto;
 import com.e105.majoong.manageFarm.dto.out.GeoDto;
@@ -36,7 +36,7 @@ public class ManageFarmController {
     @PostMapping(value = "/members/farmers/my-farm", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "농장 정보 등록")
     public BaseResponse<String> updateFarm(@AuthenticationPrincipal CustomUserDetails user,
-                                           @ModelAttribute FarmInfoUpdateDto dto) {
+                                           @ModelAttribute FarmInfoCreateDto dto) {
         return new BaseResponse<>(manageFarmService.updateFarm(user.getMemberUuid(), dto));
     }
 
@@ -61,7 +61,7 @@ public class ManageFarmController {
         return new BaseResponse<>(manageFarmService.getGeo(farmUuid));
     }
 
-    @PostMapping(value = "/farms/{farmUuid}/horses/{horseNumber}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/members/farms/{farmUuid}/horses/{horseNumber}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님)")
     public Mono<BaseResponse<String>> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
                                                        @PathVariable String farmUuid,

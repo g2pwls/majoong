@@ -4,6 +4,7 @@ import com.e105.majoong.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "farm")
@@ -34,6 +35,7 @@ public class Farm extends BaseEntity {
 
     private String address;
 
+    @CreatedDate
     @Column(nullable = false)
     private LocalDate openingDate;
 
