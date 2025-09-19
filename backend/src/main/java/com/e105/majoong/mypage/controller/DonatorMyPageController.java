@@ -30,7 +30,7 @@ public class DonatorMyPageController {
 
     private final DonatorMyPageService donatorMyPageService;
 
-    @GetMapping("/donations?page={page}&size={size}&startDate={startDate}&endDate={endDate}")
+    @GetMapping("/donations")
     @Operation(summary = "기부 내역 조회(시작 날짜와 끝 날짜를 지정해서 조회 가능)")
     public BaseResponse<DonationResponseDto> getDonations(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -53,6 +53,7 @@ public class DonatorMyPageController {
     @Operation(summary = "즐겨찾기 생성")
     public BaseResponse<Void> createBookmarks(@AuthenticationPrincipal CustomUserDetails user,
                                               @PathVariable String farmUuid) {
+        donatorMyPageService.createBookmarks(user.getMemberUuid(), farmUuid);
         return new BaseResponse<>();
     }
 

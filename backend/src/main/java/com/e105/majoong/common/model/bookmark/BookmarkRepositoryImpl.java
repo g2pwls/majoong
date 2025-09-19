@@ -18,8 +18,8 @@ public class BookmarkRepositoryImpl implements BookmarkRepositoryCustom {
     @Override
     public List<BookmarkResponseDto> findBookmarks(String memberUuid) {
         return queryFactory.select(Projections.constructor(BookmarkResponseDto.class,
-                        bookmark.farmUuid,
-                        farm.farmName))
+                        farm.farmName,
+                        bookmark.farmUuid))
                 .from(bookmark)
                 .join(farm).on(bookmark.farmUuid.eq(farm.farmUuid))
                 .where(bookmark.memberUuid.eq(memberUuid))
