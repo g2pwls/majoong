@@ -13,4 +13,6 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
     Optional<Farm> findByFarmUuid(String farmUuid);
 
     Page<Farm> findByFarmNameContaining(String farmName, Pageable pageable);
+
+    boolean existsByFarmUuid(String farmUuid);
 }
