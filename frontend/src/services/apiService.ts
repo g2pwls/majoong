@@ -220,7 +220,7 @@ export async function getFarm(farmId: string): Promise<Farm> {
 }
 
 // 농장의 말 목록 조회 (현재는 농장 목록에서 함께 반환되므로 별도 호출 불필요)
-export async function getHorses(_farmId: string): Promise<Horse[]> {
+export async function getHorses(): Promise<Horse[]> {
   try {
     // 백엔드에서 농장 목록 조회 시 말 정보도 함께 반환하므로
     // 별도의 API 호출이 필요하지 않습니다.

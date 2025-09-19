@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone"; // Import useDropzone from react-dropzone
+import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 
 interface HorseProfileData {
@@ -83,7 +84,7 @@ export default function HorseInfoPanel({
     setError("");
     setIsFetchComplete(false); // 조회 시작 시 버튼 비활성화
 
-    const serviceKey = process.env.NEXT_PUBLIC_HORSE_API_SERVICE_KEY; // 인증키
+    const serviceKey = process.env.HORSE_API_SERVICE_KEY; // 인증키
     
     if (!serviceKey) {
       setError("API 서비스 키가 설정되지 않았습니다.");
@@ -213,9 +214,11 @@ export default function HorseInfoPanel({
         >
           <input {...getInputProps()} />
           {filePreview ? (
-            <img
+            <Image
               src={filePreview}
               alt="Selected file preview"
+              width={300}
+              height={180}
               className="w-full h-full object-contain rounded-lg transition-all duration-300 ease-in-out"
             />
           ) : (

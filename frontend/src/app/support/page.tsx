@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Search, Star, MapPin, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFarms, getHorses, Farm, Horse, FarmListResponse } from "@/services/apiService";
+import { getFarms, Farm, Horse } from "@/services/apiService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -57,9 +58,11 @@ const FarmCard: React.FC<{ farm: Farm }> = ({ farm }) => (
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         {/* 왼쪽: cover + 정보 */}
         <Link href={`/support/${farm.id}`} className="flex gap-4 items-start cursor-pointer">
-          <img
+          <Image
             src={farm.image_url}
             alt={`${farm.farm_name} cover`}
+            width={232}
+            height={168}
             className="h-42 w-58 rounded-xl object-cover"
           />
           <div className="flex flex-col gap-1">
@@ -90,14 +93,18 @@ const FarmCard: React.FC<{ farm: Farm }> = ({ farm }) => (
             </Button>
           </Link>
           <div className="flex gap-2">
-            {(farm.horse_url ?? []).slice(0, 4).map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`${farm.farm_name} horse_url ${i + 1}`}
-                className="h-30 w-23 rounded-lg object-cover"
-              />
-            ))}
+            {(farm.horse_url ?? []).slice(0, 4).map((src, i) => 
+              src ? (
+                <Image
+                  key={i}
+                  src={src}
+                  alt={`${farm.farm_name} horse_url ${i + 1}`}
+                  width={92}
+                  height={120}
+                  className="h-30 w-23 rounded-lg object-cover"
+                />
+              ) : null
+            )}
           </div>
         </div>
       </div>
@@ -112,9 +119,11 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
         <div className="flex gap-4 items-start">
           {/* 말 이미지 */}
           <div className="flex-shrink-0">
-            <img
+            <Image
               src={horse.horse_url || "/horses/mal.png"}
               alt={`${horse.hrNm} 이미지`}
+              width={96}
+              height={128}
               className="h-32 w-24 rounded-lg object-cover"
             />
           </div>

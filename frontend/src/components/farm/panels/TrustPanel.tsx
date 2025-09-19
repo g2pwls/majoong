@@ -1,7 +1,7 @@
 // src/components/farm/panels/TrustPanel.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FarmService } from "@/services/farmService";
 import { ScoreHistory, ScoreHistoryItem } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -25,7 +25,7 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
   const itemsPerPage = 10;
 
   // 신뢰도 내역 조회 (월별 평균)
-  const fetchScoreHistory = async (year: number, month?: number) => {
+  const fetchScoreHistory = useCallback(async (year: number, month?: number) => {
     try {
       setLoading(true);
       setError(null);
@@ -41,10 +41,10 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farmId]);
 
   // 신뢰도 목록 조회 (상세 내역)
-  const fetchScoreHistoryList = async (year?: number, month?: number) => {
+  const fetchScoreHistoryList = useCallback(async (year?: number, month?: number) => {
     try {
       setLoading(true);
       setError(null);
@@ -60,13 +60,13 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farmId]);
 
   // 년도 변경 시 그래프 데이터와 상세 내역 조회
   useEffect(() => {
     fetchScoreHistory(selectedYear);
     fetchScoreHistoryList(selectedYear, selectedMonth || undefined);
-  }, [farmId, selectedYear]);
+  }, [farmId, selectedYear, fetchScoreHistory, fetchScoreHistoryList, selectedMonth]);
 
   // 월 변경 시 상세 내역만 다시 조회
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     } else {
       fetchScoreHistoryList(selectedYear);
     }
-  }, [selectedMonth]);
+  }, [selectedMonth, fetchScoreHistoryList, selectedYear]);
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);

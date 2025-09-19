@@ -648,7 +648,7 @@ export class FarmService {
         month
       });
 
-      const params: any = {};
+      const params: { year?: number; month?: number } = {};
       if (year) params.year = year;
       if (month) params.month = month;
 
@@ -669,6 +669,34 @@ export class FarmService {
       return response.data;
     } catch (error) {
       console.error('주간 보고서 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 주간 보고서 상세 조회
+  static async getHorseWeeklyReportDetail(horseNum: number, horseStateId: number) {
+    try {
+      console.log('말 주간 보고서 상세 조회 API 호출:', {
+        horseNum,
+        horseStateId
+      });
+
+      const response = await apiClient.get(
+        `/api/v1/farms/horses/${horseNum}/weekly-reports/${horseStateId}`
+      );
+
+      console.log('말 주간 보고서 상세 조회 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('말 주간 보고서 상세 조회 실패:', error);
       throw error;
     }
   }

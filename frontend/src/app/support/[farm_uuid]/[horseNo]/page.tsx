@@ -1,14 +1,15 @@
 // src/app/support/[farm_uuid]/[horseNo]/page.tsx
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Trophy, MapPin, Phone } from "lucide-react";
 import { FarmService } from "@/services/farmService";
-import { HorseDetailResult, WeeklyReport } from "@/types/farm";
+import { HorseDetailResult } from "@/types/farm";
 
 
 type Farm = {
@@ -42,7 +43,7 @@ export default function HorseDetailPage({ params }: PageProps) {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   // 말 상세 정보 가져오기 (주간 보고서 포함)
-  const fetchHorseDetail = async (year: number, month: number) => {
+  const fetchHorseDetail = useCallback(async (year: number, month: number) => {
     try {
       setLoading(true);
       setError(null);
@@ -55,22 +56,22 @@ export default function HorseDetailPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farm_uuid, horseNo]);
 
   // 목장 정보 가져오기
-  const fetchFarmInfo = async () => {
+  const fetchFarmInfo = useCallback(async () => {
     try {
       const farmData = await FarmService.getFarm(farm_uuid);
       setFarm(farmData);
     } catch (e: unknown) {
       console.error("Farm fetch error:", e);
     }
-  };
+  }, [farm_uuid]);
 
   useEffect(() => {
     fetchHorseDetail(selectedYear, selectedMonth);
     fetchFarmInfo();
-  }, [farm_uuid, horseNo, selectedYear, selectedMonth]);
+  }, [fetchHorseDetail, fetchFarmInfo, selectedYear, selectedMonth]);
 
   const handleBack = () => {
     router.push(`/support/${farm_uuid}`);
@@ -131,9 +132,11 @@ export default function HorseDetailPage({ params }: PageProps) {
             <Card className="overflow-hidden">
               <CardContent className="p-0">
                 {horse.horseImageUrl ? (
-                  <img
+                  <Image
                     src={horse.horseImageUrl}
                     alt={horse.horseName}
+                    width={400}
+                    height={256}
                     className="w-full h-64 object-contain"
                   />
                 ) : (
@@ -304,13 +307,19 @@ export default function HorseDetailPage({ params }: PageProps) {
                 
                 {horse.weeklyReport && horse.weeklyReport.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {horse.weeklyReport.map((report, index) => (
-                      <div key={report.horseReportId} className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                    {horse.weeklyReport.map((report) => (
+                      <div 
+                        key={report.horseReportId} 
+                        className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                        onClick={() => router.push(`/support/${farm_uuid}/${horseNo}/${report.horseReportId}`)}
+                      >
                         <div className="flex items-start gap-3 mb-3">
                           {report.frontImageUrl && (
-                            <img
+                            <Image
                               src={report.frontImageUrl}
                               alt={`${horse.horseName} ${report.month}월 ${report.week}주차`}
+                              width={64}
+                              height={64}
                               className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                             />
                           )}
