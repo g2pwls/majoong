@@ -164,25 +164,30 @@ pipeline {
                         '''
                     }
 
-                    if (env.BRANCH_NAME == 'dev') {
-                        echo "Using frontend .env.development"
-                        withCredentials([file(credentialsId: 'FRONT_ENV_DEV', variable: 'FRONT_ENV')]) {
-                            sh '''
-                            install -m 640 -T "$FRONT_ENV" "frontend/.env"
-                            echo "[ENV] frontend/.env installed"
-                            '''
-                        }
-                    } else if (env.BRANCH_NAME == 'main') {
-                        echo "Using frontend .env.production"
-                        withCredentials([file(credentialsId: 'FRONT_ENV_PROD', variable: 'FRONT_ENV')]) {
-                            sh '''
-                            install -m 640 -T "$FRONT_ENV" "frontend/.env"
-                            echo "[ENV] frontend/.env installed"
-                            '''
-                        }
+                    // 2) frontend/.env 주입 (브랜치별 분기)
+                    String credId
+                    String envName
+                    if (env.BRANCH_NAME == 'main') {
+                        credId  = 'FRONT_ENV_PROD'     // Jenkins에 등록된 .env.production 시크릿 파일
+                        envName = '.env.production'
+                        echo "Using frontend ${envName}"
+                    } else if (env.BRANCH_NAME == 'dev') {
+                        credId  = 'FRONT_ENV_DEV'      // Jenkins에 등록된 .env.development 시크릿 파일
+                        envName = '.env.development'
+                        echo "Using frontend ${envName}"
                     } else {
                         error "❌ Unknown branch: ${env.BRANCH_NAME}. Expected 'dev' or 'main'."
                     }
+
+                    withCredentials([file(credentialsId: credId, variable: 'FRONT_ENV')]) {
+                        sh '''
+                        # 브랜치에 맞는 시크릿 파일을 frontend/.env로 복사
+                        install -m 640 -T "$FRONT_ENV" "frontend/.env"
+                        echo "[ENV] frontend/.env installed"
+
+                        # (선택) 런타임 유저가 node(1000)라면 소유권 맞추기 — 필요 없으면 주석 처리
+                        chown -f 1000:1000 "frontend/.env" || true
+                        '''
                 }
             }
         }
