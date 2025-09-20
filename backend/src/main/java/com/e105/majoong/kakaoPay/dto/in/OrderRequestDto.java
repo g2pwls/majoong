@@ -7,8 +7,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderRequestDto {
-
-    String itemName;
-    String quantity;
     String totalPrice;
+    String farmUuid;
 }

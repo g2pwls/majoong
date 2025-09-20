@@ -6,7 +6,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ReadyResponse {
+public class ReadyResponseDto {
     String tid;
     String next_redirect_pc_url;
 }

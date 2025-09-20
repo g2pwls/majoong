@@ -1,8 +1,8 @@
 package com.e105.majoong.kakaoPay.util;
 
 import com.e105.majoong.kakaoPay.dto.in.OrderRequestDto;
-import com.e105.majoong.kakaoPay.dto.out.ApproveResponse;
-import com.e105.majoong.kakaoPay.dto.out.ReadyResponse;
+import com.e105.majoong.kakaoPay.dto.out.ApproveResponseDto;
+import com.e105.majoong.kakaoPay.dto.out.ReadyResponseDto;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +11,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -49,15 +46,15 @@ public class KakaoPayProvider {
     @Value("${kakaopay.url.approveRedirect}")
     private String approveRedirect;
 
-    public ReadyResponse ready(OrderRequestDto request) {
+    public ReadyResponseDto ready(OrderRequestDto request, String memberUuid) {
 
         Map<String, String> parameters = new HashMap<>();
 
         parameters.put("cid", cid);
-        parameters.put("partner_order_id", "1234567890");
-        parameters.put("partner_user_id", "1234567890");
-        parameters.put("item_name", request.getItemName());
-        parameters.put("quantity", request.getQuantity());
+        parameters.put("partner_order_id", request.getFarmUuid());
+        parameters.put("partner_user_id", memberUuid);
+        parameters.put("item_name", "후원");
+        parameters.put("quantity", "1");
         parameters.put("total_amount", request.getTotalPrice());
         parameters.put("tax_free_amount", "0");
         parameters.put("approval_url", approveUrl);
@@ -68,10 +65,11 @@ public class KakaoPayProvider {
 
         RestTemplate restTemplate = new RestTemplate();
         String url = readyUrl;
-        ResponseEntity<ReadyResponse> response = restTemplate.postForEntity(url, entity, ReadyResponse.class);
+        ResponseEntity<ReadyResponseDto> response = restTemplate.postForEntity(url, entity, ReadyResponseDto.class);
 
-        SessionProvider.addAttribute("tid",
-                Objects.requireNonNull(response.getBody()).getTid());
+        SessionProvider.addAttribute("tid", Objects.requireNonNull(response.getBody()).getTid());
+        SessionProvider.addAttribute("partner_order_id", request.getFarmUuid());
+        SessionProvider.addAttribute("partner_user_id", memberUuid);
 
         return response.getBody();
     }
@@ -83,19 +81,19 @@ public class KakaoPayProvider {
         return headers;
     }
 
-    public ApproveResponse approve(String pgToken) {
+    public ApproveResponseDto approve(String pgToken) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("cid", cid);
         parameters.put("tid", SessionProvider.getStringAttribute("tid"));
-        parameters.put("partner_order_id", "1234567890");
-        parameters.put("partner_user_id", "1234567890");
+        parameters.put("partner_order_id", SessionProvider.getStringAttribute("partner_order_id"));
+        parameters.put("partner_user_id", SessionProvider.getStringAttribute("partner_user_id"));
         parameters.put("pg_token", pgToken);
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
 
         RestTemplate restTemplate = new RestTemplate();
         String url = approveRedirect;
-        ResponseEntity<ApproveResponse> response = restTemplate.postForEntity(url, entity, ApproveResponse.class);
+        ResponseEntity<ApproveResponseDto> response = restTemplate.postForEntity(url, entity, ApproveResponseDto.class);
 
         return response.getBody();
     }
