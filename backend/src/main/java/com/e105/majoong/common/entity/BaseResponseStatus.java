@@ -58,6 +58,7 @@ public enum BaseResponseStatus {
     DUPLICATED_BOOKMARK(HttpStatus.CONFLICT, false, 2404, "이미 등록된 농장입니다."),
     NO_EXIST_MY_FARM(HttpStatus.NOT_FOUND, false, 2405, "내 농장을 조회할 수 없습니다."),
     NO_EXIST_HORSE_STATE(HttpStatus.NOT_FOUND, false, 2406, "농장 상태를 조회할 수 없습니다."),
+    IS_DELETED_HORSE(HttpStatus.NOT_FOUND, false, 2407, "이미 삭제된 말입니다"),
 
     //s3
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 4003, "S3 업로드 중 오류 발생"),
@@ -92,6 +93,8 @@ public enum BaseResponseStatus {
     //score
     NO_EXIST_MY_SCORE(HttpStatus.NOT_FOUND, false, 7301, "내 신뢰도를 찾을 수 없습니다."),
 
+    //batch
+    NO_EXIST_JOB_PARAMETER(HttpStatus.NOT_FOUND, false, 8001, "파라미터가 존재하지 않습니다"),
     ;
   private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

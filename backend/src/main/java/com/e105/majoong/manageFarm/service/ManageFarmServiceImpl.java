@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
@@ -68,16 +69,37 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     }
 
     @Override
+    @Transactional
     public void updateHorse(String memberUuid, HorseInfoUpdateDto updateDto) {
         Farm farm = farmRepository.findByFarmUuid(updateDto.getFarmUuid()).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+        if (!farm.getMemberUuid().equals(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
         try {
             String imageUrl = s3Uploader.upload(updateDto.getProfileImage(), HORSE_IMAGE_DIR);
             horseRepository.save(updateDto.toEntity(farm, imageUrl));
-
+            farmRepository.incrementHorseCount(farm.getFarmUuid());
         } catch (IOException e) {
             throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
         }
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteHorse(String memberUuid, Long horseNumber, String farmUuid) {
+        Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+        if (!farm.getMemberUuid().equals(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
+        Horse horse = horseRepository.findByHorseNumber(horseNumber).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_HORSE));
+        if (horse.getDeletedAt() != null) {
+            throw new BaseException(BaseResponseStatus.IS_DELETED_HORSE);
+        }
+        horse.updateDeletedAt();
+        farmRepository.decrementHorseCount(farmUuid);
     }
 
     @Override
@@ -87,7 +109,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
         if (!farm.getMemberUuid().equals(memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
         }
-        List<Horse> horses = horseRepository.findByFarm(farm);
+        List<Horse> horses = horseRepository.findByFarmAndDeletedAtIsNull(farm);
         return horses.stream().map(HorseListResponseDto::toDto).toList();
     }
 
@@ -120,7 +142,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
             if (!farm.getMemberUuid().equals(memberUuid)) {
                 throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
             }
-            if (!horseRepository.existsByHorseNumber(horseNumber)) {
+            if (!horseRepository.existsByHorseNumberAndDeletedAtIsNull(horseNumber)) {
                 throw new BaseException(BaseResponseStatus.NO_EXIST_HORSE);
             }
             return farm;

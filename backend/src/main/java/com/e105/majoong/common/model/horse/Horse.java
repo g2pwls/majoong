@@ -3,6 +3,7 @@ package com.e105.majoong.common.model.horse;
 import com.e105.majoong.common.entity.BaseEntity;
 import com.e105.majoong.common.model.farm.Farm;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -58,4 +59,11 @@ public class Horse extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "farm_id", nullable = false)
     private Farm farm;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    public void updateDeletedAt() {
+        this.deletedAt = LocalDateTime.now();
+    }
 }
