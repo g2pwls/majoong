@@ -10,4 +10,6 @@ public interface DonationHistoryRepositoryCustom {
     );
 
     DonationHistoryDetailResponseDto findDonationHistoryDetail(String memberUuid, Long donationHistoryId);
+
+    long getMonthlyTotalDonation(String farmUuid, int year, int month);
 }
