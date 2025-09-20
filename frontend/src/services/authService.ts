@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LoginResponse, SignupCompleteRequest, SignupCompleteResponse, RefreshTokenRequest, RefreshTokenResponse } from '@/types/auth';
+import { LoginResponse, SignupCompleteRequest, SignupCompleteResponse, RefreshTokenRequest, RefreshTokenResponse, FarmerInfoResponse, DonatorInfoResponse } from '@/types/auth';
 
 // 사업자 인증 요청 타입
 export interface BusinessVerificationRequest {
@@ -48,6 +48,17 @@ const generateTimestampEmail = (originalEmail: string): string => {
   return `${truncatedPrefix}${timestamp}@naver.com`;
 };
 
+// 토큰을 로컬 스토리지에서 가져오기 (인터셉터에서 사용하기 위해 먼저 정의)
+export const getTokens = () => {
+  return {
+    accessToken: localStorage.getItem('accessToken'),
+    refreshToken: localStorage.getItem('refreshToken'),
+    tempAccessToken: localStorage.getItem('tempAccessToken'),
+    email: localStorage.getItem('email'),
+    role: localStorage.getItem('role'),
+  };
+};
+
 // axios 인스턴스 생성 (쿠키 포함)
 const authApi = axios.create({
   baseURL: API_BASE_URL,
@@ -56,6 +67,69 @@ const authApi = axios.create({
   },
   withCredentials: true, // 쿠키 포함
 });
+
+// 요청 인터셉터: 모든 요청에 Authorization 헤더 자동 추가
+authApi.interceptors.request.use(
+  (config) => {
+    const tokens = getTokens();
+    
+    // accessToken이 있으면 우선 사용 (회원가입 완료 후)
+    if (tokens.accessToken) {
+      config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+      console.log('🔑 Request Interceptor - accessToken 사용');
+    } else if (tokens.tempAccessToken) {
+      // accessToken이 없을 때만 tempAccessToken 사용 (회원가입 완료 전)
+      config.headers.Authorization = `Bearer ${tokens.tempAccessToken}`;
+      console.log('🔑 Request Interceptor - tempAccessToken 사용');
+    } else {
+      console.log('❌ Request Interceptor - 사용할 토큰이 없음');
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// 응답 인터셉터: 401 에러 시 토큰 갱신 시도
+authApi.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  async (error) => {
+    const originalRequest = error.config;
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        const tokens = getTokens();
+        if (tokens.refreshToken) {
+          const newTokens = await refreshAccessToken(tokens.refreshToken);
+          saveTokens(
+            newTokens.accessToken,
+            newTokens.refreshToken,
+            newTokens.tempAccessToken,
+            newTokens.email,
+            newTokens.role
+          );
+          
+          // 원래 요청 재시도
+          originalRequest.headers.Authorization = `Bearer ${newTokens.accessToken}`;
+          return authApi(originalRequest);
+        }
+      } catch (refreshError) {
+        console.error('토큰 갱신 실패:', refreshError);
+        clearTokens();
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // 세션 쿠키 기반 로그인 API 호출
 export const signInWithSession = async (): Promise<LoginResponse> => {
@@ -87,17 +161,13 @@ export const signupComplete = async (signupData: SignupCompleteRequest): Promise
   try {
     console.log('signupComplete API 호출 시작:', signupData);
     
-    // tempAccessToken을 Authorization 헤더로 설정
+    // tempAccessToken이 있는지 확인 (인터셉터에서 자동으로 헤더에 추가됨)
     const tokens = getTokens();
     if (!tokens.tempAccessToken) {
       throw new Error('tempAccessToken이 없습니다. 다시 로그인해주세요.');
     }
     
-    const response = await authApi.post<SignupCompleteResponse>('/api/v1/auth/signup-complete', signupData, {
-      headers: {
-        'Authorization': `Bearer ${tokens.tempAccessToken}`
-      }
-    });
+    const response = await authApi.post<SignupCompleteResponse>('/api/v1/auth/signup-complete', signupData);
     
     console.log('signupComplete API 응답:', response.data);
     // 백엔드 BaseResponse 전체를 반환 (isSuccess, message 등 포함)
@@ -143,7 +213,14 @@ export const refreshAccessToken = async (refreshToken: string): Promise<RefreshT
 export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string, email?: string, role?: string) => {
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
-  localStorage.setItem('tempAccessToken', tempAccessToken);
+  
+  // tempAccessToken이 빈 문자열이면 제거, 아니면 저장
+  if (tempAccessToken && tempAccessToken !== '') {
+    localStorage.setItem('tempAccessToken', tempAccessToken);
+  } else {
+    localStorage.removeItem('tempAccessToken');
+  }
+  
   if (email) {
     localStorage.setItem('email', email);
   }
@@ -151,20 +228,18 @@ export const saveTokens = (accessToken: string, refreshToken: string, tempAccess
     localStorage.setItem('role', role);
   }
   
+  console.log('🔑 토큰 저장 완료:', {
+    hasAccessToken: !!accessToken,
+    hasRefreshToken: !!refreshToken,
+    hasTempAccessToken: !!(tempAccessToken && tempAccessToken !== ''),
+    email,
+    role
+  });
+  
   // 로그인 상태 변경 이벤트 발생
   window.dispatchEvent(new Event('authStateChanged'));
 };
 
-// 토큰을 로컬 스토리지에서 가져오기
-export const getTokens = () => {
-  return {
-    accessToken: localStorage.getItem('accessToken'),
-    refreshToken: localStorage.getItem('refreshToken'),
-    tempAccessToken: localStorage.getItem('tempAccessToken'),
-    email: localStorage.getItem('email'),
-    role: localStorage.getItem('role'),
-  };
-};
 
 // 토큰 삭제 (로그아웃 시)
 export const clearTokens = () => {
@@ -197,6 +272,60 @@ export const verifyBusiness = async (verificationData: BusinessVerificationReque
     }
     throw error;
   }
+};
+
+// 목장주 정보 조회 API
+export const getFarmerInfo = async (): Promise<FarmerInfoResponse> => {
+  try {
+    console.log('목장주 정보 조회 API 호출 시작');
+    
+    const response = await authApi.get<FarmerInfoResponse>('/api/v1/members/farmers');
+    
+    console.log('목장주 정보 조회 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('목장주 정보 조회 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
+// 기부자 정보 조회 API
+export const getDonatorInfo = async (): Promise<DonatorInfoResponse> => {
+  try {
+    console.log('기부자 정보 조회 API 호출 시작');
+    
+    const response = await authApi.get<DonatorInfoResponse>('/api/v1/members/donators');
+    
+    console.log('기부자 정보 조회 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('기부자 정보 조회 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
+// 토큰 상태 디버깅 함수
+export const debugTokenStatus = () => {
+  const tokens = getTokens();
+  console.log('🔍 현재 토큰 상태:', {
+    accessToken: tokens.accessToken ? `${tokens.accessToken.substring(0, 20)}...` : 'null',
+    refreshToken: tokens.refreshToken ? `${tokens.refreshToken.substring(0, 20)}...` : 'null',
+    tempAccessToken: tokens.tempAccessToken ? `${tokens.tempAccessToken.substring(0, 20)}...` : 'null',
+    email: tokens.email || 'null',
+    role: tokens.role || 'null'
+  });
 };
 
 // 사용자 role 확인 유틸리티 함수들

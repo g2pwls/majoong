@@ -50,3 +50,33 @@ export interface RefreshTokenResponse {
   role: string; // 'DONATOR' 또는 'FARMER'
   signUp: boolean;
 }
+
+// 목장주 정보 조회 API 응답 타입
+export interface FarmerInfoResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    role: string; // "farmer" (소문자)
+    nameString: string;
+    email: string;
+    walletAddress: string;
+    businessNum: string;
+    farmName: string;
+  };
+}
+
+// 기부자 정보 조회 API 응답 타입
+export interface DonatorInfoResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    role: string; // "donator" (소문자)
+    nameString: string;
+    email: string;
+    walletAddress: string;
+  };
+}

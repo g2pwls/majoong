@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getTokens } from '@/services/authService';
+import { getTokens, getUserRole, getFarmerInfo, getDonatorInfo, debugTokenStatus } from '@/services/authService';
 
 // 탭 컴포넌트들 (추후 구현)
 import DonorProfile from '@/components/mypage/DonorProfile';
@@ -21,7 +21,7 @@ type UserRole = 'DONATOR' | 'FARMER' | 'ADMIN';
 interface TabConfig {
   id: string;
   label: string;
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
 }
 
 export default function MyPage() {
@@ -29,19 +29,53 @@ export default function MyPage() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
   const [isLoading, setIsLoading] = useState(true);
+  const [farmerInfo, setFarmerInfo] = useState<any>(null);
+  const [donatorInfo, setDonatorInfo] = useState<any>(null);
 
   useEffect(() => {
-    // 로그인 상태 확인
-    const tokens = getTokens();
-    if (!tokens.accessToken) {
-      router.push('/login');
-      return;
-    }
+    const loadUserData = async () => {
+      try {
+        // 토큰 상태 디버깅
+        debugTokenStatus();
+        
+        // 로그인 상태 확인
+        const tokens = getTokens();
+        if (!tokens.accessToken && !tokens.tempAccessToken) {
+          console.log('❌ 로그인 토큰이 없음, 로그인 페이지로 이동');
+          router.push('/login');
+          return;
+        }
 
-    // TODO: 실제 사용자 역할을 API에서 가져와야 함
-    // 현재는 임시로 DONATOR로 설정
-    setUserRole('DONATOR');
-    setIsLoading(false);
+        // 사용자 역할 확인
+        const role = getUserRole();
+        if (!role) {
+          console.error('사용자 역할을 찾을 수 없습니다.');
+          router.push('/login');
+          return;
+        }
+
+        console.log('✅ 사용자 역할 확인:', role);
+        setUserRole(role as UserRole);
+
+        // 역할에 따른 정보 조회
+        if (role === 'FARMER') {
+          console.log('🔍 목장주 정보 조회 시작');
+          const farmerData = await getFarmerInfo();
+          setFarmerInfo(farmerData.result);
+        } else if (role === 'DONATOR') {
+          console.log('🔍 기부자 정보 조회 시작');
+          const donatorData = await getDonatorInfo();
+          setDonatorInfo(donatorData.result);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('사용자 데이터 로드 오류:', error);
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
   }, [router]);
 
   // 역할별 탭 설정
@@ -124,7 +158,11 @@ export default function MyPage() {
 
         {/* 탭 컨텐츠 */}
         <div className="bg-white rounded-lg shadow">
-          {ActiveComponent && <ActiveComponent />}
+          {ActiveComponent && <ActiveComponent 
+            farmerInfo={farmerInfo}
+            donatorInfo={donatorInfo}
+            userRole={userRole}
+          />}
         </div>
       </div>
     </div>

@@ -4,37 +4,49 @@ import React, { useState, useEffect } from 'react';
 import { getTokens } from '@/services/authService';
 
 interface FarmerInfo {
-  name: string;
+  role: string;
+  nameString: string;
   email: string;
   walletAddress: string;
-  businessNumber: string;
+  businessNum: string;
   farmName: string;
 }
 
-export default function FarmerProfile() {
+interface FarmerProfileProps {
+  farmerInfo?: FarmerInfo;
+  userRole?: string;
+}
+
+export default function FarmerProfile({ farmerInfo: propFarmerInfo, userRole }: FarmerProfileProps) {
   const [farmerInfo, setFarmerInfo] = useState<FarmerInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingFarmName, setIsEditingFarmName] = useState(false);
   const [editedFarmName, setEditedFarmName] = useState('');
 
   useEffect(() => {
-    // TODO: 실제 API에서 농장주 정보를 가져와야 함
-    // 현재는 임시 데이터 사용
-    const tokens = getTokens();
-    
-    // 임시 데이터
-    const mockData: FarmerInfo = {
-      name: '김농장',
-      email: tokens.email || 'farmer@example.com',
-      walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-      businessNumber: '123-45-67890',
-      farmName: '행복한 목장'
-    };
-    
-    setFarmerInfo(mockData);
-    setEditedFarmName(mockData.farmName);
-    setIsLoading(false);
-  }, []);
+    if (propFarmerInfo) {
+      // props로 받은 데이터 사용
+      setFarmerInfo(propFarmerInfo);
+      setEditedFarmName(propFarmerInfo.farmName);
+      setIsLoading(false);
+    } else {
+      // 기존 로직 (임시 데이터)
+      const tokens = getTokens();
+      
+      const mockData: FarmerInfo = {
+        role: 'farmer',
+        nameString: '김농장',
+        email: tokens.email || 'farmer@example.com',
+        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
+        businessNum: '123-45-67890',
+        farmName: '행복한 목장'
+      };
+      
+      setFarmerInfo(mockData);
+      setEditedFarmName(mockData.farmName);
+      setIsLoading(false);
+    }
+  }, [propFarmerInfo]);
 
   const handleSaveFarmName = () => {
     // TODO: 실제 API 호출
@@ -72,7 +84,7 @@ export default function FarmerProfile() {
             이름
           </label>
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-            {farmerInfo?.name}
+            {farmerInfo?.nameString}
           </div>
         </div>
 
@@ -105,7 +117,7 @@ export default function FarmerProfile() {
             사업자 등록번호
           </label>
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-            {farmerInfo?.businessNumber}
+            {farmerInfo?.businessNum}
           </div>
           <p className="mt-1 text-xs text-gray-500">
             사업자 등록번호는 수정할 수 없습니다.
