@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { LoginResponse, SignupCompleteRequest, SignupCompleteResponse } from '@/types/auth';
+import { LoginResponse, SignupCompleteRequest, SignupCompleteResponse, RefreshTokenRequest, RefreshTokenResponse } from '@/types/auth';
 
 // 사업자 인증 요청 타입
 export interface BusinessVerificationRequest {
@@ -48,17 +48,6 @@ const generateTimestampEmail = (originalEmail: string): string => {
   return `${truncatedPrefix}${timestamp}@naver.com`;
 };
 
-
-// 원래 코드 (개발 완료 후 사용):
-// const generateRandomId = (): string => {
-//   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-//   let result = '';
-//   for (let i = 0; i < 10; i++) {
-//     result += characters.charAt(Math.floor(Math.random() * characters.length));
-//   }
-//   return result;
-// };
-
 // axios 인스턴스 생성 (쿠키 포함)
 const authApi = axios.create({
   baseURL: API_BASE_URL,
@@ -87,9 +76,6 @@ export const signInWithSession = async (): Promise<LoginResponse> => {
     }
     
     return loginResponse;
-    
-    // 원래 코드 (개발 완료 후 사용):
-    // return response.data.result;
   } catch (error) {
     console.error('세션 기반 로그인 API 오류:', error);
     throw error;
@@ -128,13 +114,41 @@ export const signupComplete = async (signupData: SignupCompleteRequest): Promise
   }
 };
 
+// Refresh Token으로 새로운 액세스 토큰 발급
+export const refreshAccessToken = async (refreshToken: string): Promise<RefreshTokenResponse> => {
+  try {
+    console.log('Refresh Token API 호출 시작');
+    
+    const requestData: RefreshTokenRequest = {
+      refreshToken: refreshToken
+    };
+    
+    const response = await authApi.post<RefreshTokenResponse>('/api/v1/auth/token/refresh', requestData);
+    
+    console.log('Refresh Token API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('Refresh Token API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
 // 토큰을 로컬 스토리지에 저장
-export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string, email?: string) => {
+export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string, email?: string, role?: string) => {
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
   localStorage.setItem('tempAccessToken', tempAccessToken);
   if (email) {
     localStorage.setItem('email', email);
+  }
+  if (role) {
+    localStorage.setItem('role', role);
   }
   
   // 로그인 상태 변경 이벤트 발생
@@ -148,6 +162,7 @@ export const getTokens = () => {
     refreshToken: localStorage.getItem('refreshToken'),
     tempAccessToken: localStorage.getItem('tempAccessToken'),
     email: localStorage.getItem('email'),
+    role: localStorage.getItem('role'),
   };
 };
 
@@ -157,6 +172,7 @@ export const clearTokens = () => {
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('tempAccessToken');
   localStorage.removeItem('email');
+  localStorage.removeItem('role');
   
   // 로그인 상태 변경 이벤트 발생
   window.dispatchEvent(new Event('authStateChanged'));
@@ -181,4 +197,20 @@ export const verifyBusiness = async (verificationData: BusinessVerificationReque
     }
     throw error;
   }
+};
+
+// 사용자 role 확인 유틸리티 함수들
+export const isFarmer = (): boolean => {
+  const tokens = getTokens();
+  return tokens.role === 'FARMER';
+};
+
+export const isDonator = (): boolean => {
+  const tokens = getTokens();
+  return tokens.role === 'DONATOR';
+};
+
+export const getUserRole = (): string | null => {
+  const tokens = getTokens();
+  return tokens.role;
 };
