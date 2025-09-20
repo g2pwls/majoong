@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { signupComplete, getTokens } from '@/services/authService';
+import { signupComplete, getTokens, saveTokens } from '@/services/authService';
 
 export default function WalletCreatePage() {
   // const [isCreating, setIsCreating] = useState(true);
@@ -102,14 +102,23 @@ export default function WalletCreatePage() {
           // 5. 회원가입 완료 - 진행률 100%로 설정
           setProgress(100);
           
-          // 6. 임시 데이터 삭제
+          // 6. 새로운 토큰 정보 저장 (role 포함)
+          const { accessToken, refreshToken, tempAccessToken, email, role } = response.result;
+          saveTokens(accessToken, refreshToken, tempAccessToken, email, role);
+          
+          // 7. 임시 데이터 삭제
           localStorage.removeItem('pendingSignupData');
           localStorage.removeItem('isProcessingSignup');
           
-          // 7. 완료 팝업 표시 후 메인 페이지로 이동
+          // 8. 완료 팝업 표시 후 role에 따른 페이지 이동
           setTimeout(() => {
             alert('🎉 회원가입이 완료되었습니다!\n지갑이 성공적으로 생성되었습니다.');
-            window.location.href = '/';
+            // role에 따른 리다이렉트
+            if (role === 'FARMER') {
+              window.location.href = '/mypage';
+            } else {
+              window.location.href = '/';
+            }
           }, 500);
         } else {
           throw new Error(response.message || '회원가입에 실패했습니다.');
