@@ -1,5 +1,6 @@
 package com.e105.majoong.batch.score.horseState.tasklet;
 
+import com.e105.majoong.batch.score.horseState.dto.HorseInFarmDto;
 import com.e105.majoong.batch.score.horseState.snapshot.FarmSnapshot;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
@@ -7,6 +8,7 @@ import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
 import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.model.horse.HorseRepository;
+import com.e105.majoong.common.model.horse.HorseRepositoryCustom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -63,7 +65,8 @@ import org.springframework.stereotype.Component;
 //(MyScore를 쓰면) my_score에 월 누적 업서트(year, month, category)
 //
 //출력: 없음(영구 저장)
-//
+
+
 //B) 주간 말 상태 Job (weeklyHorseStatusJob)
 //
 //WindowLockTasklet
@@ -80,7 +83,7 @@ import org.springframework.stereotype.Component;
 //
 //출력: WEEK_HORSE_SNAPSHOT(farm → {horseIds, registeredCount})
 //
-//AggregateWeeklyHorseUploadsTasklet
+//AggregateWeeklyHorseStatusUploadsTasklet
 //
 //역할: upload_log(type='HORSE_STATUS')에서 금~일 distinct(horse_id) 집계
 //
@@ -110,27 +113,39 @@ import org.springframework.stereotype.Component;
 public class FetchWeeklyTargetsSnapshotTasklet implements Tasklet {
 
     private final FarmRepository farmRepository;
-    private final HorseRepository horseRepository;
+    private final HorseRepositoryCustom horseRepositoryCustom;
     private final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        String weekRefDate = chunkContext.getStepContext().getStepExecution().getJobParameters().getString("weekRefDate");
+        String weekRefDate = chunkContext.getStepContext().getStepExecution().getJobParameters()
+                .getString("weekRefDate");
         if (weekRefDate == null) {
             throw new BaseException(BaseResponseStatus.NO_EXIST_JOB_PARAMETER);
         }
         LocalDate monday = LocalDate.parse(weekRefDate);
-        LocalDateTime friday = monday.minusDays(3).atStartOfDay(KST).toLocalDateTime();
-        LocalDateTime sunday = monday.minusDays(1)
+        LocalDateTime start = monday.minusDays(3).atStartOfDay(KST).toLocalDateTime();
+        LocalDateTime end = monday.minusDays(1)
                 .atTime(23, 59, 59, 999_000_000)
                 .atZone(KST).toLocalDateTime();
 
         List<Farm> farms = farmRepository.findAll();
-        Set<String> farmUuids = farms.stream()
-                .map(Farm::getFarmUuid)
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        List<HorseInFarmDto> horseInFarm = horseRepositoryCustom.findActiveHorsesAt(start, end);
 
+        Map<String, Set<Long>> horsesByFarm = new HashMap<>();
+        for(Farm farm : farms) {
+            horsesByFarm.put(farm.getFarmUuid(), new LinkedHashSet<>());
+        }
+        for (HorseInFarmDto dto : horseInFarm) {
+            horsesByFarm.get(dto.getFarmUuid()).add(dto.getHorseNumber());
+        }
 
-        return null;
+        var executeContext = chunkContext.getStepContext().getStepExecution().getExecutionContext();
+
+        executeContext.put("WEEK_HORSE_SNAPSHOT", horsesByFarm);
+        executeContext.putString("WEEK_START", start.toString());
+        executeContext.putString("WEEK_END", end.toString());
+        executeContext.putString("WEEK_LABEL", monday.minusDays(3).toString());
+        return RepeatStatus.FINISHED;
     }
 }
