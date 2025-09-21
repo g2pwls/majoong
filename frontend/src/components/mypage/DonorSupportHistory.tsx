@@ -6,6 +6,7 @@ import type { DonationHistoryRequest, DonationHistoryResponse } from '@/types/us
 import DonationDetailModal from './DonationDetailModal';
 
 interface SupportRecord {
+  donationHistoryId: number;
   farmUuid: string;
   donationDate: string;
   farmName: string;
@@ -126,15 +127,9 @@ export default function DonorSupportHistory() {
     window.open(`/support/${farmUuid}`, '_blank');
   };
 
-  const handleDonationClick = (index: number) => {
-    // TODO: 실제 donationHistoryId를 사용할 수 있도록 API 응답 수정 필요
-    // 현재는 임시로 인덱스 + 1을 사용 (1부터 시작하는 ID 가정)
-    // 실제 donationHistoryId가 없으므로 임시로 모달 열기 비활성화
-    console.log('기부 상세 조회 기능은 donationHistoryId가 API 응답에 추가된 후 활성화됩니다.');
-    alert('기부 상세 조회 기능은 준비 중입니다. 백엔드에서 donationHistoryId를 추가해 주세요.');
-    
-    // setSelectedDonationId(index + 1);
-    // setIsModalOpen(true);
+  const handleDonationClick = (donationHistoryId: number) => {
+    setSelectedDonationId(donationHistoryId);
+    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
@@ -248,7 +243,7 @@ export default function DonorSupportHistory() {
                  <div 
                    key={`${record.farmUuid}-${record.donationDate}-${index}`} 
                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
-                   onClick={() => handleDonationClick(index)}
+                   onClick={() => handleDonationClick(record.donationHistoryId)}
                  >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
