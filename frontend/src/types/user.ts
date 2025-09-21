@@ -95,6 +95,23 @@ export interface DonationHistoryResponse {
   };
 }
 
+// 기부 상세 조회 API 응답 타입
+export interface DonationDetailResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    imageUrl: string;
+    donationDate: string;
+    donatorWalletAddress: string;
+    farmWalletAddress: string;
+    donationToken: number;
+    txHash: string;
+    farmName: string;
+  };
+}
+
 // 향후 추가될 사용자 관련 타입들
 // export interface MyFarmResponse { ... }
 // export interface SupportReceivedResponse { ... }
