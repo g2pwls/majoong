@@ -37,35 +37,30 @@ export default function SignupPage() {
       return;
     }
 
-    // 개업일자 형식 검증 (YYYYMMDD, 8자리 숫자)
-    if (farmerInfo.openingDate.length !== 8 || !/^\d{8}$/.test(farmerInfo.openingDate)) {
-      alert('개업일자는 YYYYMMDD 형식으로 8자리 숫자를 입력해주세요. (예: 20240101)');
+    // 개업일자 형식 검증 (YYYY-MM-DD)
+    if (!farmerInfo.openingDate || !/^\d{4}-\d{2}-\d{2}$/.test(farmerInfo.openingDate)) {
+      alert('개업일자를 올바르게 입력해주세요.');
       return;
     }
-
-    // 날짜를 읽기 쉽게 포맷팅 (YYYYMMDD → YYYY-MM-DD)
-    const formatDate = (dateStr: string) => {
-      if (dateStr.length === 8) {
-        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-      }
-      return dateStr;
-    };
 
     // 확인 팝업 표시
     const confirmed = confirm('입력하신 사업자 정보가 정확한지 확인해주세요.\n\n' +
       `목장명: ${farmerInfo.farmName}\n` +
       `대표자: ${farmerInfo.representativeName}\n` +
       `사업자 등록번호: ${farmerInfo.businessNumber}\n` +
-      `개업일자: ${formatDate(farmerInfo.openingDate)}\n\n` +
+      `개업일자: ${farmerInfo.openingDate}\n\n` +
       '위 정보가 정확하다면 확인을 눌러주세요.');
     
     if (confirmed) {
       try {
         setFarmerInfo(prev => ({ ...prev, businessVerifying: true }));
         
+        // 날짜를 YYYY-MM-DD에서 YYYYMMDD로 변환
+        const openingDateFormatted = farmerInfo.openingDate.replace(/-/g, '');
+        
         const verificationData = {
           businessNum: farmerInfo.businessNumber,
-          openingDate: farmerInfo.openingDate,
+          openingDate: openingDateFormatted,
           name: farmerInfo.representativeName,
           farmName: farmerInfo.farmName
         };
@@ -244,20 +239,31 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label htmlFor="openingDate" className="block text-sm font-medium text-gray-700">
-                    개업일자 * (YYYYMMDD 형식)
+                    개업일자 * (YYYY-MM-DD)
                   </label>
                   <input
                     id="openingDate"
                     type="text"
                     value={farmerInfo.openingDate}
                     onChange={(e) => {
-                      // 숫자만 입력 허용하고 8자리로 제한
-                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+                      let value = e.target.value.replace(/[^0-9-]/g, ''); // 숫자와 하이픈만 허용
+                      
+                      // 하이픈 자동 추가
+                      if (value.length >= 5 && value.charAt(4) !== '-') {
+                        value = value.slice(0, 4) + '-' + value.slice(4);
+                      }
+                      if (value.length >= 8 && value.charAt(7) !== '-') {
+                        value = value.slice(0, 7) + '-' + value.slice(7);
+                      }
+                      
+                      // 10자리로 제한 (YYYY-MM-DD)
+                      value = value.slice(0, 10);
+                      
                       setFarmerInfo(prev => ({ ...prev, openingDate: value }));
                     }}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-                    placeholder="예: 20240101"
-                    maxLength={8}
+                    placeholder="예: 2024-01-01"
+                    maxLength={10}
                   />
                 </div>
               </div>

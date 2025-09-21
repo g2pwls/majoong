@@ -44,18 +44,18 @@ export default function WalletCreatePage() {
         // 3. 사용자 역할 설정
         setUserRole(signupData.role);
         const isFarmer = signupData.role === 'FARMER';
-        const walletCreationTime = isFarmer ? 10800 : 3800; // 목장주: 10.8초, 기부자: 3.8초
+        const walletCreationTime = isFarmer ? 13800 : 3800; // 목장주: 13.8초, 기부자: 3.8초
 
         // 4. 지갑 생성 시뮬레이션 시작 (0-30%) - 1단위씩 부드럽게 증가
         const steps = isFarmer ? [
-          { message: '지갑 초기화 중...', startProgress: 0, endProgress: 3, delay: 800 },
-          { message: '개인키 생성 중...', startProgress: 3, endProgress: 6, delay: 600 },
-          { message: '공개키 생성 중...', startProgress: 6, endProgress: 9, delay: 500 },
-          { message: '지갑 주소 생성 중...', startProgress: 9, endProgress: 12, delay: 700 },
-          { message: '목장 전용 지갑 설정 중...', startProgress: 12, endProgress: 15, delay: 600 },
-          { message: '사업자 인증서 연동 중...', startProgress: 15, endProgress: 18, delay: 800 },
-          { message: '목장 계정 초기화 중...', startProgress: 18, endProgress: 21, delay: 500 },
-          { message: '지갑 보안 설정 중...', startProgress: 21, endProgress: 30, delay: 600 }
+          { message: '지갑 초기화 중...', startProgress: 0, endProgress: 3, delay: 1000 },
+          { message: '개인키 생성 중...', startProgress: 3, endProgress: 6, delay: 750 },
+          { message: '공개키 생성 중...', startProgress: 6, endProgress: 9, delay: 625 },
+          { message: '지갑 주소 생성 중...', startProgress: 9, endProgress: 12, delay: 875 },
+          { message: '목장 전용 지갑 설정 중...', startProgress: 12, endProgress: 15, delay: 750 },
+          { message: '사업자 인증서 연동 중...', startProgress: 15, endProgress: 18, delay: 1000 },
+          { message: '목장 계정 초기화 중...', startProgress: 18, endProgress: 21, delay: 625 },
+          { message: '지갑 보안 설정 중...', startProgress: 21, endProgress: 30, delay: 750 }
         ] : [
           { message: '지갑 초기화 중...', startProgress: 0, endProgress: 5, delay: 600 },
           { message: '개인키 생성 중...', startProgress: 5, endProgress: 10, delay: 500 },
