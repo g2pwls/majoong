@@ -5,7 +5,8 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { getTokens, clearTokens, getUserRole, getFarmerInfo, getDonatorInfo } from '@/services/authService';
+import { getTokens, clearTokens, getUserRole } from '@/services/authService';
+import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
 
 export default function Navbar() {
   const pathname = usePathname();

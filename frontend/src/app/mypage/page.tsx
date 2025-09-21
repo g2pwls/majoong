@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getTokens, getUserRole, getFarmerInfo, getDonatorInfo, debugTokenStatus } from '@/services/authService';
-import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/auth';
+import { getTokens, getUserRole, debugTokenStatus } from '@/services/authService';
+import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
+import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/user';
 
 // 탭 컴포넌트들 (추후 구현)
 import DonorProfile from '@/components/mypage/DonorProfile';

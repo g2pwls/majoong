@@ -1,0 +1,38 @@
+// 사용자 정보 관련 타입 정의
+
+// 목장주 정보 조회 API 응답 타입
+export interface FarmerInfoResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    role: string; // "farmer" (소문자)
+    nameString: string;
+    email: string;
+    walletAddress: string;
+    businessNum: string;
+    farmName: string;
+  };
+}
+
+// 기부자 정보 조회 API 응답 타입
+export interface DonatorInfoResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    role: string; // "donator" (소문자)
+    nameString: string;
+    email: string;
+    walletAddress: string;
+  };
+}
+
+// 향후 추가될 사용자 관련 타입들
+// export interface FavoriteFarmsResponse { ... }
+// export interface SupportHistoryResponse { ... }
+// export interface MyFarmResponse { ... }
+// export interface SupportReceivedResponse { ... }
+// export interface ReportHistoryResponse { ... }
