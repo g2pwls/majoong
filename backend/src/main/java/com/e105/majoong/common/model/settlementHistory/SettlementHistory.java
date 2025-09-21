@@ -8,7 +8,6 @@ import lombok.*;
 @Table(
     name = "settlement_history",
     indexes = {
-        // DB 실제 컬럼명에 맞춰 snake_case로!
         @Index(name = "idx_settlement_farm_uuid", columnList = "farm_uuid")
     }
 )

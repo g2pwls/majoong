@@ -65,9 +65,10 @@ public class SettlementServiceImpl implements SettlementService {
       throw new BaseException(BaseResponseStatus.INVALID_WALLET_ADDRESS);
     }
 
-    // ── (3) 이력 표기용 farmUuid(선택) ────────────────────────────────────
-    Farm farm=farmRepository.findTopByMemberUuidOrderByIdDesc(memberUuid).orElse(null);
-    String farmUuid=(farm!=null?farm.getFarmUuid():null);
+    // ── (3) 이력 표기용 farmUuid ────────────────────────────────────
+    Farm farm = farmRepository.findTopByMemberUuidOrderByIdDesc(memberUuid)
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+    String farmUuid = farm.getFarmUuid();
 
     // ── (4) 금액 변환: KRW → 토큰 → wei ─────────────────────────────────
     long krwPerToken=chainProps.getKrwPerToken(); // 예: 1000
@@ -87,10 +88,10 @@ public class SettlementServiceImpl implements SettlementService {
       historyRepository.save(
           SettlementHistory.failed(
               farmUuid,
-              req.getIdempotencyKey(), // evidence_id
+              req.getIdempotencyKey(),
               farmerWallet,
               vaultAddress,
-              tokenHuman,               // released_amount(표시용)
+              tokenHuman,
               shorten(e.getMessage())
           )
       );
