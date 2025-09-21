@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { verifyBusiness } from '@/services/authService';
 
 type UserType = 'donor' | 'farmer';
 
@@ -15,6 +16,7 @@ interface FarmerInfo {
   businessNumber: string;
   openingDate: string;
   businessVerified: boolean;
+  businessVerifying: boolean;
 }
 
 export default function SignupPage() {
@@ -26,25 +28,67 @@ export default function SignupPage() {
     representativeName: '',
     businessNumber: '',
     openingDate: '',
-    businessVerified: false
+    businessVerified: false,
+    businessVerifying: false
   });
-  const handleBusinessVerification = () => {
+  const handleBusinessVerification = async () => {
     if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
       alert('모든 필수 정보를 입력해주세요.');
       return;
     }
+
+    // 개업일자 형식 검증 (YYYYMMDD, 8자리 숫자)
+    if (farmerInfo.openingDate.length !== 8 || !/^\d{8}$/.test(farmerInfo.openingDate)) {
+      alert('개업일자는 YYYYMMDD 형식으로 8자리 숫자를 입력해주세요. (예: 20240101)');
+      return;
+    }
+
+    // 날짜를 읽기 쉽게 포맷팅 (YYYYMMDD → YYYY-MM-DD)
+    const formatDate = (dateStr: string) => {
+      if (dateStr.length === 8) {
+        return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+      }
+      return dateStr;
+    };
 
     // 확인 팝업 표시
     const confirmed = confirm('입력하신 사업자 정보가 정확한지 확인해주세요.\n\n' +
       `목장명: ${farmerInfo.farmName}\n` +
       `대표자: ${farmerInfo.representativeName}\n` +
       `사업자 등록번호: ${farmerInfo.businessNumber}\n` +
-      `개업일자: ${farmerInfo.openingDate}\n\n` +
+      `개업일자: ${formatDate(farmerInfo.openingDate)}\n\n` +
       '위 정보가 정확하다면 확인을 눌러주세요.');
     
     if (confirmed) {
-      setFarmerInfo(prev => ({ ...prev, businessVerified: true }));
-      alert('사업자 정보 확인이 완료되었습니다.');
+      try {
+        setFarmerInfo(prev => ({ ...prev, businessVerifying: true }));
+        
+        const verificationData = {
+          businessNum: farmerInfo.businessNumber,
+          openingDate: farmerInfo.openingDate,
+          name: farmerInfo.representativeName,
+          farmName: farmerInfo.farmName
+        };
+        
+        const response = await verifyBusiness(verificationData);
+        
+        if (response.isSuccess) {
+          if (response.result.verified) {
+            setFarmerInfo(prev => ({ ...prev, businessVerified: true, businessVerifying: false }));
+            alert('사업자 정보 확인이 완료되었습니다.');
+          } else {
+            setFarmerInfo(prev => ({ ...prev, businessVerifying: false }));
+            alert('사업자 정보 확인에 실패했습니다. 입력하신 정보를 다시 확인해주세요.');
+          }
+        } else {
+          setFarmerInfo(prev => ({ ...prev, businessVerifying: false }));
+          alert(`사업자 정보 확인 중 오류가 발생했습니다: ${response.message}`);
+        }
+      } catch (error) {
+        console.error('사업자 정보 확인 오류:', error);
+        setFarmerInfo(prev => ({ ...prev, businessVerifying: false }));
+        alert('사업자 정보 확인 중 오류가 발생했습니다. 다시 시도해주세요.');
+      }
     }
   };
 
@@ -200,14 +244,20 @@ export default function SignupPage() {
                 </div>
                 <div>
                   <label htmlFor="openingDate" className="block text-sm font-medium text-gray-700">
-                    개업일자 *
+                    개업일자 * (YYYYMMDD 형식)
                   </label>
                   <input
                     id="openingDate"
-                    type="date"
+                    type="text"
                     value={farmerInfo.openingDate}
-                    onChange={(e) => setFarmerInfo(prev => ({ ...prev, openingDate: e.target.value }))}
+                    onChange={(e) => {
+                      // 숫자만 입력 허용하고 8자리로 제한
+                      const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+                      setFarmerInfo(prev => ({ ...prev, openingDate: value }));
+                    }}
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+                    placeholder="예: 20240101"
+                    maxLength={8}
                   />
                 </div>
               </div>
@@ -216,16 +266,20 @@ export default function SignupPage() {
               <div className="space-y-2">
                 <button
                   onClick={handleBusinessVerification}
-                  disabled={farmerInfo.businessVerified || !farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName}
+                  disabled={farmerInfo.businessVerified || farmerInfo.businessVerifying || !farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName}
                   className={`w-full py-2 px-4 rounded-md text-sm font-medium ${
                     farmerInfo.businessVerified
                       ? 'bg-green-100 text-green-800 cursor-not-allowed'
+                      : farmerInfo.businessVerifying
+                      ? 'bg-blue-100 text-blue-800 cursor-not-allowed'
                       : (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName)
                       ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                       : 'bg-green-600 text-white hover:bg-green-700'
                   }`}
                 >
-                  {farmerInfo.businessVerified ? (
+                  {farmerInfo.businessVerifying ? (
+                    '⏳ 확인 중...'
+                  ) : farmerInfo.businessVerified ? (
                     '✓ 확인 완료'
                   ) : (
                     '사업자 정보 확인'

@@ -11,16 +11,12 @@ export interface BusinessVerificationRequest {
 
 // 사업자 인증 응답 타입
 export interface BusinessVerificationResponse {
+  httpStatus: string;
   isSuccess: boolean;
   message: string;
-  data?: {
+  code: number;
+  result: {
     verified: boolean;
-    businessInfo?: {
-      businessNum: string;
-      businessName: string;
-      representativeName: string;
-      openingDate: string;
-    };
   };
 }
 
@@ -50,12 +46,18 @@ const generateTimestampEmail = (originalEmail: string): string => {
 
 // 토큰을 로컬 스토리지에서 가져오기 (인터셉터에서 사용하기 위해 먼저 정의)
 export const getTokens = () => {
+  const getValidToken = (key: string) => {
+    const value = localStorage.getItem(key);
+    // null, 'null', 빈 문자열 모두 유효하지 않은 것으로 처리
+    return value && value !== 'null' && value !== '' ? value : null;
+  };
+
   return {
-    accessToken: localStorage.getItem('accessToken'),
-    refreshToken: localStorage.getItem('refreshToken'),
-    tempAccessToken: localStorage.getItem('tempAccessToken'),
-    email: localStorage.getItem('email'),
-    role: localStorage.getItem('role'),
+    accessToken: getValidToken('accessToken'),
+    refreshToken: getValidToken('refreshToken'),
+    tempAccessToken: getValidToken('tempAccessToken'),
+    email: getValidToken('email'),
+    role: getValidToken('role'),
   };
 };
 
@@ -72,6 +74,12 @@ const authApi = axios.create({
 authApi.interceptors.request.use(
   (config) => {
     const tokens = getTokens();
+    
+    console.log('🔍 Request Interceptor - 토큰 상태:', {
+      accessToken: tokens.accessToken ? `${tokens.accessToken.substring(0, 20)}...` : 'null',
+      tempAccessToken: tokens.tempAccessToken ? `${tokens.tempAccessToken.substring(0, 20)}...` : 'null',
+      role: tokens.role
+    });
     
     // accessToken이 있으면 우선 사용 (회원가입 완료 후)
     if (tokens.accessToken) {
