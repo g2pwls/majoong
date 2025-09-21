@@ -9,6 +9,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class DonationHistoryResponseDto {
+    private Long donationHistoryId;
     private String farmUuid;
     private LocalDateTime donationDate;
     private String farmName;
