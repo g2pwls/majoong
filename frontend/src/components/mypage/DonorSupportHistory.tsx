@@ -5,13 +5,10 @@ import { getDonationHistory } from '@/services/userService';
 import type { DonationHistoryRequest, DonationHistoryResponse } from '@/types/user';
 
 interface SupportRecord {
-  farmName: string;
   farmUuid: string;
-  amount: number;
-  coin: number;
   donationDate: string;
-  status: string;
-  message?: string;
+  farmName: string;
+  donationToken: number;
 }
 
 export default function DonorSupportHistory() {
@@ -94,29 +91,26 @@ export default function DonorSupportHistory() {
     setEndDate('');
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">완료</span>;
-      case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">대기중</span>;
-      case 'cancelled':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">취소</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{status}</span>;
-    }
-  };
 
-  const formatAmount = (amount: number) => {
+  const formatAmount = (donationToken: number) => {
+    const amount = donationToken * 1000; // 마론 1개 = 1,000원
     return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
-  const formatCoin = (coin: number) => {
-    return new Intl.NumberFormat('ko-KR').format(coin) + ' 코인';
+  const formatCoin = (donationToken: number) => {
+    return new Intl.NumberFormat('ko-KR').format(donationToken) + ' MARON';
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR');
+    return new Date(dateString).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
   };
 
   const handleVisitFarm = (farmUuid: string) => {
@@ -238,16 +232,15 @@ export default function DonorSupportHistory() {
                           농장 보기
                         </button>
                       </div>
-                      <p className="text-sm text-gray-500">후원일: {formatDate(record.donationDate)}</p>
-                      {record.message && (
-                        <p className="text-sm text-gray-600 mt-1">{record.message}</p>
-                      )}
+                      <p className="text-sm text-gray-500">후원일시: {formatDate(record.donationDate)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold text-gray-900">{formatAmount(record.amount)}</p>
-                      <p className="text-sm text-blue-600">{formatCoin(record.coin)}</p>
+                      <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
+                      <p className="text-sm text-blue-600">{formatCoin(record.donationToken)}</p>
                       <div className="mt-1">
-                        {getStatusBadge(record.status)}
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          완료
+                        </span>
                       </div>
                     </div>
                   </div>

@@ -61,13 +61,10 @@ export interface DonationHistoryResponse {
     totalAmount: number;
     donationHistory: {
       content: Array<{
-        farmName: string;
         farmUuid: string;
-        amount: number;
-        coin: number;
         donationDate: string;
-        status: string;
-        message?: string;
+        farmName: string;
+        donationToken: number;
       }>;
       pageable: {
         pageNumber: number;
