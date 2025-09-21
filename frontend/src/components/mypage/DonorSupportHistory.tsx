@@ -97,6 +97,10 @@ export default function DonorSupportHistory() {
     return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
+  const formatTotalAmount = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+  };
+
   const formatCoin = (donationToken: number) => {
     return new Intl.NumberFormat('ko-KR').format(donationToken) + ' MARON';
   };
@@ -156,10 +160,10 @@ export default function DonorSupportHistory() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">후원 내역</h2>
-        <div className="flex items-center space-x-4 text-sm text-gray-600">
-          <span>총 기부금: <strong>{formatAmount(totalAmount)}</strong></span>
-          <span>총 코인: <strong>{formatCoin(totalCoin)}</strong></span>
-        </div>
+         <div className="flex items-center space-x-4 text-sm text-gray-600">
+           <span>총 기부금: <strong>{formatTotalAmount(totalAmount)}</strong></span>
+           <span>총 코인: <strong>{formatCoin(totalCoin)}</strong></span>
+         </div>
       </div>
 
       {/* 날짜 필터 */}
