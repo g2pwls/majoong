@@ -30,8 +30,19 @@ export interface DonatorInfoResponse {
   };
 }
 
+// 즐겨찾기 농장 조회 API 응답 타입
+export interface FavoriteFarmsResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: Array<{
+    farmName: string;
+    farmUuid: string;
+  }>;
+}
+
 // 향후 추가될 사용자 관련 타입들
-// export interface FavoriteFarmsResponse { ... }
 // export interface SupportHistoryResponse { ... }
 // export interface MyFarmResponse { ... }
 // export interface SupportReceivedResponse { ... }
