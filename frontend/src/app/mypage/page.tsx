@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { getTokens, getUserRole, getFarmerInfo, getDonatorInfo, debugTokenStatus } from '@/services/authService';
+import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/auth';
 
 // 탭 컴포넌트들 (추후 구현)
 import DonorProfile from '@/components/mypage/DonorProfile';
@@ -21,7 +22,7 @@ type UserRole = 'DONATOR' | 'FARMER' | 'ADMIN';
 interface TabConfig {
   id: string;
   label: string;
-  component: React.ComponentType<any>;
+  component: React.ComponentType<Record<string, unknown>>;
 }
 
 export default function MyPage() {
@@ -29,8 +30,8 @@ export default function MyPage() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
   const [isLoading, setIsLoading] = useState(true);
-  const [farmerInfo, setFarmerInfo] = useState<any>(null);
-  const [donatorInfo, setDonatorInfo] = useState<any>(null);
+  const [farmerInfo, setFarmerInfo] = useState<FarmerInfoResponse['result'] | null>(null);
+  const [donatorInfo, setDonatorInfo] = useState<DonatorInfoResponse['result'] | null>(null);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -158,11 +159,16 @@ export default function MyPage() {
 
         {/* 탭 컨텐츠 */}
         <div className="bg-white rounded-lg shadow">
-          {ActiveComponent && <ActiveComponent 
-            farmerInfo={farmerInfo}
-            donatorInfo={donatorInfo}
-            userRole={userRole}
-          />}
+          {ActiveComponent && (() => {
+            // 사용자 역할에 따라 적절한 props 전달
+            if (userRole === 'FARMER') {
+              return <ActiveComponent farmerInfo={farmerInfo} userRole={userRole} />;
+            } else if (userRole === 'DONATOR') {
+              return <ActiveComponent donatorInfo={donatorInfo} userRole={userRole} />;
+            } else {
+              return <ActiveComponent userRole={userRole} />;
+            }
+          })()}
         </div>
       </div>
     </div>
