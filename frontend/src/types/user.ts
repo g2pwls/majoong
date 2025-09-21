@@ -61,7 +61,6 @@ export interface DonationHistoryResponse {
     totalAmount: number;
     donationHistory: {
       content: Array<{
-        id: string;
         farmName: string;
         farmUuid: string;
         amount: number;

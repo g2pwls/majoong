@@ -5,7 +5,6 @@ import { getDonationHistory } from '@/services/userService';
 import type { DonationHistoryRequest, DonationHistoryResponse } from '@/types/user';
 
 interface SupportRecord {
-  id: string;
   farmName: string;
   farmUuid: string;
   amount: number;
@@ -226,8 +225,8 @@ export default function DonorSupportHistory() {
             </div>
           ) : (
             <div className="space-y-4">
-              {supportHistory.map((record) => (
-                <div key={record.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+              {supportHistory.map((record, index) => (
+                <div key={`${record.farmUuid}-${record.donationDate}-${index}`} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
