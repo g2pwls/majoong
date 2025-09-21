@@ -48,6 +48,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
 
         List<DonationHistoryResponseDto> list = queryFactory
                 .select(Projections.constructor(DonationHistoryResponseDto.class,
+                        donationHistory.id,
                         donationHistory.farmUuid,
                         donationHistory.donationDate,
                         farm.farmName,
