@@ -1,7 +1,7 @@
 // 농장 관련 API 서비스 함수
 
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse } from '@/types/farm';
+import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse, FarmDetailResponse } from '@/types/farm';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -94,6 +94,8 @@ export class FarmService {
         farm_phone: farm.phoneNumber,
         area: farm.area,
         description: farm.description,
+        month_total_amount: farm.monthTotalAmount,
+        purpose_total_amount: farm.purposeTotalAmount,
       };
     } catch (error) {
       console.error('농장 정보 조회 실패:', error);

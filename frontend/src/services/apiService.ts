@@ -53,6 +53,8 @@ export interface Farm {
   farm_phone?: string;
   area?: number | string;
   description?: string;
+  month_total_amount?: number;
+  purpose_total_amount?: number;
 }
 
 export interface Horse {
@@ -184,6 +186,9 @@ export async function getFarm(farmId: string): Promise<Farm> {
 
     const farm = response.data.result;
     console.log('농장 상세 result 데이터:', farm);
+    console.log('monthTotalAmount:', farm.monthTotalAmount);
+    console.log('purposeTotalAmount:', farm.purposeTotalAmount);
+    console.log('모든 키들:', Object.keys(farm));
     
     return {
       id: farm.farmUuid,
@@ -197,6 +202,8 @@ export async function getFarm(farmId: string): Promise<Farm> {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
+      month_total_amount: farm.monthTotalAmount,
+      purpose_total_amount: farm.purposeTotalAmount,
       horses: (farm.horses || []).map((horse: {
         horseNumber: number;
         horseName: string;

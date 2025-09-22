@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.NEXT_PUBLIC_OPENAI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY) {
       console.error("NEXT_PUBLIC_OPENAI_API_KEY가 설정되지 않았습니다.");
       return NextResponse.json(
         { error: "OpenAI API 키가 설정되지 않았습니다." },
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.NEXT_PUBLIC_OPENAI_API_URL) {
+    if (!process.env.OPENAI_API_URL) {
       console.error("NEXT_PUBLIC_OPENAI_API_URL이 설정되지 않았습니다.");
       return NextResponse.json(
         { error: "OpenAI API URL이 설정되지 않았습니다." },
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
     }
 
     // OpenAI API 호출
-    const openaiResponse = await fetch(process.env.NEXT_PUBLIC_OPENAI_API_URL, {
+    const openaiResponse = await fetch(process.env.OPENAI_API_URL, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

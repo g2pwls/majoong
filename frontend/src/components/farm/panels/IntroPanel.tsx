@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link"; // Import Link from next/link
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 import TrustScoreChart from "./TrustScoreChart";
+import DonationProgressChart from "./DonationProgressChart";
 import { Farm } from "@/types/farm";
 import { FarmService } from "@/services/farmService";
 import { ScoreHistory } from "@/types/farm";
@@ -11,6 +12,9 @@ import { ScoreHistory } from "@/types/farm";
 export default function IntroPanel({ farm }: { farm: Farm }) {
   const [deadlineText, setDeadlineText] = useState<string>("");
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
+
+  // 디버깅을 위한 콘솔 로그
+  console.log('IntroPanel farm data:', farm);
 
   // 신뢰도 내역 조회 (현재 년도)
   const fetchScoreHistory = useCallback(async () => {
@@ -73,9 +77,8 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
       
       {/* 목장 소개 섹션 */}
       {farm?.description && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">목장 소개</h3>
-          <div className="bg-gray-50 rounded-lg p-4 border">
+        <div className="mb-2">
+          <div className="bg-gray-50 rounded-lg px-4 py-2 border">
             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
               {farm.description}
             </p>
@@ -83,8 +86,16 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         </div>
       )}
 
+      {/* 기부 모금 진행률 차트 */}
+      <div className="mb-2">
+        <DonationProgressChart 
+          monthTotalAmount={farm?.month_total_amount || 0}
+          purposeTotalAmount={farm?.purpose_total_amount || 0}
+        />
+      </div>
+
       {/* 신뢰도 평균 변화 표 */}
-      <div className="mb-6">
+      <div className="mb-4">
         <TrustScoreChart 
           scoreHistory={scoreHistory}
           selectedYear={new Date().getFullYear()}
