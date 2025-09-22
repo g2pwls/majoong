@@ -91,7 +91,8 @@ public enum BaseResponseStatus {
     NO_EXIST_MONTHLY_REPORT(HttpStatus.NOT_FOUND, false, 7001, "월간 보고서가 존재하지 않습니다."),
     //score
     NO_EXIST_MY_SCORE(HttpStatus.NOT_FOUND, false, 7301, "내 신뢰도를 찾을 수 없습니다."),
-
+    //account
+    NO_EXIST_MY_ACCOUNT_TRANSACTION(HttpStatus.NOT_FOUND, false, 7401, "내 계좌 거래내역를 찾을 수 없습니다."),
     ;
   private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

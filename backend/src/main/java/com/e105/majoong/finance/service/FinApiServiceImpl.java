@@ -7,10 +7,11 @@ import com.e105.majoong.common.model.farmer.FarmerRepository;
 import com.e105.majoong.common.utils.S3Uploader;
 import com.e105.majoong.finance.dto.out.CreateAccountResponseDto;
 import com.e105.majoong.finance.dto.out.FinMemberResponseDto;
+import com.e105.majoong.mypage.dto.out.AccountHistoryResponseDto;
+import com.e105.majoong.mypage.dto.out.TransactionHistoryResponse;
 import com.e105.majoong.withdraw.dto.in.WithdrawRequestDto;
 import com.e105.majoong.withdraw.dto.out.WithdrawResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -171,4 +173,76 @@ public class FinApiServiceImpl implements FinApiService {
                 })
                 .block();
     }
+
+    public AccountHistoryResponseDto inquireTransactionHistoryList(String memberUuid) {
+        String today = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String fiveYearsAgo = LocalDate.now().minusYears(5).format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String nowTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HHmmss"));
+        String uniqueNo = today + nowTime + String.format("%06d", (int)(Math.random() * 1000000));
+
+        Farmer farmer = farmerRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+
+        String accountNo = farmer.getAccountNo();
+        log.info("inquireTransactionHistoryList: accountNo={}", accountNo);
+
+        Map<String, Object> header = Map.of(
+                "apiName", "inquireTransactionHistoryList",
+                "transmissionDate", today,
+                "transmissionTime", nowTime,
+                "institutionCode", institutionCode,
+                "fintechAppNo", fintechAppNo,
+                "apiServiceCode", "inquireTransactionHistoryList",
+                "institutionTransactionUniqueNo", uniqueNo,
+                "apiKey", apiKey,
+                "userKey", farmer.getUserKey()
+        );
+
+        Map<String, Object> req = Map.of(
+                "Header", header,
+                "accountNo", accountNo,
+                "startDate", fiveYearsAgo,
+                "endDate", today,
+                "transactionType", "M",
+                "orderByType", "ASC"
+        );
+
+        TransactionHistoryResponse response = webClient.post()
+                .uri(baseUrl + "/edu/demandDeposit/inquireTransactionHistoryList")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(req)
+                .exchangeToMono(res -> {
+                    if (res.statusCode().isError()) {
+                        return res.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    log.error("inquireTransactionHistoryList failed: status={}, body={}",
+                                            res.statusCode(), body);
+                                    return Mono.error(new RuntimeException("API error: " + body));
+                                });
+                    }
+                    return res.bodyToMono(TransactionHistoryResponse.class);
+                })
+                .block();
+
+        if (response == null || response.getREC() == null) {
+            throw new BaseException(BaseResponseStatus.NO_EXIST_MY_ACCOUNT_TRANSACTION);
+        }
+
+        List<TransactionHistoryResponse.Transaction> txList = response.getREC().getList();
+
+        List<AccountHistoryResponseDto.TransactionDto> transactions = txList.stream()
+                .map(tx -> new AccountHistoryResponseDto.TransactionDto(
+                        tx.getTransactionDate(),
+                        tx.getTransactionTime(),
+                        tx.getTransactionBalance(),
+                        tx.getTransactionAfterBalance()
+                ))
+                .toList();
+
+
+        String latestBalance = transactions.isEmpty() ? "0" : transactions.get(transactions.size() - 1).getAfterBalance();
+
+        return new AccountHistoryResponseDto(latestBalance, transactions);
+    }
+
 }
