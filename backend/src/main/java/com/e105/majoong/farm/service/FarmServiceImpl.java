@@ -1,5 +1,6 @@
 package com.e105.majoong.farm.service;
 
+import com.e105.majoong.common.model.donationHistory.DonationHistoryRepository;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ public class FarmServiceImpl implements FarmService {
     private final BookmarkRepository bookmarkRepository;
     private final HorseRepository horseRepository;
     private final MyScoreRepository myScoreRepository;
+    private final DonationHistoryRepository donationHistoryRepository;
 
     @Override
     public Page<FarmListResponseDto> searchFarms(String farmName, int page, int size, String memberUuid) {
@@ -52,7 +55,7 @@ public class FarmServiceImpl implements FarmService {
     @Override
     public FarmDetailResponseDto getFarmDetail(String farmUuid) {
         Farm farm = farmRepository.findByFarmUuid(farmUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); //TODO : 회의 후 수정
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
         List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
                 .stream()
@@ -64,7 +67,12 @@ public class FarmServiceImpl implements FarmService {
                 .map(MonthlyScoreResponseDto::toDto)
                 .collect(Collectors.toList());
 
-        long monthTotalAmount = 0L; // TODO: 블록체인 미구현으로, 실제 합계 로직으로 교체 필요
+        LocalDate now = LocalDate.now();
+        long monthTotalAmount = donationHistoryRepository.getMonthlyTotalDonation(
+                farmUuid,
+                now.getYear(),
+                now.getMonthValue()
+        ) * 1000;
 
         return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
     }
@@ -72,7 +80,7 @@ public class FarmServiceImpl implements FarmService {
     @Override
     public FarmDetailResponseDto getMyFarm(String memberUuid) {
         Farm farm = farmRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_PRODUCT)); // TODO: 에러 코드 협의
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MY_FARM));
 
         List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
                 .stream()
@@ -84,7 +92,12 @@ public class FarmServiceImpl implements FarmService {
                 .map(MonthlyScoreResponseDto::toDto)
                 .collect(Collectors.toList());
 
-        long monthTotalAmount = 0L; // TODO: 블록체인 연동 후 교체
+        LocalDate now = LocalDate.now();
+        long monthTotalAmount = donationHistoryRepository.getMonthlyTotalDonation(
+                farm.getFarmUuid(),
+                now.getYear(),
+                now.getMonthValue()
+        ) * 1000;
 
         return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
     }

@@ -1,7 +1,7 @@
 // API 서비스 함수들
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({

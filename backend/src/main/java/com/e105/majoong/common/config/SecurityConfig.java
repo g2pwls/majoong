@@ -64,7 +64,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/api/v1/farms/**"
+                                "/api/v1/farms/**",
+                                "/api/v1/kakao-pay/*"
                         ).permitAll()
                         .requestMatchers("/api/v1/members/donators/**").hasRole("DONATOR")
                         .requestMatchers("/api/v1/members/farmers/**").hasRole("FARMER")

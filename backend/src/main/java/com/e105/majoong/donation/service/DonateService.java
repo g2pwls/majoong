@@ -45,7 +45,7 @@ public class DonateService {
     long tokenCount = TokenUnits.krwToMaronTokensExact(krw, unit);
     BigInteger amountWei = TokenUnits.maronTokensToWei(tokenCount);
 
-    // 1) 목장주 memberUuid로 Farm 조회 → farmUuid 확보
+    // 1)  목장주memberUuid로 Farm 조회 → farmUuid 확보
     Farm farm = farmRepo.findByMemberUuid(req.getFarmMemberUuid())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 

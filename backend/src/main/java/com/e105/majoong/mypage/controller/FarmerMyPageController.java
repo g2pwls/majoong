@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @Slf4j
 @RequestMapping("/api/v1/members/farmers")
-@Tag(name = "Farmer MyPage API", description = "농장주 마이페이지 API")
+@Tag(name = "Member API", description = "회원관리 API")
 public class FarmerMyPageController {
     //
 }
