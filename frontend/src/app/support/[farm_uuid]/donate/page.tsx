@@ -10,7 +10,7 @@ import { getFarm, Farm } from "@/services/apiService";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
-const predefinedAmounts = [1000, 5000, 10000, 20000, 30000, 50000];
+const predefinedAmounts = [1000, 5000, 10000, 30000, 50000];
 
 export default function DonatePage() {
   const params = useParams();
@@ -21,6 +21,9 @@ export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [showAmountWarning, setShowAmountWarning] = useState(false);
+  const [isCustomInputActive, setIsCustomInputActive] = useState(false);
 
   useEffect(() => {
     const fetchFarmData = async () => {
@@ -64,6 +67,9 @@ export default function DonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
+    setShowCustomInput(false);
+    setShowAmountWarning(false);
+    setIsCustomInputActive(false);
   };
 
   const handleCustomAmountChange = (value: string) => {
@@ -77,13 +83,43 @@ export default function DonatePage() {
       // 1000 단위로 자동 내림
       const rounded = Math.floor(numValue / 1000) * 1000;
       setSelectedAmount(rounded);
+      
+      // 1000원 단위로 딱 떨어지지 않는 경우 경고 표시
+      setShowAmountWarning(numValue > 0 && numValue !== rounded);
     } else {
       setSelectedAmount(0);
+      setShowAmountWarning(false);
     }
   };
 
   const formatAmount = (amount: number) => {
     return amount.toLocaleString();
+  };
+
+  const handleCustomInputClick = () => {
+    setIsCustomInputActive(true);
+    setSelectedAmount(0);
+    setCustomAmount("");
+    setShowAmountWarning(false);
+    setShowCustomInput(false);
+  };
+
+  const handleCustomInputBlur = () => {
+    // 입력이 완료되면 버튼 모드로 돌아감
+    if (customAmount === "") {
+      setIsCustomInputActive(false);
+    }
+  };
+
+  const handleCustomInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setIsCustomInputActive(false);
+    }
+    if (e.key === 'Escape') {
+      setCustomAmount("");
+      setIsCustomInputActive(false);
+      setShowAmountWarning(false);
+    }
   };
 
   const handleDonate = () => {
@@ -175,23 +211,43 @@ export default function DonatePage() {
                     {formatAmount(amount)}원
                   </Button>
                 ))}
+                {/* 직접 입력 버튼 또는 입력창 */}
+                {isCustomInputActive ? (
+                  <div className="relative h-12">
+                    <Input
+                      type="text"
+                      value={customAmount}
+                      onChange={(e) => handleCustomAmountChange(e.target.value)}
+                      onBlur={handleCustomInputBlur}
+                      onKeyDown={handleCustomInputKeyDown}
+                      placeholder="금액 입력"
+                      className="h-12 text-center font-medium"
+                      autoFocus
+                    />
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    onClick={handleCustomInputClick}
+                    className={`h-12 ${
+                      selectedAmount > 0 && !predefinedAmounts.includes(selectedAmount)
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {customAmount ? `${formatAmount(selectedAmount)}원` : "직접 입력"}
+                  </Button>
+                )}
               </div>
 
-              {/* 직접 입력 */}
-              <div className="space-y-2 flex flex-row items-center justify-end mb-0">
-                <label className="text-sm font-medium text-gray-700 mr-5">직접 입력</label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="text"
-                    value={customAmount}
-                    onChange={(e) => handleCustomAmountChange(e.target.value)}
-                    placeholder="금액을 입력하세요"
-                    className="flex-1"
-                  />
-                  <span className="text-gray-600">원</span>
+              {/* 1000원 단위로 딱 떨어지지 않는 경우 안내 문구 */}
+              {showAmountWarning && (
+                <div className="flex justify-center mb-2">
+                  <span className="text-orange-600 text-sm">
+                    1,000원 단위로 기부됩니다.
+                  </span>
                 </div>
-              </div>
-              <span className="text-gray-600 flex justify-end mb-5">(1000원 단위로 기부 가능)</span>
+              )}
 
               {/* 기부 금액 표시 */}
               <div className="bg-gray-50 p-4 rounded-lg">
