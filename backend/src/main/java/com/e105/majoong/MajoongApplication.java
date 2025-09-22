@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @EnableScheduling
+@EnableJpaAuditing
 @EnableBatchProcessing
 @SpringBootApplication
-@EnableJpaAuditing
 public class MajoongApplication {
      
 	public static void main(String[] args) {
