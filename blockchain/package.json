@@ -2,9 +2,12 @@
   "name": "horse-donation-contracts",
   "private": true,
   "devDependencies": {
-    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@mermaid-js/mermaid-cli": "^11.10.1",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
     "dotenv": "^16.4.5",
-    "hardhat": "^2.26.3"
+    "hardhat": "^2.26.3",
+    "hardhat-gas-reporter": "^2.3.0",
+    "sol2uml": "^2.5.22"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.2"
@@ -13,7 +16,11 @@
   "description": "",
   "main": "hardhat.config.js",
   "scripts": {
-    "test": "mocha"
+    "test": "hardhat test",
+    "uml:mermaid": "sol2uml class ./contracts --mermaid -o ./docs/uml --hideExternalLibs",
+    "uml:svg": "mmdc -i ./docs/uml/classDiagram.mmd -o ./docs/uml/classDiagram.svg",
+    "uml:png": "mmdc -i ./docs/uml/classDiagram.mmd -o ./docs/uml/classDiagram.png",
+    "uml:all": "npm run uml:mermaid && npm run uml:svg && npm run uml:png"
   },
   "keywords": [],
   "author": "",
