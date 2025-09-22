@@ -43,6 +43,8 @@ export default function HorseImageUpload({
   const [originalFiles, setOriginalFiles] = useState<Record<string, Record<string, File>>>({});
   const [farmLocation, setFarmLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [specialRemarks, setSpecialRemarks] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // 농장 위치 조회
   useEffect(() => {
@@ -322,6 +324,55 @@ export default function HorseImageUpload({
     }
   };
 
+  // 말 관리 상태 제출
+  const handleSubmit = async () => {
+    if (!isAllImagesValidated()) {
+      alert('모든 이미지 검증을 완료해주세요.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      console.log('말 관리 상태 제출 시작:', {
+        farmUuid,
+        horseNumber: parseInt(horseNo),
+        specialRemarks
+      });
+
+      // 원본 파일들 가져오기
+      const horseFiles = originalFiles[horseNo] || {};
+      
+      await FarmService.uploadHorseManagementStatus(
+        farmUuid,
+        parseInt(horseNo),
+        {
+          frontImage: horseFiles['front'],
+          leftSideImage: horseFiles['side'],
+          rightSideImage: horseFiles['back'],
+          stableImage: horseFiles['barn'],
+          content: specialRemarks.trim() || undefined
+        }
+      );
+
+      alert('말 관리 상태가 성공적으로 제출되었습니다!\n주간 보고서가 생성되어 말 상세 페이지에서 확인할 수 있습니다.');
+      
+      // 제출 후 상태 초기화
+      setSpecialRemarks('');
+      setVerificationResults({});
+      setOriginalFiles(prev => ({
+        ...prev,
+        [horseNo]: {}
+      }));
+      
+    } catch (error) {
+      console.error('말 관리 상태 제출 실패:', error);
+      const errorMessage = error instanceof Error ? error.message : '제출 중 오류가 발생했습니다.';
+      alert(`제출 실패: ${errorMessage}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="border p-4 rounded-lg bg-gray-100 mb-4">
       <h3 className="text-lg font-semibold">{hrNm} ({horseNo})</h3>
@@ -481,26 +532,26 @@ export default function HorseImageUpload({
 
       {/* Special Remarks */}
       <div className="mt-6">
-        <label className="block text-sm font-medium">특이사항 (수정 불가)</label>
-        <textarea className="mt-1 block w-full h-30 rounded-md border-2 border-gray-300" />
-
+        <label className="block text-sm font-medium">특이사항</label>
+        <textarea 
+          className="mt-1 block w-full h-30 rounded-md border-2 border-gray-300 p-2"
+          value={specialRemarks}
+          onChange={(e) => setSpecialRemarks(e.target.value)}
+          placeholder="말의 특이사항이나 관리 상태에 대한 내용을 입력해주세요."
+        />
       </div>
 
        {/* Submit Button */}
        <button 
          className={`mt-6 px-4 py-2 rounded-lg ml-auto block ${
-           isAllImagesValidated() 
+           isAllImagesValidated() && !isSubmitting
              ? 'bg-blue-600 text-white hover:bg-blue-700' 
              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
          }`}
-         disabled={!isAllImagesValidated()}
-         onClick={() => {
-           if (isAllImagesValidated()) {
-             alert('제출되었습니다!');
-           }
-         }}
+         disabled={!isAllImagesValidated() || isSubmitting}
+         onClick={handleSubmit}
        >
-         {isAllImagesValidated() ? '제출' : '모든 이미지 검증 필요'}
+         {isSubmitting ? '제출 중...' : isAllImagesValidated() ? '제출' : '모든 이미지 검증 필요'}
        </button>
 
     </div>

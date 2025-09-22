@@ -15,7 +15,7 @@ interface DonorProfileProps {
   userRole?: string;
 }
 
-export default function DonorProfile({ donatorInfo: propDonatorInfo, userRole }: DonorProfileProps) {
+export default function DonorProfile({ donatorInfo: propDonatorInfo }: DonorProfileProps) {
   const [donorInfo, setDonorInfo] = useState<DonorInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 

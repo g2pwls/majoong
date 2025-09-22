@@ -4,7 +4,8 @@
 
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Farm, FarmRegistrationRequest } from "@/types/farm";
+import Image from "next/image";
+import { Farm } from "@/types/farm";
 import { FarmService } from "@/services/farmService";
 
 // 페이지에서 내려주는 최소 팜 타입 (필요한 필드만)
@@ -65,20 +66,6 @@ export default function FarmBasicInfoPanel({
     };
   }, [filePreview]);
 
-  // 파일을 base64로 변환하는 함수
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => {
-        const result = reader.result as string;
-        // data:image/jpeg;base64, 부분을 제거하고 base64만 반환
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = error => reject(error);
-    });
-  };
 
   const handleSubmit = async () => {
     try {
@@ -142,9 +129,11 @@ export default function FarmBasicInfoPanel({
           <input {...getInputProps()} />
           {filePreview ? (
             // 서버 이미지 URL 또는 로컬 blob URL 모두 표시
-            <img
+            <Image
               src={filePreview}
               alt="대표 사진 미리보기"
+              width={300}
+              height={200}
               className="w-full h-full object-contain rounded-lg transition-all duration-300 ease-in-out"
             />
           ) : (

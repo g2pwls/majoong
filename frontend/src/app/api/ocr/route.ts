@@ -54,16 +54,16 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("환경 변수 확인:", {
-      CLOVA_OCR_INVOKE_URL: !!process.env.CLOVA_OCR_INVOKE_URL,
-      CLOVA_OCR_SECRET: !!process.env.CLOVA_OCR_SECRET
+      NEXT_PUBLIC_CLOVA_OCR_INVOKE_URL: !!process.env.NEXT_PUBLIC_CLOVA_OCR_INVOKE_URL,
+      NEXT_PUBLIC_CLOVA_OCR_SECRET: !!process.env.NEXT_PUBLIC_CLOVA_OCR_SECRET
     });
 
     // CLOVA OCR 환경 변수가 없으면 에러 반환
-    if (!process.env.CLOVA_OCR_INVOKE_URL || !process.env.CLOVA_OCR_SECRET) {
+    if (!process.env.NEXT_PUBLIC_CLOVA_OCR_INVOKE_URL || !process.env.NEXT_PUBLIC_CLOVA_OCR_SECRET) {
       console.log("CLOVA OCR 환경 변수가 설정되지 않음");
       return NextResponse.json({ 
-        error: 'CLOVA_OCR_NOT_CONFIGURED', 
-        detail: 'CLOVA OCR API 키가 설정되지 않았습니다. 환경 변수를 확인해주세요.' 
+        error: 'NEXT_PUBLIC_CLOVA_OCR_NOT_CONFIGURED', 
+        detail: 'NEXT_PUBLIC_CLOVA OCR API 키가 설정되지 않았습니다. 환경 변수를 확인해주세요.' 
       }, { status: 500 });
     }
 
@@ -83,11 +83,11 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    const r = await fetch(process.env.CLOVA_OCR_INVOKE_URL, {
+    const r = await fetch(process.env.NEXT_PUBLIC_CLOVA_OCR_INVOKE_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-OCR-SECRET': process.env.CLOVA_OCR_SECRET,
+        'X-OCR-SECRET': process.env.NEXT_PUBLIC_CLOVA_OCR_SECRET,
       },
       body: JSON.stringify(body),
     });

@@ -1,5 +1,6 @@
 // API 서비스 함수들
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { getCurrentUserMemberUuid } from './authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
@@ -53,6 +54,9 @@ export interface Farm {
   farm_phone?: string;
   area?: number | string;
   description?: string;
+  month_total_amount?: number;
+  purpose_total_amount?: number;
+  member_uuid?: string; // 목장 소유자 UUID
 }
 
 export interface Horse {
@@ -184,6 +188,9 @@ export async function getFarm(farmId: string): Promise<Farm> {
 
     const farm = response.data.result;
     console.log('농장 상세 result 데이터:', farm);
+    console.log('monthTotalAmount:', farm.monthTotalAmount);
+    console.log('purposeTotalAmount:', farm.purposeTotalAmount);
+    console.log('모든 키들:', Object.keys(farm));
     
     return {
       id: farm.farmUuid,
@@ -197,6 +204,8 @@ export async function getFarm(farmId: string): Promise<Farm> {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
+      month_total_amount: farm.monthTotalAmount,
+      purpose_total_amount: farm.purposeTotalAmount,
       horses: (farm.horses || []).map((horse: {
         horseNumber: number;
         horseName: string;
@@ -219,8 +228,70 @@ export async function getFarm(farmId: string): Promise<Farm> {
   }
 }
 
+// 내 목장 조회
+export async function getMyFarm(): Promise<Farm> {
+  try {
+    const response = await apiClient.get('/api/v1/farms/my-farm');
+    
+    console.log('내 목장 API 응답:', response.data);
+    
+    if (!response.data.isSuccess) {
+      throw new Error(`API 호출 실패: ${response.data.message}`);
+    }
+
+    const farm = response.data.result;
+    console.log('내 목장 result 데이터:', farm);
+    
+    return {
+      id: farm.farmUuid,
+      farm_name: farm.farmName,
+      address: farm.address,
+      name: farm.ownerName,
+      horse_count: farm.horseCount,
+      total_score: farm.totalScore,
+      image_url: farm.profileImage,
+      state: farm.status,
+      farm_phone: farm.phoneNumber,
+      area: farm.area,
+      description: farm.description,
+      month_total_amount: farm.monthTotalAmount,
+      purpose_total_amount: farm.purposeTotalAmount,
+      member_uuid: getCurrentUserMemberUuid() || undefined, // 현재 사용자의 memberUuid 추가
+      horses: (farm.horses || []).map((horse: {
+        horseNumber: number;
+        horseName: string;
+        birth: string;
+        breed: string;
+        gender: string;
+        horseUrl: string;
+      }) => ({
+        id: horse.horseNumber,
+        farm_id: farm.farmUuid,
+        horseNo: horse.horseNumber?.toString() || '',
+        hrNm: horse.horseName,
+        birthDt: '',
+        horse_url: horse.horseUrl
+      }))
+    };
+  } catch (error) {
+    console.error('내 목장 조회 실패:', error);
+    throw error;
+  }
+}
+
+// 현재 목장이 내 목장인지 확인
+export async function isMyFarm(farmUuid: string): Promise<boolean> {
+  try {
+    const myFarm = await getMyFarm();
+    return myFarm.id === farmUuid;
+  } catch (error) {
+    console.error('내 목장 확인 실패:', error);
+    return false;
+  }
+}
+
 // 농장의 말 목록 조회 (현재는 농장 목록에서 함께 반환되므로 별도 호출 불필요)
-export async function getHorses(_farmId: string): Promise<Horse[]> {
+export async function getHorses(): Promise<Horse[]> {
   try {
     // 백엔드에서 농장 목록 조회 시 말 정보도 함께 반환하므로
     // 별도의 API 호출이 필요하지 않습니다.

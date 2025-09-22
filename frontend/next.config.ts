@@ -23,6 +23,22 @@ const nextConfig: NextConfig = {
         // 필요하면 경로 패턴도 제한 가능
         // pathname: "/farm/**",
       },
+      {
+        protocol: "https",
+        hostname: "example.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i2.pickpik.com",
+      },
+      {
+        protocol: "https",
+        hostname: "media.istockphoto.com",
+      },
     ],
 
     // 방법 2: 간단히 도메인만 허용하고 싶다면 아래 사용 (위와 중복 사용 X)

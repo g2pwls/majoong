@@ -1,12 +1,35 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link"; // Import Link from next/link
+import { useEffect, useState, useCallback } from "react";
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
+import TrustScoreChart from "./TrustScoreChart";
+import DonationProgressChart from "./DonationProgressChart";
 import { Farm } from "@/types/farm";
+import { FarmService } from "@/services/farmService";
+import { ScoreHistory } from "@/types/farm";
 
 export default function IntroPanel({ farm }: { farm: Farm }) {
   const [deadlineText, setDeadlineText] = useState<string>("");
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
+
+  // 디버깅을 위한 콘솔 로그
+  console.log('IntroPanel farm data:', farm);
+
+  // 신뢰도 내역 조회 (현재 년도)
+  const fetchScoreHistory = useCallback(async () => {
+    if (!farm?.id) return;
+    
+    const currentYear = new Date().getFullYear();
+    
+    try {
+      console.log('신뢰도 내역 조회 시작:', { farmId: farm.id, year: currentYear });
+      const response = await FarmService.getScoreHistory(farm.id, currentYear);
+      console.log('신뢰도 내역 조회 성공:', response);
+      setScoreHistory(response.result);
+    } catch (e: unknown) {
+      console.error('신뢰도 내역 조회 실패:', e);
+    }
+  }, [farm?.id]);
 
   useEffect(() => {
     // Calculate the deadline (Sunday) and show the countdown
@@ -43,14 +66,18 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     getDeadlineText();
   }, []);
 
+  // 신뢰도 데이터 가져오기
+  useEffect(() => {
+    fetchScoreHistory();
+  }, [fetchScoreHistory]);
+
   return (
     <section id="panel-intro" className="flex flex-col">
       
       {/* 목장 소개 섹션 */}
       {farm?.description && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">목장 소개</h3>
-          <div className="bg-gray-50 rounded-lg p-4 border">
+        <div className="mb-2">
+          <div className="bg-gray-50 rounded-lg px-4 py-2 border">
             <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
               {farm.description}
             </p>
@@ -58,24 +85,30 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         </div>
       )}
 
-      <div className="flex flex-col items-end">
-        <div className="flex flex-row">
-          {/* Countdown Text */}
-          {deadlineText && (
-            <div className="mr-4 mb-2 text-sm text-gray-600">
-              {deadlineText}
-            </div>
-          )}
+      {/* 기부 모금 진행률 차트 */}
+      <div className="mb-2">
+        <DonationProgressChart 
+          monthTotalAmount={farm?.month_total_amount || 0}
+          purposeTotalAmount={farm?.purpose_total_amount || 0}
+        />
+      </div>
 
-          {/* Reporting Button with Link */}
-          <Link
-            href={`/support/${farm?.id}/report`} // Link to the report page
-          >
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-              목장 운영 보고하기
-            </button>
-          </Link>
-        </div>
+      {/* 신뢰도 평균 변화 표 */}
+      <div className="mb-4">
+        <TrustScoreChart 
+          scoreHistory={scoreHistory}
+          selectedYear={new Date().getFullYear()}
+          currentScore={farm?.total_score || 0}
+        />
+      </div>
+
+      <div className="flex flex-col items-end">
+        {/* Countdown Text */}
+        {deadlineText && (
+          <div className="mb-2 text-sm text-gray-600">
+            {deadlineText}
+          </div>
+        )}
         
         {/* Horse registry section */}
         <HorseRegistrySection farmUuid={farm?.id || ""} />

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import Image from 'next/image';
 import { getDonationDetail } from '@/services/userService';
 import type { DonationDetailResponse } from '@/types/user';
 
@@ -15,13 +16,7 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen && donationHistoryId) {
-      fetchDonationDetail();
-    }
-  }, [isOpen, donationHistoryId]);
-
-  const fetchDonationDetail = async () => {
+  const fetchDonationDetail = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -39,7 +34,13 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [donationHistoryId]);
+
+  useEffect(() => {
+    if (isOpen && donationHistoryId) {
+      fetchDonationDetail();
+    }
+  }, [isOpen, donationHistoryId, fetchDonationDetail]);
 
   const formatAmount = (donationToken: number) => {
     const amount = donationToken * 1000; // 마론 1개 = 1,000원
@@ -111,9 +112,11 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
               {/* 농장 이미지 */}
               {donationDetail.imageUrl && (
                 <div className="text-center">
-                  <img
+                  <Image
                     src={donationDetail.imageUrl}
                     alt={donationDetail.farmName}
+                    width={192}
+                    height={192}
                     className="mx-auto h-48 w-48 object-cover rounded-lg shadow-md"
                   />
                 </div>
