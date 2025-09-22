@@ -11,7 +11,6 @@ import IntroPanel from "@/components/farm/panels/IntroPanel";
 import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
-import Link from "next/link";
 import { getFarm, Farm } from "@/services/apiService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
