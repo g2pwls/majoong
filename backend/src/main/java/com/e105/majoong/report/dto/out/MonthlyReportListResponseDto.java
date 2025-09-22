@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 @AllArgsConstructor
@@ -14,6 +16,7 @@ public class MonthlyReportListResponseDto {
     private int year;
     private int month;
     private String thumbnail;
+    private LocalDateTime createdAt;
 
     public static MonthlyReportListResponseDto toDto(MonthlyReport report) {
         return MonthlyReportListResponseDto.builder()
@@ -21,6 +24,7 @@ public class MonthlyReportListResponseDto {
                 .year(report.getCreatedAt().getYear())
                 .month(report.getCreatedAt().getMonthValue())
                 .thumbnail(report.getThumbnail())
+                .createdAt(report.getCreatedAt())
                 .build();
     }
 }

@@ -71,11 +71,11 @@ public class SettlementServiceImpl implements SettlementService {
     String farmUuid = farm.getFarmUuid();
 
     // ── (4) 금액 변환: KRW → 토큰 → wei ─────────────────────────────────
-    long krwPerToken=chainProps.getKrwPerToken(); // 예: 1000
+    long krwPerToken=chainProps.getKrwPerToken();
     long krw=req.getTotalAmount().longValue();
     long tokenCount=TokenUnits.krwToMaronTokensExact(krw, krwPerToken);
     BigInteger tokenWei=TokenUnits.maronTokensToWei(tokenCount);
-    String tokenHuman=TokenUnits.maronTokensToString(tokenCount); // released_amount에 기록
+    String tokenHuman=TokenUnits.maronTokensToString(tokenCount);
 
     // ── (5) 체인 출금 ────────────────────────────────────────────────────
     String txHash;
@@ -98,7 +98,10 @@ public class SettlementServiceImpl implements SettlementService {
       throw new BaseException(BaseResponseStatus.SETTLEMENT_RELEASE_FAILED);
     }
 
-    // ── (6) 성공 이력 저장 ───────────────────────────────────────────────
+    // ── (6) farm DB에 used_amount 누적 ───────────────────────────────────────
+    farm.updateUsedAmount(krw);
+
+    // ── (7) 성공 이력 저장 ───────────────────────────────────────────────
     historyRepository.save(
         SettlementHistory.released(
             farmUuid,
@@ -110,7 +113,7 @@ public class SettlementServiceImpl implements SettlementService {
         )
     );
 
-    // ── (7) 응답 ─────────────────────────────────────────────────────────
+    // ── (8) 응답 ─────────────────────────────────────────────────────────
     return ReceiptSettlementResponse.ok(txHash, farmerWallet, vaultAddress, tokenHuman);
   }
 

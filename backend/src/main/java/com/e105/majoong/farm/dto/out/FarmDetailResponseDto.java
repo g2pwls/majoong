@@ -19,6 +19,7 @@ public class FarmDetailResponseDto {
     private String phoneNumber;
     private int horseCount;
     private long monthTotalAmount;
+    private long purposeTotalAmount;
     private double area;
     private String description;
     private List<MonthlyScoreResponseDto> monthlyScores;
@@ -40,6 +41,7 @@ public class FarmDetailResponseDto {
                 .phoneNumber(farm.getPhoneNumber())
                 .horseCount(farm.getHorseCount() != null ? farm.getHorseCount() : horses.size())
                 .monthTotalAmount(monthTotalAmount)
+                .purposeTotalAmount(horses.size()*1000000)
                 .monthlyScores(monthlyScores)
                 .horses(horses)
                 .description(farm.getDescription())
