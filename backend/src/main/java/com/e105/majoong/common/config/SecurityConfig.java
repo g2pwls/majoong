@@ -68,7 +68,7 @@ public class SecurityConfig {
                                 "/api/v1/kakao-pay/*"
                         ).permitAll()
                         .requestMatchers("/api/v1/members/donators/**").hasRole("DONATOR")
-                        .requestMatchers("/api/v1/members/farmers/**").hasRole("FARMER")
+                        .requestMatchers("/api/v1/members/farmers/**", "/api/v1/withdraw/**").hasRole("FARMER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
