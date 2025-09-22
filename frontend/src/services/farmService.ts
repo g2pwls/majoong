@@ -95,6 +95,8 @@ export class FarmService {
         farm_phone: farm.phoneNumber,
         area: farm.area,
         description: farm.description,
+        month_total_amount: farm.monthTotalAmount,
+        purpose_total_amount: farm.purposeTotalAmount,
       };
     } catch (error) {
       console.error('농장 정보 조회 실패:', error);
@@ -307,6 +309,7 @@ export class FarmService {
       throw error;
     }
   }
+
 
   // 신뢰도 내역 조회
   static async getScoreHistory(farmUuid: string, year: number, month?: number): Promise<ScoreHistoryResponse> {
@@ -531,6 +534,172 @@ export class FarmService {
       return response.data;
     } catch (error) {
       console.error('기부금 사용 내역 상세 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 관리 상태 업로드
+  static async uploadHorseManagementStatus(
+    farmUuid: string,
+    horseNumber: number,
+    data: {
+      frontImage?: File;
+      leftSideImage?: File;
+      rightSideImage?: File;
+      stableImage?: File;
+      content?: string;
+    }
+  ): Promise<void> {
+    try {
+      console.log('말 관리 상태 업로드 API 요청:', {
+        farmUuid,
+        horseNumber,
+        hasFrontImage: !!data.frontImage,
+        hasLeftSideImage: !!data.leftSideImage,
+        hasRightSideImage: !!data.rightSideImage,
+        hasStableImage: !!data.stableImage,
+        hasContent: !!data.content
+      });
+
+      const formData = new FormData();
+      
+      if (data.frontImage) {
+        formData.append('frontImage', data.frontImage);
+      }
+      if (data.leftSideImage) {
+        formData.append('leftSideImage', data.leftSideImage);
+      }
+      if (data.rightSideImage) {
+        formData.append('rightSideImage', data.rightSideImage);
+      }
+      if (data.stableImage) {
+        formData.append('stableImage', data.stableImage);
+      }
+      if (data.content) {
+        formData.append('content', data.content);
+      }
+
+      // 먼저 GET 요청으로 엔드포인트 존재 여부 확인
+      try {
+        const testResponse = await apiClient.get(`/api/v1/members/farms/${farmUuid}/horses/${horseNumber}`);
+        console.log('GET 테스트 응답:', testResponse.status);
+      } catch (testError) {
+        console.log('GET 테스트 실패:', testError);
+      }
+
+      const response = await apiClient.post(
+        `/api/v1/members/farms/${farmUuid}/horses/${horseNumber}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 30000, // 30초로 늘림
+        }
+      );
+
+      console.log('말 관리 상태 업로드 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('말 관리 상태 업로드 실패:', error);
+      
+      // Axios 에러인 경우 더 자세한 정보 로깅
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { 
+          response?: { 
+            data?: unknown; 
+            status?: number; 
+            statusText?: string;
+            headers?: unknown;
+          }; 
+          config?: unknown;
+          message?: string;
+        };
+        
+        console.error('Axios 에러 상세:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+          headers: axiosError.response?.headers,
+          message: axiosError.message,
+          config: axiosError.config
+        });
+      }
+      
+      throw error;
+    }
+  }
+
+  // 주간 보고서 조회 (말 상세 페이지용)
+  static async getHorseWeeklyReports(
+    farmUuid: string, 
+    horseNumber: number, 
+    year?: number, 
+    month?: number
+  ): Promise<HorseDetailResponse> {
+    try {
+      console.log('주간 보고서 조회 API 요청:', {
+        farmUuid,
+        horseNumber,
+        year,
+        month
+      });
+
+      const params: { year?: number; month?: number } = {};
+      if (year) params.year = year;
+      if (month) params.month = month;
+
+      const response = await apiClient.get(
+        `/api/v1/farms/${farmUuid}/horses/${horseNumber}`,
+        { params }
+      );
+
+      console.log('주간 보고서 조회 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('주간 보고서 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 주간 보고서 상세 조회
+  static async getHorseWeeklyReportDetail(horseNum: number, horseStateId: number) {
+    try {
+      console.log('말 주간 보고서 상세 조회 API 호출:', {
+        horseNum,
+        horseStateId
+      });
+
+      const response = await apiClient.get(
+        `/api/v1/farms/horses/${horseNum}/weekly-reports/${horseStateId}`
+      );
+
+      console.log('말 주간 보고서 상세 조회 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('말 주간 보고서 상세 조회 실패:', error);
       throw error;
     }
   }

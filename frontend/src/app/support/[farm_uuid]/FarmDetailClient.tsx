@@ -11,8 +11,6 @@ import IntroPanel from "@/components/farm/panels/IntroPanel";
 import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { getFarm, Farm } from "@/services/apiService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
@@ -97,13 +95,6 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             showHeader={false}   // ✅ 카드 내부 헤더 비표시
             className="mt-4"
           />
-          <div className="flex justify-end">
-            <Link href={`/support/${farmId}/edit`}>
-            <Button className="mt-2 whitespace-nowrap">
-              목장 정보 수정
-            </Button>
-            </Link>
-          </div>
         </aside>
 
         {/* 오른쪽: 탭 + 패널 */}

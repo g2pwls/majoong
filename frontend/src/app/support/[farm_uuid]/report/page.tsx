@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, use } from "react";
+import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // HorseImageUpload 컴포넌트 불러오기
 import DonationProofUpload from "@/components/farm/report/DonationProofUpload"; // DonationProofUpload 컴포넌트 불러오기
@@ -208,9 +209,11 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
                       title={h.hrNm}
                     >
                       {h.horse_url ? (
-                        <img
+                        <Image
                           src={h.horse_url}
                           alt={h.hrNm}
+                          width={120}
+                          height={152}
                           className="w-full h-full object-cover"
                         />
                       ) : (

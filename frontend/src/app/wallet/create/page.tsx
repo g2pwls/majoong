@@ -103,7 +103,7 @@ export default function WalletCreatePage() {
           setProgress(100);
           
           // 6. 새로운 토큰 정보 저장 (role 포함) - tempAccessToken은 null로 저장하여 제거
-          const { accessToken, refreshToken, tempAccessToken, email, role } = response.result;
+          const { accessToken, refreshToken, email, role } = response.result;
           saveTokens(accessToken, refreshToken, '', email, role); // tempAccessToken을 빈 문자열로 저장하여 제거
           
           // 7. 임시 데이터 삭제

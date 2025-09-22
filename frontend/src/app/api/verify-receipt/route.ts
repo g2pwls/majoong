@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.OPENAI_API_KEY) {
-      console.error("OPENAI_API_KEY가 설정되지 않았습니다.");
+      console.error("NEXT_PUBLIC_OPENAI_API_KEY가 설정되지 않았습니다.");
       return NextResponse.json(
         { error: "OpenAI API 키가 설정되지 않았습니다." },
         { status: 500 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.OPENAI_API_URL) {
-      console.error("OPENAI_API_URL이 설정되지 않았습니다.");
+      console.error("NEXT_PUBLIC_OPENAI_API_URL이 설정되지 않았습니다.");
       return NextResponse.json(
         { error: "OpenAI API URL이 설정되지 않았습니다." },
         { status: 500 }

@@ -1,14 +1,16 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Search, Star, MapPin, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFarms, getHorses, Farm, Horse, FarmListResponse } from "@/services/apiService";
+import { getFarms, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
+import { isDonator } from "@/services/authService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -50,60 +52,98 @@ const TempBadge: React.FC<{ temp?: number }> = ({ temp }) => {
   );
 };
 
-const FarmCard: React.FC<{ farm: Farm }> = ({ farm }) => (
-  <Card className="relative overflow-hidden rounded-2xl shadow-sm">
-    <TempBadge temp={farm.total_score} />
-    <CardContent className="p-4 md:p-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        {/* 왼쪽: cover + 정보 */}
-        <Link href={`/support/${farm.id}`} className="flex gap-4 items-start cursor-pointer">
-          <img
-            src={farm.image_url}
-            alt={`${farm.farm_name} cover`}
-            className="h-42 w-58 rounded-xl object-cover"
-          />
-          <div className="flex flex-col gap-1">
-            <div className="mb-3 flex items-center gap-2">
-              <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
-              <button className="rounded-full border p-1" aria-label="즐겨찾기">
-                <Star className="h-4 w-4" />
-              </button>
-            </div>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-4 w-4" /> {farm.address}
-            </p>
-            <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Users className="h-4 w-4" /> 말 {farm.horse_count}두
-            </p>
-            {farm.state && (
-              <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
-            )}
-          </div>
-        </Link>
+const FarmCard: React.FC<{ 
+  farm: Farm; 
+  isBookmarked: boolean; 
+  onBookmarkToggle: (farmId: string) => void;
+  isLoading?: boolean;
+}> = ({ farm, isBookmarked, onBookmarkToggle, isLoading = false }) => {
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.preventDefault(); // Link 클릭 방지
+    e.stopPropagation(); // 이벤트 버블링 방지
+    onBookmarkToggle(farm.id);
+  };
 
-        {/* 오른쪽: 갤러리 + 버튼 */}
-        <div className="flex flex-col items-end gap-3">
-          <Link href={`/support/${farm.id}/donate`}>
-            <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
-              기부하기
-            </Button>
+  return (
+    <Card className="relative overflow-hidden rounded-2xl shadow-sm">
+      <TempBadge temp={farm.total_score} />
+      <CardContent className="p-4 md:p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          {/* 왼쪽: cover + 정보 */}
+          <Link href={`/support/${farm.id}`} className="flex gap-4 items-start cursor-pointer">
+            <Image
+              src={farm.image_url}
+              alt={`${farm.farm_name} cover`}
+              width={232}
+              height={168}
+              className="h-42 w-58 rounded-xl object-cover"
+            />
+            <div className="flex flex-col gap-1">
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
+                {isDonator() && (
+                  <button 
+                    className={`rounded-full border p-1 transition-colors ${
+                      isBookmarked 
+                        ? 'border-yellow-400 bg-yellow-50' 
+                        : 'border-gray-300 hover:border-yellow-400'
+                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                    onClick={handleBookmarkClick}
+                    disabled={isLoading}
+                  >
+                    <Star 
+                      className={`h-4 w-4 ${
+                        isBookmarked 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-400 hover:text-yellow-400'
+                      } ${isLoading ? 'animate-pulse' : ''}`} 
+                    />
+                  </button>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <MapPin className="h-4 w-4" /> {farm.address}
+              </p>
+              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <Users className="h-4 w-4" /> 말 {farm.horse_count}두
+              </p>
+              {farm.state && (
+                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+              )}
+            </div>
           </Link>
-          <div className="flex gap-2">
-            {(farm.horse_url ?? []).slice(0, 4).map((src, i) => (
-              <img
-                key={i}
-                src={src}
-                alt={`${farm.farm_name} horse_url ${i + 1}`}
-                className="h-30 w-23 rounded-lg object-cover"
-              />
-            ))}
+
+          {/* 오른쪽: 갤러리 + 버튼 */}
+          <div className="flex flex-col items-end gap-3">
+            {isDonator() && (
+              <Link href={`/support/${farm.id}/donate`}>
+                <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
+                  기부하기
+                </Button>
+              </Link>
+            )}
+            <div className="flex gap-2">
+              {(farm.horse_url ?? []).slice(0, 4).map((src, i) => 
+                src ? (
+                  <Image
+                    key={i}
+                    src={src}
+                    alt={`${farm.farm_name} horse_url ${i + 1}`}
+                    width={92}
+                    height={120}
+                    className="h-30 w-23 rounded-lg object-cover"
+                  />
+                ) : null
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
 const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
   <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
@@ -112,9 +152,11 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
         <div className="flex gap-4 items-start">
           {/* 말 이미지 */}
           <div className="flex-shrink-0">
-            <img
+            <Image
               src={horse.horse_url || "/horses/mal.png"}
               alt={`${horse.hrNm} 이미지`}
+              width={96}
+              height={128}
               className="h-32 w-24 rounded-lg object-cover"
             />
           </div>
@@ -162,6 +204,52 @@ export default function SupportPage() {
   const [searchType, setSearchType] = useState<"farm" | "horse">("farm");
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bookmarkedFarms, setBookmarkedFarms] = useState<Set<string>>(new Set());
+  const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
+
+  // 즐겨찾기 토글 함수
+  const handleBookmarkToggle = async (farmId: string) => {
+    if (!isDonator()) return;
+    
+    // 로딩 상태 추가
+    setBookmarkLoading(prev => new Set(prev).add(farmId));
+    
+    try {
+      const isCurrentlyBookmarked = bookmarkedFarms.has(farmId);
+      
+      if (isCurrentlyBookmarked) {
+        await removeFarmBookmark(farmId);
+        // 로컬 상태 업데이트
+        setBookmarkedFarms(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(farmId);
+          return newSet;
+        });
+        // farms 배열의 해당 농장의 bookmark 상태도 업데이트
+        setFarms(prev => prev.map(farm => 
+          farm.id === farmId ? { ...farm, bookmark: false } : farm
+        ));
+      } else {
+        await addFarmBookmark(farmId);
+        // 로컬 상태 업데이트
+        setBookmarkedFarms(prev => new Set(prev).add(farmId));
+        // farms 배열의 해당 농장의 bookmark 상태도 업데이트
+        setFarms(prev => prev.map(farm => 
+          farm.id === farmId ? { ...farm, bookmark: true } : farm
+        ));
+      }
+    } catch (error) {
+      console.error('즐겨찾기 토글 실패:', error);
+      // 에러 발생 시 사용자에게 알림 (선택사항)
+    } finally {
+      // 로딩 상태 제거
+      setBookmarkLoading(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(farmId);
+        return newSet;
+      });
+    }
+  };
 
   // ✅ 전체 목록을 한 번에 가져옴
   React.useEffect(() => {
@@ -198,6 +286,18 @@ export default function SupportPage() {
       alive = false;
     };
   }, []);
+
+  // 농장 목록에서 북마크 상태 추출
+  React.useEffect(() => {
+    if (!isDonator() || farms.length === 0) return;
+    
+    const bookmarkIds = new Set(
+      farms
+        .filter(farm => farm.bookmark === true)
+        .map(farm => farm.id)
+    );
+    setBookmarkedFarms(bookmarkIds);
+  }, [farms]);
 
   const { filteredFarms, filteredHorses } = useMemo(() => {
     let farmArr = [...farms];
@@ -283,7 +383,15 @@ export default function SupportPage() {
           {loading && (
             <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">불러오는 중…</div>
           )}
-          {!loading && searchType === "farm" && filteredFarms.map((farm) => <FarmCard key={farm.id} farm={farm} />)}
+          {!loading && searchType === "farm" && filteredFarms.map((farm) => (
+            <FarmCard 
+              key={farm.id} 
+              farm={farm} 
+              isBookmarked={bookmarkedFarms.has(farm.id)}
+              onBookmarkToggle={handleBookmarkToggle}
+              isLoading={bookmarkLoading.has(farm.id)}
+            />
+          ))}
           {!loading && searchType === "horse" && filteredHorses.map(({ horse, farm }) => (
             <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
           ))}
