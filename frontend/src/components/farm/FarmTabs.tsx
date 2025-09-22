@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { isFarmer, isDonator } from "@/services/authService";
+import { isDonator } from "@/services/authService";
 import { isMyFarm } from "@/services/apiService";
 export type FarmTabValue = "intro" | "newsletter" | "donations" | "trust";
 
