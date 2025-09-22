@@ -2,7 +2,7 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 # 빌드 단계에서는 prod로 고정하지 않습니다
-ENV NEXT_TELEMETRY_DISABLED=1 CI=1
+ENV NEXT_TELEMETRY_DISABLED=1 CI=1 
 
 RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN apk add --no-cache libc6-compat

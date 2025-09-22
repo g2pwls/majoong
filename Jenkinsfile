@@ -402,13 +402,13 @@ pipeline {
                 ])
             }
         }
-        always {
-            echo "📦 Pipeline finished with status: ${currentBuild.currentResult} – 🔥 민감 파일 정리"
-            sh "rm -f ${env.BACKEND_DIR}/src/main/resources/application.yml || true"
-            // ⬇️ runtime 파일까지 함께 제거
-            sh "rm -f blockchain/.env frontend/.env frontend/.env.runtime || true"
-            echo "🧹 Cleanup: application.yml/.env 삭제 완료"
-        }
+        // always {
+        //     echo "📦 Pipeline finished with status: ${currentBuild.currentResult} – 🔥 민감 파일 정리"
+        //     sh "rm -f ${env.BACKEND_DIR}/src/main/resources/application.yml || true"
+        //     // ⬇️ runtime 파일까지 함께 제거
+        //     sh "rm -f blockchain/.env frontend/.env frontend/.env.runtime || true"
+        //     echo "🧹 Cleanup: application.yml/.env 삭제 완료"
+        // }
     }
 }
 
