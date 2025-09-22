@@ -3,39 +3,49 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useAuthStore, useUIStore } from '@/stores';
-import { getTokens, getUserRole } from '@/services/authService';
+import { getTokens, clearTokens, getUserRole } from '@/services/authService';
+import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { isLoggedIn, userRole, farmerInfo, donatorInfo, loadUserData } = useAuthStore();
-  const { isNavbarOpen, setNavbarOpen } = useUIStore();
-
-  // 사용자 이름 가져오기
-  const getUserName = () => {
-    if (userRole === 'FARMER' && farmerInfo) {
-      return farmerInfo.nameString;
-    } else if (userRole === 'DONATOR' && donatorInfo) {
-      return donatorInfo.nameString;
-    }
-    return null;
-  };
-
-  const userName = getUserName();
+  const [open, setOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
-    // 로그인 상태 및 사용자 데이터 확인
+    // 로그인 상태 및 사용자 이름 확인
     const checkLoginStatus = async () => {
       const tokens = getTokens();
-      const role = getUserRole();
       
-      if (tokens.accessToken && role) {
-        // 로그인 상태이지만 사용자 데이터가 없으면 로드
-        if ((role === 'FARMER' && !farmerInfo) || (role === 'DONATOR' && !donatorInfo)) {
-          await loadUserData();
+      // accessToken이 있으면 로그인 상태 (마중 플랫폼 가입 완료)
+      if (tokens.accessToken) {
+        setIsLoggedIn(true);
+        
+        // 사용자 역할에 따라 실제 이름 가져오기
+        const role = getUserRole();
+        if (role === 'FARMER') {
+          try {
+            const farmerData = await getFarmerInfo();
+            setUserName(farmerData.result.nameString);
+          } catch (error) {
+            console.error('목장주 정보 조회 실패:', error);
+            setUserName(null);
+          }
+        } else if (role === 'DONATOR') {
+          try {
+            const donatorData = await getDonatorInfo();
+            setUserName(donatorData.result.nameString);
+          } catch (error) {
+            console.error('기부자 정보 조회 실패:', error);
+            setUserName(null);
+          }
         }
+      } else {
+        // accessToken이 없으면 로그아웃 상태 (마중 플랫폼 가입 미완료)
+        setIsLoggedIn(false);
+        setUserName(null);
       }
     };
 
@@ -57,15 +67,12 @@ export default function Navbar() {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('authStateChanged', handleStorageChange);
     };
-  }, [farmerInfo, donatorInfo, loadUserData]);
+  }, []);
 
   const handleLogout = () => {
-    const { logout } = useAuthStore.getState();
-    logout();
-    
-    // 커스텀 이벤트 발생 (같은 탭에서 로그인 상태 변경 알림)
-    window.dispatchEvent(new CustomEvent('authStateChanged'));
-    
+    clearTokens();
+    setIsLoggedIn(false);
+    setUserName(null);
     // 메인 페이지로 리다이렉트
     window.location.href = '/';
   };
@@ -122,7 +129,7 @@ export default function Navbar() {
         <button
           className="sm:hidden"
           aria-label="Open menu"
-          onClick={() => setNavbarOpen(!isNavbarOpen)}
+          onClick={() => setOpen(v => !v)}
         >
           {/* 햄버거 아이콘 (간단히) */}
           <div className="h-0.5 w-6 bg-black mb-1.5" />
@@ -132,26 +139,26 @@ export default function Navbar() {
       </nav>
 
       {/* Mobile drawer */}
-      {isNavbarOpen && (
+      {open && (
         <div className="sm:hidden border-t bg-white">
           <ul className="mx-4 my-2 flex flex-col gap-2 py-2">
-            <li><Link href="/about" onClick={() => setNavbarOpen(false)}>소개</Link></li>
-            <li><Link href="/support" onClick={() => setNavbarOpen(false)}>목장후원</Link></li>
-            <li><Link href="/godonate" onClick={() => setNavbarOpen(false)}>바로기부</Link></li>
+            <li><Link href="/about" onClick={() => setOpen(false)}>소개</Link></li>
+            <li><Link href="/support" onClick={() => setOpen(false)}>목장후원</Link></li>
+            <li><Link href="/godonate" onClick={() => setOpen(false)}>바로기부</Link></li>
             <li className="pt-2">
               {isLoggedIn ? (
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/mypage"
                     className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
-                    onClick={() => setNavbarOpen(false)}
+                    onClick={() => setOpen(false)}
                   >
                     {userName ? `${userName}님` : ''}
                   </Link>
                   <button
                     onClick={() => {
                       handleLogout();
-                      setNavbarOpen(false);
+                      setOpen(false);
                     }}
                     className="inline-block rounded border px-4 py-1"
                   >
@@ -162,7 +169,7 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   className="inline-block rounded border px-4 py-1"
-                  onClick={() => setNavbarOpen(false)}
+                  onClick={() => setOpen(false)}
                 >
                   로그인
                 </Link>

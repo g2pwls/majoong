@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, useUIStore, UserRole } from '@/stores';
 import { getTokens, getUserRole, debugTokenStatus } from '@/services/authService';
+import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
+import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/user';
 
 // 탭 컴포넌트들 (추후 구현)
 import DonorProfile from '@/components/mypage/DonorProfile';
@@ -17,6 +18,7 @@ import FarmerSupportHistory from '@/components/mypage/FarmerSupportHistory';
 import AdminProfile from '@/components/mypage/AdminProfile';
 import AdminReportHistory from '@/components/mypage/AdminReportHistory';
 
+type UserRole = 'DONATOR' | 'FARMER' | 'ADMIN';
 
 interface TabConfig {
   id: string;
@@ -26,18 +28,14 @@ interface TabConfig {
 
 export default function MyPage() {
   const router = useRouter();
-  const { 
-    userRole, 
-    farmerInfo, 
-    donatorInfo, 
-    isLoading, 
-    loadUserData, 
-    setError 
-  } = useAuthStore();
-  const { activeTab, setActiveTab } = useUIStore();
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('profile');
+  const [isLoading, setIsLoading] = useState(true);
+  const [farmerInfo, setFarmerInfo] = useState<FarmerInfoResponse['result'] | null>(null);
+  const [donatorInfo, setDonatorInfo] = useState<DonatorInfoResponse['result'] | null>(null);
 
   useEffect(() => {
-    const initializeUserData = async () => {
+    const loadUserData = async () => {
       try {
         // 토큰 상태 디버깅
         debugTokenStatus();
@@ -59,17 +57,28 @@ export default function MyPage() {
         }
 
         console.log('✅ 사용자 역할 확인:', role);
-        
-        // Zustand 스토어에서 사용자 데이터 로드
-        await loadUserData();
+        setUserRole(role as UserRole);
+
+        // 역할에 따른 정보 조회
+        if (role === 'FARMER') {
+          console.log('🔍 목장주 정보 조회 시작');
+          const farmerData = await getFarmerInfo();
+          setFarmerInfo(farmerData.result);
+        } else if (role === 'DONATOR') {
+          console.log('🔍 기부자 정보 조회 시작');
+          const donatorData = await getDonatorInfo();
+          setDonatorInfo(donatorData.result);
+        }
+
+        setIsLoading(false);
       } catch (error) {
         console.error('사용자 데이터 로드 오류:', error);
-        setError('사용자 정보를 불러오는데 실패했습니다.');
+        setIsLoading(false);
       }
     };
 
-    initializeUserData();
-  }, [router, loadUserData, setError]);
+    loadUserData();
+  }, [router]);
 
   // 역할별 탭 설정
   const getTabsByRole = (role: UserRole): TabConfig[] => {
