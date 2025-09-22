@@ -4,7 +4,7 @@ interface UIState {
   // 모달 상태
   isModalOpen: boolean;
   modalType: string | null;
-  modalData: any;
+  modalData: unknown;
 
   // 네비게이션 상태
   isNavbarOpen: boolean;
@@ -12,7 +12,7 @@ interface UIState {
   selectedTab: string;
 
   // 폼 상태
-  formData: Record<string, any>;
+  formData: Record<string, unknown>;
   formErrors: Record<string, string>;
 
   // 로딩 상태
@@ -20,13 +20,13 @@ interface UIState {
   loadingStates: Record<string, boolean>;
 
   // 액션
-  openModal: (type: string, data?: any) => void;
+  openModal: (type: string, data?: unknown) => void;
   closeModal: () => void;
   setNavbarOpen: (open: boolean) => void;
   setActiveTab: (tab: string) => void;
   setSelectedTab: (tab: string) => void;
-  setFormData: (data: Record<string, any>) => void;
-  updateFormData: (key: string, value: any) => void;
+  setFormData: (data: Record<string, unknown>) => void;
+  updateFormData: (key: string, value: unknown) => void;
   setFormError: (key: string, error: string) => void;
   clearFormErrors: () => void;
   setGlobalLoading: (loading: boolean) => void;
@@ -48,7 +48,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   loadingStates: {},
 
   // 액션들
-  openModal: (type: string, data?: any) => {
+  openModal: (type: string, data?: unknown) => {
     set({
       isModalOpen: true,
       modalType: type,
@@ -76,11 +76,11 @@ export const useUIStore = create<UIState>((set, get) => ({
     set({ selectedTab: tab });
   },
 
-  setFormData: (data: Record<string, any>) => {
+  setFormData: (data: Record<string, unknown>) => {
     set({ formData: data });
   },
 
-  updateFormData: (key: string, value: any) => {
+  updateFormData: (key: string, value: unknown) => {
     const { formData } = get();
     set({
       formData: {

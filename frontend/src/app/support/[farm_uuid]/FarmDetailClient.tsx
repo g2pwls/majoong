@@ -13,7 +13,7 @@ import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getFarm, Farm } from "@/services/apiService";
+import { getFarm } from "@/services/apiService";
 import { useFarmStore, useUIStore } from "@/stores";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];

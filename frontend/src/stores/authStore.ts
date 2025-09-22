@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { getTokens, clearTokens, getUserRole } from '@/services/authService';
+import { clearTokens } from '@/services/authService';
 import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
 
-export type UserRole = 'FARMER' | 'DONATOR';
+export type UserRole = 'FARMER' | 'DONATOR' | 'ADMIN';
 
 interface FarmerInfo {
   role: string;

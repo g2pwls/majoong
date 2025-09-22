@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getDonationHistory } from '@/services/userService';
 import type { DonationHistoryRequest, DonationHistoryResponse } from '@/types/user';
 import DonationDetailModal from './DonationDetailModal';
@@ -37,7 +37,7 @@ export default function DonorSupportHistory() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDonationId, setSelectedDonationId] = useState<number | null>(null);
 
-  const fetchDonationHistory = async (page: number = 0, isInitialLoad: boolean = false) => {
+  const fetchDonationHistory = useCallback(async (page: number = 0, isInitialLoad: boolean = false) => {
     try {
       // 초기 로드는 전체 로딩, 그 외에는 리스트만 로딩
       if (isInitialLoad) {
@@ -77,12 +77,12 @@ export default function DonorSupportHistory() {
         setIsListLoading(false);
       }
     }
-  };
+  }, [pageSize, startDate, endDate]);
 
   useEffect(() => {
     // 컴포넌트 마운트 시에만 초기 데이터 로드
     fetchDonationHistory(0, true);
-  }, []); // 의존성 배열을 빈 배열로 변경
+  }, [fetchDonationHistory]); // fetchDonationHistory를 의존성에 추가
 
   const handleDateFilter = () => {
     fetchDonationHistory(0, false); // 리스트만 로딩

@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore, useUIStore } from '@/stores';
+import { useAuthStore, useUIStore, UserRole } from '@/stores';
 import { getTokens, getUserRole, debugTokenStatus } from '@/services/authService';
 
 // 탭 컴포넌트들 (추후 구현)
@@ -17,7 +17,6 @@ import FarmerSupportHistory from '@/components/mypage/FarmerSupportHistory';
 import AdminProfile from '@/components/mypage/AdminProfile';
 import AdminReportHistory from '@/components/mypage/AdminReportHistory';
 
-type UserRole = 'DONATOR' | 'FARMER' | 'ADMIN';
 
 interface TabConfig {
   id: string;
@@ -32,7 +31,6 @@ export default function MyPage() {
     farmerInfo, 
     donatorInfo, 
     isLoading, 
-    error, 
     loadUserData, 
     setError 
   } = useAuthStore();

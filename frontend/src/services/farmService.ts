@@ -1,7 +1,7 @@
 // 농장 관련 API 서비스 함수
 
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse, FarmDetailResponse } from '@/types/farm';
+import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse } from '@/types/farm';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
