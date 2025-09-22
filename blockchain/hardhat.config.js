@@ -13,8 +13,24 @@ require("dotenv").config();
 module.exports = {
     // 'solidity'는 사용할 솔리디티 컴파일러의 버전을 지정합니다.
     // 여기에 명시된 버전으로 스마트 계약 코드가 컴파일됩니다.
-    solidity: "0.8.24",
-
+    solidity: {
+      version: "0.8.24",
+      settings: {
+        optimizer: {
+          enabled: true,
+          runs: 200,              // 기본값: 전체 컨트랙트 공통
+        },
+      },
+      // 특정 파일(컨트랙트)만 runs=1000으로 오버라이드
+      overrides: {
+        "contracts/MaronToken.sol": {
+          version: "0.8.24",
+          settings: {
+            optimizer: { enabled: true, runs: 1000 },
+          },
+        },
+      },
+    },
     // 'networks'는 스마트 계약을 배포하고 테스트할 블록체인 네트워크들을 설정하는 부분입니다.
     networks: {
         // 'sepolia'는 이더리움의 테스트 네트워크 중 하나의 이름입니다.
@@ -29,6 +45,14 @@ module.exports = {
             // 개인 키는 절대로 코드에 직접 노출해서는 안 되며, .env 파일에 저장하여 안전하게 관리해야 합니다.
             // 'process.env.DEPLOYER_PRIVATE_KEY'는 .env 파일에 정의된 DEPLOYER_PRIVATE_KEY 값을 가져옵니다.
             accounts: [process.env.DEPLOYER_PRIVATE_KEY]
-        }
-    }
+        },
+    },
+    gasReporter: {
+      enabled: true,
+      currency: "USD",
+      coinmarketcap: process.env.CMC_API_KEY || undefined, // 있으면 USD 환산
+      showTimeSpent: true,
+      excludeContracts: [], // 필요시 제외 목록
+      // outputFile: "gas-report.txt", noColors: true // 파일로 저장하고 싶으면
+    },
 };
