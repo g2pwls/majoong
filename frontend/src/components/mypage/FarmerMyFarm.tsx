@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getMyFarm } from '@/services/userService';
+import { MyFarmResponse } from '@/types/user';
 
 interface FarmInfo {
   id: string;
@@ -17,6 +19,7 @@ interface FarmInfo {
 
 export default function FarmerMyFarm() {
   const [farmInfo, setFarmInfo] = useState<FarmInfo | null>(null);
+  const [myFarmData, setMyFarmData] = useState<MyFarmResponse['result'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInfo, setEditedInfo] = useState({
@@ -25,26 +28,45 @@ export default function FarmerMyFarm() {
   });
 
   useEffect(() => {
-    // TODO: 실제 API에서 목장 정보를 가져와야 함
-    // 현재는 임시 데이터 사용
-    const mockData: FarmInfo = {
-      id: '1',
-      name: '행복한 목장',
-      description: '자연친화적인 목장에서 건강한 가축을 키우고 있습니다. 지속가능한 농업을 실천하며, 후원자분들과 함께 성장하고 있습니다.',
-      location: '강원도 평창군',
-      totalSupport: 5000000,
-      supportCount: 150,
-      status: 'active',
-      createdAt: '2024-01-01',
-      lastUpdated: '2024-01-15'
+    const fetchMyFarm = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getMyFarm();
+        
+        if (response.isSuccess && response.result) {
+          const farmData = response.result;
+          
+          // API 응답 데이터 저장
+          setMyFarmData(farmData);
+          
+          // 기존 FarmInfo 인터페이스에 맞춰 변환
+          const farmInfo: FarmInfo = {
+            id: farmData.farmUuid,
+            name: farmData.farmName,
+            description: farmData.description,
+            location: farmData.address,
+            imageUrl: farmData.profileImage,
+            totalSupport: farmData.monthTotalAmount,
+            supportCount: 0, // API에서 제공되지 않는 필드
+            status: 'active',
+            createdAt: '', // API에서 제공되지 않는 필드
+            lastUpdated: '' // API에서 제공되지 않는 필드
+          };
+          
+          setFarmInfo(farmInfo);
+          setEditedInfo({
+            name: farmData.farmName,
+            description: farmData.description
+          });
+        }
+      } catch (error) {
+        console.error('나의 목장 정보 조회 오류:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    
-    setFarmInfo(mockData);
-    setEditedInfo({
-      name: mockData.name,
-      description: mockData.description
-    });
-    setIsLoading(false);
+
+    fetchMyFarm();
   }, []);
 
   const handleSave = () => {
@@ -130,105 +152,103 @@ export default function FarmerMyFarm() {
       </div>
       
       <div className="bg-white border border-gray-200 rounded-lg p-6">
-        {/* 목장 상태 */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">목장 상태:</span>
-            {getStatusBadge(farmInfo.status)}
-          </div>
-          <span className="text-sm text-gray-500">
-            마지막 수정: {formatDate(farmInfo.lastUpdated)}
-          </span>
-        </div>
-
-        {/* 목장명 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            목장명
-          </label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={editedInfo.name}
-              onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="목장명을 입력하세요"
+        {/* 목장 이미지 */}
+        {myFarmData?.profileImage && (
+          <div className="mb-6">
+            <img
+              src={myFarmData.profileImage}
+              alt={farmInfo.name}
+              className="w-full h-48 object-cover rounded-lg"
             />
-          ) : (
-            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-              {farmInfo.name}
+          </div>
+        )}
+
+        {/* 목장 기본 정보 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">기본 정보</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">목장명:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.farmName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">목장주:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.ownerName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">목장 주소:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.address}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">면적:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.area}m²</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">연락처:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.phoneNumber}</span>
+              </div>
             </div>
-          )}
+          </div>
+          
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">현재 상태</h3>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">현재 두 수:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.horseCount}두</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">목장 점수:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.totalScore}°C</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">월 총 후원금:</span>
+                <span className="text-sm font-medium text-gray-900">{myFarmData?.monthTotalAmount.toLocaleString()}원</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* 목장 설명 */}
-        <div className="mb-4">
+        <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             목장 설명
           </label>
           {isEditing ? (
-            <textarea
-              value={editedInfo.description}
-              onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="목장에 대한 설명을 입력하세요"
-            />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  목장명
+                </label>
+                <input
+                  type="text"
+                  value={editedInfo.name}
+                  onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="목장명을 입력하세요"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  목장 설명
+                </label>
+                <textarea
+                  value={editedInfo.description}
+                  onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="목장에 대한 설명을 입력하세요"
+                />
+              </div>
+            </div>
           ) : (
             <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-              {farmInfo.description}
+              {myFarmData?.description || '목장 설명이 없습니다.'}
             </div>
           )}
         </div>
 
-        {/* 목장 위치 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            목장 위치
-          </label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-            {farmInfo.location}
-          </div>
-        </div>
-
-        {/* 통계 정보 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-blue-600">총 후원금</p>
-                <p className="text-lg font-semibold text-blue-900">{formatAmount(farmInfo.totalSupport)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-green-600">후원자 수</p>
-                <p className="text-lg font-semibold text-green-900">{farmInfo.supportCount}명</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-purple-600">등록일</p>
-                <p className="text-lg font-semibold text-purple-900">{formatDate(farmInfo.createdAt)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* 편집 버튼들 */}
         {isEditing && (

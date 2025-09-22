@@ -33,6 +33,9 @@ export default function GoDonatePage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
+  const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
+  const [paymentMethod, setPaymentMethod] = useState<'kakao' | 'bank'>('kakao');
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
   useEffect(() => {
     const fetchTopFarms = async () => {
@@ -114,6 +117,36 @@ export default function GoDonatePage() {
       setIsCustomInputActive(false);
       setShowAmountWarning(false);
     }
+  };
+
+  const handleDonationTypeChange = (type: 'one-time' | 'recurring') => {
+    if (type === 'recurring') {
+      alert('정기 후원 기능은 추후 구현될 예정입니다.');
+      return;
+    }
+    setDonationType(type);
+  };
+
+  const handlePaymentMethodChange = (method: 'kakao' | 'bank') => {
+    if (method === 'bank') {
+      alert('무통장입금 기능은 추후 구현될 예정입니다.');
+      return;
+    }
+    setPaymentMethod(method);
+  };
+
+  const handleDonateClick = () => {
+    if (selectedAmount > 0) {
+      setShowConfirmPopup(true);
+    } else {
+      alert('후원 금액을 선택해주세요.');
+    }
+  };
+
+  const handleConfirmDonation = () => {
+    setShowConfirmPopup(false);
+    // TODO: 카카오페이 API 연결
+    console.log('카카오페이 결제 진행:', { selectedAmount });
   };
 
   const handleDonate = () => {
@@ -350,9 +383,42 @@ export default function GoDonatePage() {
               </div>
             </div>
 
-            {/* 오른쪽: 금액 선택 */}
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900">금액 선택</h3>
+            {/* 오른쪽: 후원 정보 */}
+            <div className="space-y-8">
+              <h3 className="text-xl font-semibold text-gray-900">후원 정보</h3>
+              
+              {/* 후원 방법 선택 */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium text-gray-800">후원 방법</h4>
+                <div className="flex space-x-4">
+                  <Button
+                    variant={donationType === 'one-time' ? "default" : "outline"}
+                    onClick={() => handleDonationTypeChange('one-time')}
+                    className={`px-6 py-3 ${
+                      donationType === 'one-time'
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    일시 후원
+                  </Button>
+                  <Button
+                    variant={donationType === 'recurring' ? "default" : "outline"}
+                    onClick={() => handleDonationTypeChange('recurring')}
+                    className={`px-6 py-3 ${
+                      donationType === 'recurring'
+                        ? "bg-green-500 hover:bg-green-600 text-white"
+                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    정기 후원
+                  </Button>
+                </div>
+              </div>
+
+              {/* 후원 금액 선택 */}
+              <div className="space-y-4">
+                <h4 className="text-lg font-medium text-gray-800">후원 금액</h4>
               
               {/* 미리 정의된 금액 버튼들 */}
               <div className="grid grid-cols-3 gap-3">
@@ -418,58 +484,86 @@ export default function GoDonatePage() {
                 </div>
               </div>
 
-              {/* 기부하기 버튼 */}
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleDonate}
-                  className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg"
-                  disabled={selectedAmount <= 0 || !selectedFarm}
-                >
-                  기부하기
-                </Button>
+              </div>
+
+              {/* 결제 정보 */}
+              <div className="space-y-6 pt-6 border-t border-gray-200">
+                <h3 className="text-xl font-semibold text-gray-900">결제 정보</h3>
+                
+                {/* 결제 수단 선택 */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-medium text-gray-800">결제 수단</h4>
+                  <div className="flex space-x-4">
+                    <Button
+                      variant={paymentMethod === 'kakao' ? "default" : "outline"}
+                      onClick={() => handlePaymentMethodChange('kakao')}
+                      className={`px-6 py-3 ${
+                        paymentMethod === 'kakao'
+                          ? "bg-yellow-400 hover:bg-yellow-500 text-white"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      카카오페이
+                    </Button>
+                    <Button
+                      variant={paymentMethod === 'bank' ? "default" : "outline"}
+                      onClick={() => handlePaymentMethodChange('bank')}
+                      className={`px-6 py-3 ${
+                        paymentMethod === 'bank'
+                          ? "bg-blue-500 hover:bg-blue-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      무통장입금
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 기부하기 버튼 */}
+                <div className="flex justify-center pt-4">
+                  <Button
+                    onClick={handleDonateClick}
+                    className="bg-green-500 hover:bg-green-600 text-white px-12 py-4 text-xl font-semibold"
+                    disabled={selectedAmount <= 0 || !selectedFarm}
+                  >
+                    기부하기
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </Card>
       </div>
 
-      {/* 기부 확인 모달 */}
-      {showConfirmModal && selectedFarm && (
+      {/* 기부 확인 팝업 */}
+      {showConfirmPopup && selectedFarm && (
         <div 
-          className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50"
-          onClick={handleCancelDonate}
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowConfirmPopup(false)}
         >
           <div 
-            className="bg-white rounded-lg p-8 max-w-md w-full mx-4"
+            className="bg-white rounded-lg p-8 max-w-md w-full shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">기부 확인</h3>
-              <div className="mb-6">
-                <p className="text-lg text-gray-700 mb-2">
-                  <span className="font-semibold">{selectedFarm.farm_name}</span>에
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatAmount(selectedAmount)}원
-                </p>
-                <p className="text-lg text-gray-700 mt-2">기부하시겠습니까?</p>
-              </div>
-              
-              <div className="flex space-x-4">
-                <Button
-                  onClick={handleCancelDonate}
-                  variant="outline"
-                  className="flex-1 py-3"
-                >
-                  취소
-                </Button>
-                <Button
-                  onClick={handleConfirmDonate}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3"
-                >
-                  기부하기
-                </Button>
-              </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">기부 확인</h3>
+            <p className="text-gray-600 mb-6 text-center">
+              <span className="font-medium text-gray-900">{selectedFarm.farm_name}</span>에<br/>
+              <span className="font-medium text-green-600">{formatAmount(selectedAmount)}원</span>을 기부하시겠습니까?
+            </p>
+            <div className="flex space-x-4 justify-end">
+              <Button
+                onClick={() => setShowConfirmPopup(false)}
+                variant="outline"
+                className="px-6 py-2"
+              >
+                취소
+              </Button>
+              <Button
+                onClick={handleConfirmDonation}
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
+              >
+                확인
+              </Button>
             </div>
           </div>
         </div>

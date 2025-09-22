@@ -113,7 +113,29 @@ export interface DonationDetailResponse {
   };
 }
 
+// 목장주 나의 목장 조회 응답
+export interface MyFarmResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    farmUuid: string;
+    farmName: string;
+    profileImage: string;
+    totalScore: number;
+    address: string;
+    phoneNumber: string;
+    horseCount: number;
+    monthTotalAmount: number;
+    area: number;
+    description: string;
+    monthlyScores: any[]; // 향후 구체적인 타입 정의 필요
+    horses: any[]; // 향후 구체적인 타입 정의 필요
+    ownerName: string;
+  };
+}
+
 // 향후 추가될 사용자 관련 타입들
-// export interface MyFarmResponse { ... }
 // export interface SupportReceivedResponse { ... }
 // export interface ReportHistoryResponse { ... }
