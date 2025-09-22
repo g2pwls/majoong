@@ -165,7 +165,9 @@ public class FinApiServiceImpl implements FinApiService {
                                     return Mono.error(new RuntimeException("Withdraw API error: " + body));
                                 });
                     }
-                    return response.bodyToMono(WithdrawResponseDto.class);
+
+                    return response.bodyToMono(Map.class)
+                            .map(WithdrawResponseDto::from);
                 })
                 .block();
     }
