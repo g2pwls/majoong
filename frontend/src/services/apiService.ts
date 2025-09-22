@@ -2,7 +2,7 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { getCurrentUserMemberUuid } from './authService';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://test.majoong.site';
 
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
