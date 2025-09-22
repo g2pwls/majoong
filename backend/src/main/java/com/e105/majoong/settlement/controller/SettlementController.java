@@ -6,6 +6,7 @@ import com.e105.majoong.settlement.service.SettlementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,10 +18,11 @@ public class SettlementController {
   private final SettlementService settlementService;
 
   @PostMapping
-  public ReceiptSettlementResponse settle(@Valid @RequestBody ReceiptSettlementRequest req){
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    String memberUuid = ((com.e105.majoong.auth.security.CustomUserDetails) auth.getPrincipal())
-        .getMemberUuid();
+  public ReceiptSettlementResponse settle(
+      @AuthenticationPrincipal com.e105.majoong.auth.security.CustomUserDetails user,
+      @Valid @RequestBody ReceiptSettlementRequest req) {
+
+    String memberUuid = user.getMemberUuid();
     return settlementService.settle(memberUuid, req);
   }
 }
