@@ -20,7 +20,8 @@ export interface BusinessVerificationResponse {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // 원본 이메일 + 현재 월일시분초 기반 이메일 생성 함수 (개발용 - 배포 시 제거 필요)
 const generateTimestampEmail = (originalEmail: string): string => {

@@ -13,8 +13,11 @@ COPY . .
    
 # devDependencies 포함해서 설치 (중요!)
 RUN pnpm install --frozen-lockfile --prod=false
-
-RUN pnpm --reporter=append-only build
+RUN --mount=type=secret,id=buildenv \
+    sh -lc 'cp /run/secrets/buildenv .env && \
+            echo "[build] using .env for NEXT_PUBLIC_*" && \
+            grep -E "^(NEXT_PUBLIC_[A-Z0-9_]+)=" .env || true && \
+            pnpm --reporter=append-only build'
  
 # ---- run ----
 FROM node:20-alpine AS run
