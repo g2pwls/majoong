@@ -14,8 +14,7 @@ COPY . .
 # devDependencies 포함해서 설치 (중요!)
 RUN pnpm install --frozen-lockfile --prod=false
 
-RUN --mount=type=secret,id=buildenv \
-    sh -lc 'set -a; . /run/secrets/buildenv; set +a; pnpm --reporter=append-only build'
+RUN pnpm --reporter=append-only build
  
 # ---- run ----
 FROM node:20-alpine AS run

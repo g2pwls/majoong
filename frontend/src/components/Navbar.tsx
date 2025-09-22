@@ -5,24 +5,47 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { getTokens, clearTokens } from '@/services/authService';
+import { getTokens, clearTokens, getUserRole } from '@/services/authService';
+import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
-    // 로그인 상태 확인
-    const checkLoginStatus = () => {
+    // 로그인 상태 및 사용자 이름 확인
+    const checkLoginStatus = async () => {
       const tokens = getTokens();
+      
+      // accessToken이 있으면 로그인 상태 (마중 플랫폼 가입 완료)
       if (tokens.accessToken) {
         setIsLoggedIn(true);
-        setUserEmail(tokens.email);
+        
+        // 사용자 역할에 따라 실제 이름 가져오기
+        const role = getUserRole();
+        if (role === 'FARMER') {
+          try {
+            const farmerData = await getFarmerInfo();
+            setUserName(farmerData.result.nameString);
+          } catch (error) {
+            console.error('목장주 정보 조회 실패:', error);
+            setUserName(null);
+          }
+        } else if (role === 'DONATOR') {
+          try {
+            const donatorData = await getDonatorInfo();
+            setUserName(donatorData.result.nameString);
+          } catch (error) {
+            console.error('기부자 정보 조회 실패:', error);
+            setUserName(null);
+          }
+        }
       } else {
+        // accessToken이 없으면 로그아웃 상태 (마중 플랫폼 가입 미완료)
         setIsLoggedIn(false);
-        setUserEmail(null);
+        setUserName(null);
       }
     };
 
@@ -49,7 +72,7 @@ export default function Navbar() {
   const handleLogout = () => {
     clearTokens();
     setIsLoggedIn(false);
-    setUserEmail(null);
+    setUserName(null);
     // 메인 페이지로 리다이렉트
     window.location.href = '/';
   };
@@ -83,7 +106,7 @@ export default function Navbar() {
                 href="/mypage"
                 className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
               >
-                {userEmail ? userEmail.split('@')[0] : '사용자'}님
+                {userName ? `${userName}님` : ''}
               </Link>
               <button
                 onClick={handleLogout}
@@ -130,7 +153,7 @@ export default function Navbar() {
                     className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
                     onClick={() => setOpen(false)}
                   >
-                    {userEmail ? userEmail.split('@')[0] : '사용자'}님
+                    {userName ? `${userName}님` : ''}
                   </Link>
                   <button
                     onClick={() => {

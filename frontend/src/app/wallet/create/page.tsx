@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { signupComplete, getTokens } from '@/services/authService';
+import { signupComplete, getTokens, saveTokens } from '@/services/authService';
 
 export default function WalletCreatePage() {
   // const [isCreating, setIsCreating] = useState(true);
@@ -44,18 +44,18 @@ export default function WalletCreatePage() {
         // 3. 사용자 역할 설정
         setUserRole(signupData.role);
         const isFarmer = signupData.role === 'FARMER';
-        const walletCreationTime = isFarmer ? 10800 : 3800; // 목장주: 10.8초, 기부자: 3.8초
+        const walletCreationTime = isFarmer ? 13800 : 3800; // 목장주: 13.8초, 기부자: 3.8초
 
         // 4. 지갑 생성 시뮬레이션 시작 (0-30%) - 1단위씩 부드럽게 증가
         const steps = isFarmer ? [
-          { message: '지갑 초기화 중...', startProgress: 0, endProgress: 3, delay: 800 },
-          { message: '개인키 생성 중...', startProgress: 3, endProgress: 6, delay: 600 },
-          { message: '공개키 생성 중...', startProgress: 6, endProgress: 9, delay: 500 },
-          { message: '지갑 주소 생성 중...', startProgress: 9, endProgress: 12, delay: 700 },
-          { message: '목장 전용 지갑 설정 중...', startProgress: 12, endProgress: 15, delay: 600 },
-          { message: '사업자 인증서 연동 중...', startProgress: 15, endProgress: 18, delay: 800 },
-          { message: '목장 계정 초기화 중...', startProgress: 18, endProgress: 21, delay: 500 },
-          { message: '지갑 보안 설정 중...', startProgress: 21, endProgress: 30, delay: 600 }
+          { message: '지갑 초기화 중...', startProgress: 0, endProgress: 3, delay: 1000 },
+          { message: '개인키 생성 중...', startProgress: 3, endProgress: 6, delay: 750 },
+          { message: '공개키 생성 중...', startProgress: 6, endProgress: 9, delay: 625 },
+          { message: '지갑 주소 생성 중...', startProgress: 9, endProgress: 12, delay: 875 },
+          { message: '목장 전용 지갑 설정 중...', startProgress: 12, endProgress: 15, delay: 750 },
+          { message: '사업자 인증서 연동 중...', startProgress: 15, endProgress: 18, delay: 1000 },
+          { message: '목장 계정 초기화 중...', startProgress: 18, endProgress: 21, delay: 625 },
+          { message: '지갑 보안 설정 중...', startProgress: 21, endProgress: 30, delay: 750 }
         ] : [
           { message: '지갑 초기화 중...', startProgress: 0, endProgress: 5, delay: 600 },
           { message: '개인키 생성 중...', startProgress: 5, endProgress: 10, delay: 500 },
@@ -102,14 +102,23 @@ export default function WalletCreatePage() {
           // 5. 회원가입 완료 - 진행률 100%로 설정
           setProgress(100);
           
-          // 6. 임시 데이터 삭제
+          // 6. 새로운 토큰 정보 저장 (role 포함) - tempAccessToken은 null로 저장하여 제거
+          const { accessToken, refreshToken, tempAccessToken, email, role } = response.result;
+          saveTokens(accessToken, refreshToken, '', email, role); // tempAccessToken을 빈 문자열로 저장하여 제거
+          
+          // 7. 임시 데이터 삭제
           localStorage.removeItem('pendingSignupData');
           localStorage.removeItem('isProcessingSignup');
           
-          // 7. 완료 팝업 표시 후 메인 페이지로 이동
+          // 8. 완료 팝업 표시 후 role에 따른 페이지 이동
           setTimeout(() => {
             alert('🎉 회원가입이 완료되었습니다!\n지갑이 성공적으로 생성되었습니다.');
-            window.location.href = '/';
+            // role에 따른 리다이렉트
+            if (role === 'FARMER') {
+              window.location.href = '/mypage';
+            } else {
+              window.location.href = '/';
+            }
           }, 500);
         } else {
           throw new Error(response.message || '회원가입에 실패했습니다.');
