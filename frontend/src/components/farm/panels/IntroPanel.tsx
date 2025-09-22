@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link"; // Import Link from next/link
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
 import TrustScoreChart from "./TrustScoreChart";
 import DonationProgressChart from "./DonationProgressChart";
@@ -104,23 +103,12 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
       </div>
 
       <div className="flex flex-col items-end">
-        <div className="flex flex-row">
-          {/* Countdown Text */}
-          {deadlineText && (
-            <div className="mr-4 mb-2 text-sm text-gray-600">
-              {deadlineText}
-            </div>
-          )}
-
-          {/* Reporting Button with Link */}
-          <Link
-            href={`/support/${farm?.id}/report`} // Link to the report page
-          >
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg">
-              목장 운영 보고하기
-            </button>
-          </Link>
-        </div>
+        {/* Countdown Text */}
+        {deadlineText && (
+          <div className="mb-2 text-sm text-gray-600">
+            {deadlineText}
+          </div>
+        )}
         
         {/* Horse registry section */}
         <HorseRegistrySection farmUuid={farm?.id || ""} />
