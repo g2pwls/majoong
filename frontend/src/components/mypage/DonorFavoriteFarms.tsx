@@ -1,61 +1,51 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { getFavoriteFarms } from '@/services/userService';
+import type { FavoriteFarmsResponse } from '@/types/user';
 
 interface FavoriteFarm {
-  id: string;
-  name: string;
-  description: string;
-  location: string;
-  imageUrl?: string;
-  totalSupport: number;
-  supportCount: number;
-  addedDate: string;
+  farmName: string;
+  farmUuid: string;
 }
 
 export default function DonorFavoriteFarms() {
   const [favoriteFarms, setFavoriteFarms] = useState<FavoriteFarm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // TODO: 실제 API에서 즐겨찾는 농장 목록을 가져와야 함
-    // 현재는 임시 데이터 사용
-    const mockData: FavoriteFarm[] = [
-      {
-        id: '1',
-        name: '행복한 목장',
-        description: '자연친화적인 목장에서 건강한 가축을 키우고 있습니다.',
-        location: '강원도 평창군',
-        totalSupport: 5000000,
-        supportCount: 150,
-        addedDate: '2024-01-10'
-      },
-      {
-        id: '2',
-        name: '사랑의 농장',
-        description: '지속가능한 농업을 실천하는 친환경 농장입니다.',
-        location: '경기도 가평군',
-        totalSupport: 3200000,
-        supportCount: 89,
-        addedDate: '2024-01-05'
+    const fetchFavoriteFarms = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        
+        const response: FavoriteFarmsResponse = await getFavoriteFarms();
+        
+        if (response.isSuccess && response.result) {
+          setFavoriteFarms(response.result);
+        } else {
+          setError('즐겨찾기 농장 목록을 불러올 수 없습니다.');
+        }
+      } catch (error) {
+        console.error('즐겨찾기 농장 조회 오류:', error);
+        setError('즐겨찾기 농장 목록을 불러오는 중 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
       }
-    ];
-    
-    setFavoriteFarms(mockData);
-    setIsLoading(false);
+    };
+
+    fetchFavoriteFarms();
   }, []);
 
-  const handleRemoveFavorite = (farmId: string) => {
-    // TODO: 실제 API 호출
-    setFavoriteFarms(prev => prev.filter(farm => farm.id !== farmId));
+  const handleRemoveFavorite = (farmUuid: string) => {
+    // TODO: 실제 즐겨찾기 삭제 API 호출
+    setFavoriteFarms(prev => prev.filter(farm => farm.farmUuid !== farmUuid));
   };
 
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR');
+  const handleVisitFarm = (farmUuid: string) => {
+    // 농장 상세 페이지로 이동
+    window.open(`/support/${farmUuid}`, '_blank');
   };
 
   if (isLoading) {
@@ -68,6 +58,26 @@ export default function DonorFavoriteFarms() {
               <div key={i} className="h-32 bg-gray-200 rounded"></div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <svg className="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">오류가 발생했습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+          >
+            다시 시도
+          </button>
         </div>
       </div>
     );
@@ -86,13 +96,13 @@ export default function DonorFavoriteFarms() {
           <p className="mt-1 text-sm text-gray-500">관심 있는 농장을 즐겨찾기에 추가해보세요.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {favoriteFarms.map((farm) => (
-            <div key={farm.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div key={farm.farmUuid} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
               <div className="flex justify-between items-start mb-3">
-                <h3 className="text-lg font-semibold text-gray-900">{farm.name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{farm.farmName}</h3>
                 <button
-                  onClick={() => handleRemoveFavorite(farm.id)}
+                  onClick={() => handleRemoveFavorite(farm.farmUuid)}
                   className="text-gray-400 hover:text-red-500 transition-colors"
                   title="즐겨찾기에서 제거"
                 >
@@ -102,45 +112,27 @@ export default function DonorFavoriteFarms() {
                 </button>
               </div>
               
-              <p className="text-gray-600 text-sm mb-3">{farm.description}</p>
-              
-              <div className="space-y-2 text-sm text-gray-500">
+              <div className="space-y-2 text-sm text-gray-500 mb-4">
                 <div className="flex items-center">
                   <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
-                  {farm.location}
-                </div>
-                
-                <div className="flex items-center">
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                  </svg>
-                  총 후원금: {formatAmount(farm.totalSupport)}
-                </div>
-                
-                <div className="flex items-center">
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  후원자 수: {farm.supportCount}명
-                </div>
-                
-                <div className="flex items-center">
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  추가일: {formatDate(farm.addedDate)}
+                  농장 ID: {farm.farmUuid}
                 </div>
               </div>
               
               <div className="mt-4 flex gap-2">
-                <button className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors">
-                  후원하기
+                <button 
+                  onClick={() => handleVisitFarm(farm.farmUuid)}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+                >
+                  농장 보기
                 </button>
-                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors">
-                  상세보기
+                <button 
+                  onClick={() => handleVisitFarm(farm.farmUuid)}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
+                >
+                  후원하기
                 </button>
               </div>
             </div>
