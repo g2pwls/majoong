@@ -61,4 +61,7 @@ public class Farm extends BaseEntity {
     public void updateTotalDonation(Long amount) {
         this.totalDonation += amount;
     }
+    public void updateTotalScore(Double totalScore) {
+        this.totalScore = totalScore;
+    }
 }

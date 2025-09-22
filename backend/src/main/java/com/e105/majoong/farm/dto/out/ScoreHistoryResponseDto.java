@@ -18,7 +18,7 @@ public class ScoreHistoryResponseDto {
     private String sourceId;
     private LocalDateTime createdAt;
     private String category;
-    private Integer score;
+    private int score;
     private Integer year;
     private Integer month;
 

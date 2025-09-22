@@ -1,13 +1,10 @@
 package com.e105.majoong.batch.score.horseState.tasklet;
 
 import com.e105.majoong.batch.score.horseState.dto.HorseInFarmDto;
-import com.e105.majoong.batch.score.horseState.snapshot.FarmSnapshot;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
-import com.e105.majoong.common.model.horse.Horse;
-import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.common.model.horse.HorseRepositoryCustom;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,7 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
@@ -77,13 +73,13 @@ import org.springframework.stereotype.Component;
 //
 //출력: WEEK_START, WEEK_END, WEEK_LABEL(금요일 날짜 등)
 //
-//FetchWeeklyTargetsSnapshotTasklet
+//FetchWeeklyTargetsSnapshotTasklet                                 0
 //
 //역할: 일요일 23:59:59 기준 활성 말 스냅샷(농장 → 말 목록/수)
 //
 //출력: WEEK_HORSE_SNAPSHOT(farm → {horseIds, registeredCount})
 //
-//AggregateWeeklyHorseStatusUploadsTasklet
+//AggregateWeeklyHorseStatusUploadsTasklet                          0
 //
 //역할: upload_log(type='HORSE_STATUS')에서 금~일 distinct(horse_id) 집계
 //
@@ -145,7 +141,7 @@ public class FetchWeeklyTargetsSnapshotTasklet implements Tasklet {
         executeContext.put("WEEK_HORSE_SNAPSHOT", horsesByFarm);
         executeContext.putString("WEEK_START", start.toString());
         executeContext.putString("WEEK_END", end.toString());
-        executeContext.putString("WEEK_LABEL", monday.minusDays(3).toString());
+        executeContext.putString("WEEK_LABEL", monday.minusDays(3).toString()); //금요일
         return RepeatStatus.FINISHED;
     }
 }

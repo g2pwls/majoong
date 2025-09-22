@@ -33,11 +33,10 @@ public class MyScore {
     private Long scoreCategoryId;
 
     @Column(nullable = false)
-    private Integer score;
+    private int score;
 
-    @Column(nullable = false)
     private Integer year;
 
-    @Column(nullable = false)
     private Integer month;
+
 }

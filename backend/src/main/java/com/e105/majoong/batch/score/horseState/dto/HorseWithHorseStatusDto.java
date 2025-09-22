@@ -7,5 +7,5 @@ import lombok.Getter;
 @Getter
 public class HorseWithHorseStatusDto {
     private String farmUuid;
-    private Number horseNumber;
+    private Long horseNumber;
 }
