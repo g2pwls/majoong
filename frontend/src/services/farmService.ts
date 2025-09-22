@@ -3,8 +3,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse } from '@/types/farm';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+console.log(API_BASE_URL)
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,

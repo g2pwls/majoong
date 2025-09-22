@@ -64,6 +64,7 @@ public class HorseServiceImpl implements HorseService {
                         .month(r.getUploadedAt().getMonthValue())
                         .week((r.getUploadedAt().getDayOfMonth() - 1) / 7 + 1) // 주차 계산 (1일부터 시작)
                         .aiSummary(r.getAiSummary())
+                        .uploadedAt(r.getUploadedAt())
                         .build())
                 .collect(Collectors.toList());
 
