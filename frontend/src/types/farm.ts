@@ -46,6 +46,7 @@ export interface WeeklyReport {
   month: number;
   week: number;
   aiSummary: string;
+  uploadedAt?: string;
 }
 
 export interface HorseDetailResult {

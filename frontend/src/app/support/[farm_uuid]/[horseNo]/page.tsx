@@ -11,6 +11,18 @@ import { ArrowLeft, Calendar, Trophy, MapPin, Phone } from "lucide-react";
 import { FarmService } from "@/services/farmService";
 import { HorseDetailResult } from "@/types/farm";
 
+// 날짜 포맷팅 함수
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 
 type Farm = {
   id: string;
@@ -336,7 +348,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                         </div>
                         <div className="pt-3 border-t border-gray-100">
                           <p className="text-xs text-gray-500">
-                            보고서 ID: {report.horseReportId}
+                            업로드일: {report.uploadedAt ? formatDate(report.uploadedAt) : '정보 없음'}
                           </p>
                         </div>
                       </div>

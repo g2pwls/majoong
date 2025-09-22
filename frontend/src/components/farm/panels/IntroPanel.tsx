@@ -1,12 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link"; // Import Link from next/link
 import HorseRegistrySection from "@/components/farm/edit/HorseRegistrySection";
+import TrustScoreChart from "./TrustScoreChart";
 import { Farm } from "@/types/farm";
+import { FarmService } from "@/services/farmService";
+import { ScoreHistory } from "@/types/farm";
 
 export default function IntroPanel({ farm }: { farm: Farm }) {
   const [deadlineText, setDeadlineText] = useState<string>("");
+  const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
+
+  // 신뢰도 내역 조회 (현재 년도)
+  const fetchScoreHistory = useCallback(async () => {
+    if (!farm?.id) return;
+    
+    const currentYear = new Date().getFullYear();
+    
+    try {
+      console.log('신뢰도 내역 조회 시작:', { farmId: farm.id, year: currentYear });
+      const response = await FarmService.getScoreHistory(farm.id, currentYear);
+      console.log('신뢰도 내역 조회 성공:', response);
+      setScoreHistory(response.result);
+    } catch (e: unknown) {
+      console.error('신뢰도 내역 조회 실패:', e);
+    }
+  }, [farm?.id]);
 
   useEffect(() => {
     // Calculate the deadline (Sunday) and show the countdown
@@ -43,6 +63,11 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     getDeadlineText();
   }, []);
 
+  // 신뢰도 데이터 가져오기
+  useEffect(() => {
+    fetchScoreHistory();
+  }, [fetchScoreHistory]);
+
   return (
     <section id="panel-intro" className="flex flex-col">
       
@@ -57,6 +82,15 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
           </div>
         </div>
       )}
+
+      {/* 신뢰도 평균 변화 표 */}
+      <div className="mb-6">
+        <TrustScoreChart 
+          scoreHistory={scoreHistory}
+          selectedYear={new Date().getFullYear()}
+          currentScore={farm?.total_score || 0}
+        />
+      </div>
 
       <div className="flex flex-col items-end">
         <div className="flex flex-row">

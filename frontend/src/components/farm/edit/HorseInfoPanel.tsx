@@ -84,7 +84,7 @@ export default function HorseInfoPanel({
     setError("");
     setIsFetchComplete(false); // 조회 시작 시 버튼 비활성화
 
-    const serviceKey = process.env.HORSE_API_SERVICE_KEY; // 인증키
+    const serviceKey = process.env.NEXT_PUBLIC_HORSE_API_SERVICE_KEY; // 인증키
     
     if (!serviceKey) {
       setError("API 서비스 키가 설정되지 않았습니다.");

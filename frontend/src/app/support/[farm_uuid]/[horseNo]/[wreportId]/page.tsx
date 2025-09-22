@@ -6,7 +6,19 @@ import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, FileText, Clock, User, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, AlertTriangle } from "lucide-react";
+
+// 날짜 포맷팅 함수
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
 import Breadcrumbs from "@/components/common/Breadcrumb";
 
 type PageProps = { 
@@ -25,6 +37,7 @@ type WeeklyReportDetail = {
   stableImage?: string;
   aiSummary?: string;
   content?: string;
+  uploadedAt?: string;
 };
 
 type Farm = {
@@ -165,7 +178,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
                    주간 보고서 상세
                  </h1>
                  <p className="text-gray-600">
-                   말 번호: {horseNo} | 보고서 ID: {wreportId}
+                   말 번호: {horseNo} | 업로드일: {report.uploadedAt ? formatDate(report.uploadedAt) : '정보 없음'}
                  </p>
                </div>
              </div>
