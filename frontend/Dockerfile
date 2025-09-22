@@ -10,7 +10,7 @@ RUN apk add --no-cache libc6-compat
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm fetch  
 COPY . .
-  
+   
 # devDependencies 포함해서 설치 (중요!)
 RUN pnpm install --frozen-lockfile --prod=false
 
