@@ -2,6 +2,7 @@
 
 export interface Farm {
   id: string;
+  farmUuid: string; // 백엔드 API와 일치하도록 추가
   farm_name: string;
   total_score: number;
   image_url?: string;

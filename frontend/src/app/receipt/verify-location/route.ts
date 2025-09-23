@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 농장 API에서 농장 데이터 가져오기
-    const farmResponse = await fetch(`${request.nextUrl.origin}/api/farms/${farmUuid}`);
+    const farmResponse = await fetch(`${request.nextUrl.origin}/receipt/farms/${farmUuid}`);
     if (!farmResponse.ok) {
       return NextResponse.json(
         { error: "농장 정보를 가져올 수 없습니다." },
