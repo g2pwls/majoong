@@ -53,6 +53,8 @@ public class SettlementHistory extends BaseEntity {
 
   private Long withdrawToken; //token
 
+  private Long receiptHistoryId;
+
   /** DTO 의존 제거: 필요한 값만 받아서 엔티티 생성 */
   public static SettlementHistory toEntity(
       String farmUuid,
