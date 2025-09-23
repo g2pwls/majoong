@@ -1,7 +1,7 @@
-package com.e105.majoong.report.batch;
+package com.e105.majoong.batch.report;
 
+import com.e105.majoong.ai.OpenAIService;
 import com.e105.majoong.common.model.farm.Farm;
-import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.model.horse.QHorse;
 import com.e105.majoong.common.model.horseState.HorseState;
 import com.e105.majoong.common.model.horseState.QHorseState;
@@ -22,12 +22,12 @@ import java.util.stream.Stream;
 @Component
 public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport> {
 
-    private final OpenAiService openAiService;
+    private final OpenAIService openAiService;
     private final JPAQueryFactory queryFactory;
 
     private static final String DEFAULT_THUMBNAIL = "default_thumbnail_url";
 
-    public MonthlyReportProcessor(OpenAiService openAiService, JPAQueryFactory queryFactory) {
+    public MonthlyReportProcessor(OpenAIService openAiService, JPAQueryFactory queryFactory) {
         this.openAiService = openAiService;
         this.queryFactory = queryFactory;
     }

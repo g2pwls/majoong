@@ -1,10 +1,9 @@
-package com.e105.majoong.manageFarm.service;
+package com.e105.majoong.ai;
 
-import com.e105.majoong.manageFarm.dto.out.HorseImageDto;
-import java.util.List;
 import reactor.core.publisher.Mono;
 
 //todo: 추후 batch 서비스로 분리
 public interface OpenAIService {
     Mono<String> analyzeHorseImage(String type, String imageUrl);
+    String analyzeReport(String farmName, int year, int month, String content);
 }
