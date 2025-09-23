@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { verifyBusiness } from '@/services/authService';
 import TermsAgreement from '@/components/signup/TermsAgreement';
@@ -33,6 +33,26 @@ export default function SignupPage() {
     businessVerifying: false
   });
   const [isTermsAgreed, setIsTermsAgreed] = useState(false);
+  
+  // 입력창에 대한 ref
+  const donorNameRef = useRef<HTMLInputElement>(null);
+  const farmNameRef = useRef<HTMLInputElement>(null);
+
+  // 역할 선택 후 자동으로 첫 번째 입력창에 포커스
+  useEffect(() => {
+    if (userType === 'donor' && donorNameRef.current) {
+      // 약간의 지연을 두어 애니메이션 완료 후 포커스
+      setTimeout(() => {
+        donorNameRef.current?.focus();
+      }, 100);
+    } else if (userType === 'farmer' && farmNameRef.current) {
+      // 약간의 지연을 두어 애니메이션 완료 후 포커스
+      setTimeout(() => {
+        farmNameRef.current?.focus();
+      }, 100);
+    }
+  }, [userType]);
+
   const handleBusinessVerification = async () => {
     if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
       alert('모든 필수 정보를 입력해주세요.');
@@ -186,6 +206,7 @@ export default function SignupPage() {
                   성명 *
                 </label>
                 <input
+                  ref={donorNameRef}
                   id="donorName"
                   type="text"
                   value={donorInfo.name}
@@ -207,6 +228,7 @@ export default function SignupPage() {
                   목장명 *
                 </label>
                 <input
+                  ref={farmNameRef}
                   id="farmName"
                   type="text"
                   value={farmerInfo.farmName}
