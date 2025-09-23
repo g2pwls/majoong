@@ -9,7 +9,6 @@ import com.e105.majoong.mypage.service.FarmerMyPageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -39,7 +38,7 @@ public class FarmerMyPageController {
     }
 
     @GetMapping("/donations")
-    @Operation(summary = "목장주 기부 내역 조회(시작 날짜와 끝 날짜를 지정해서 조회 가능)")
+    @Operation(summary = "목장주 금고 기부 내역 조회(시작 날짜와 끝 날짜를 지정해서 조회 가능)")
     public BaseResponse<VaultResponseDto> getVaultHistory(@AuthenticationPrincipal CustomUserDetails user,
                                                           @RequestParam(defaultValue = "0") int page,
                                                           @RequestParam(defaultValue = "10") int size,
