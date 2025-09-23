@@ -17,5 +17,8 @@ public interface DonatorMyPageService {
 
     void createBookmarks(String memberUuid, String farmUuid);
 
+    void deleteBookmarks(String memberUuid, String farmUuid);
+
     DonationHistoryDetailResponseDto getDonationHistoryDetail(String memberUuid, Long donationHistoryId);
+
 }
