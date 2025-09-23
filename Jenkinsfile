@@ -253,12 +253,15 @@ pipeline {
                         script {
                             try {
                                 sh """
-                                # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
-                                DOCKER_BUILDKIT=1 docker build \
-                                --no-cache \
-                                -f frontend/Dockerfile \
-                                --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                                -t majoong/frontend-dev:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                               docker buildx version >/dev/null 2>&1 || docker buildx create --use
+                               DOCKER_BUILDKIT=1 docker buildx build \
+                               --no-cache \
+                               --progress=plain \
+                               -f frontend/Dockerfile \
+                               --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
+                               -t majoong/frontend-dev:${TAG} \
+                               --load \
+                               frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
 
                                 # 기존 컨테이너 제거
                                 docker rm -f ${DEV_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -322,13 +325,15 @@ pipeline {
                         script {
                             try {
                                 sh """
-                                # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
-                                DOCKER_BUILDKIT=1 docker build \
+                                docker buildx version >/dev/null 2>&1 || docker buildx create --use
+                                DOCKER_BUILDKIT=1 docker buildx build \
                                 --no-cache \
+                                --progress=plain \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                                -t majoong/frontend-prod:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-
+                                -t majoong/frontend-prod:${TAG} \
+                                --load \
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
                                 docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "\$WORKSPACE/${LOG_FILE}" 2>&1
 
                                 docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
