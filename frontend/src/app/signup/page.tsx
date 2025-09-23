@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { verifyBusiness } from '@/services/authService';
+import TermsAgreement from '@/components/signup/TermsAgreement';
 
 type UserType = 'donor' | 'farmer';
 
@@ -31,6 +32,7 @@ export default function SignupPage() {
     businessVerified: false,
     businessVerifying: false
   });
+  const [isTermsAgreed, setIsTermsAgreed] = useState(false);
   const handleBusinessVerification = async () => {
     if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
       alert('모든 필수 정보를 입력해주세요.');
@@ -88,6 +90,12 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async () => {
+    // 약관 동의 확인
+    if (!isTermsAgreed) {
+      alert('모든 필수 약관에 동의해주세요.');
+      return;
+    }
+
     if (!userType) {
       alert('회원 유형을 선택해주세요.');
       return;
@@ -298,14 +306,22 @@ export default function SignupPage() {
             </div>
           )}
 
+          {/* 약관 동의 */}
+          {userType && (
+            <TermsAgreement
+              userType={userType}
+              onAgreementChange={setIsTermsAgreed}
+            />
+          )}
+
           {/* 가입 완료 버튼 */}
           {userType && (
             <div className="pt-4">
               <button
                 onClick={handleSubmit}
-                disabled={userType === 'farmer' && !farmerInfo.businessVerified}
+                disabled={!isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)}
                 className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors duration-200 ${
-                  userType === 'farmer' && !farmerInfo.businessVerified
+                  !isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)
                     ? 'bg-gray-400 cursor-not-allowed'
                     : userType === 'donor'
                     ? 'bg-blue-600 hover:bg-blue-700'
@@ -314,9 +330,14 @@ export default function SignupPage() {
               >
                 회원가입
               </button>
-              {userType === 'farmer' && !farmerInfo.businessVerified && (
+              {(!isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)) && (
                 <p className="mt-2 text-xs text-red-600 text-center">
-                  사업자 정보 확인을 완료해주세요.
+                  {!isTermsAgreed 
+                    ? '모든 필수 약관에 동의해주세요.'
+                    : userType === 'farmer' && !farmerInfo.businessVerified
+                    ? '사업자 정보 확인을 완료해주세요.'
+                    : ''
+                  }
                 </p>
               )}
             </div>
