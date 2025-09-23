@@ -255,30 +255,42 @@ pipeline {
                                 sh """#!/usr/bin/env bash
                                 set -Eeuo pipefail
 
-                                # buildx 바이너리 확인(없어도 실패는 안 함)
-                                docker buildx version >/dev/null 2>&1 || true
+                                # --- buildx 플러그인 부트스트랩 (호스트 docker CLI에 설치) ---
+                                BX_VERSION="\${DOCKER_BUILDX_VERSION:-v0.27.0}"
+                                BX_DIR="\$HOME/.docker/cli-plugins"
+                                BX_BIN="\$BX_DIR/docker-buildx"
+                                mkdir -p "\$BX_DIR"
 
-                                # 빌더 없으면 생성(이름: jenkinsbk)
-                                if ! docker buildx ls | grep -q '^jenkinsbk\\b'; then
-                                docker buildx create --name jenkinsbk --driver docker-container >/dev/null
+                                if ! docker buildx version >/dev/null 2>&1; then
+                                echo "[BOOTSTRAP] installing docker buildx \$BX_VERSION from docker/buildx-bin ..."
+                                ARCH=\$(uname -m); case "\$ARCH" in x86_64) ARCH=amd64 ;; aarch64) ARCH=arm64 ;; esac
+                                docker run --rm "docker/buildx-bin:\$BX_VERSION" ls /buildx >/dev/null 2>&1 || docker pull "docker/buildx-bin:\$BX_VERSION"
+                                docker run --rm "docker/buildx-bin:\$BX_VERSION" cat /buildx > "\$BX_BIN"
+                                chmod +x "\$BX_BIN"
                                 fi
+                                docker buildx version
 
-                                # 빌더 선택 + BuildKit 부트스트랩
+                                # --- (기존) 빌더 생성/선택/부트스트랩 ---
+                                if ! docker buildx ls | grep -q '^jenkinsbk\\b'; then
+                                docker buildx create --name jenkinsbk --driver docker-container >/dev/null || \
+                                docker buildx create --name jenkinsbk --driver docker >/dev/null
+                                fi
                                 docker buildx use jenkinsbk
                                 docker buildx inspect --bootstrap jenkinsbk >/dev/null
 
-                                # BuildKit 시크릿 사용해 빌드 (plain 로그 + 로컬 데몬으로 load)
-                                DOCKER_BUILDKIT=1 docker buildx build \
-                                --no-cache \
-                                --progress=plain \
-                                -f frontend/Dockerfile \
-                                --secret id=buildenv,src="\$WORKSPACE/frontend/.env" \
-                                -t majoong/frontend-dev:${TAG} \
-                                --load \
-                                frontend 2>&1 | tee -a "\$WORKSPACE/\${LOG_FILE}"
-                                ec=\${PIPESTATUS[0]}
-                                exit "\${ec}"
+                                # --- (기존) buildx build ---
+                                DOCKER_BUILDKIT=1 docker buildx build \\
+                                --no-cache \\
+                                --progress=plain \\
+                                -f frontend/Dockerfile \\
+                                --secret id=buildenv,src="\\$WORKSPACE/frontend/.env" \\
+                                -t majoong/frontend-dev:${TAG} \\
+                                --load \\
+                                frontend 2>&1 | tee -a "\\$WORKSPACE/\\${LOG_FILE}"
+                                ec=\\${PIPESTATUS[0]}
+                                exit "\\${ec}"
                                 """
+
                                 // 아래 run 부분은 그대로 두되, 로그 리다이렉션도 이스케이프 권장
                                 sh """
                                 docker rm -f ${DEV_FRONT_CONTAINER} || true >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
@@ -343,27 +355,42 @@ pipeline {
                                 sh """#!/usr/bin/env bash
                                 set -Eeuo pipefail
 
-                                docker buildx version >/dev/null 2>&1 || true
+                                # --- buildx 플러그인 부트스트랩 ---
+                                BX_VERSION="\${DOCKER_BUILDX_VERSION:-v0.27.0}"
+                                BX_DIR="\$HOME/.docker/cli-plugins"
+                                BX_BIN="\$BX_DIR/docker-buildx"
+                                mkdir -p "\$BX_DIR"
+                                if ! docker buildx version >/dev/null 2>&1; then
+                                ARCH=\$(uname -m); case "\$ARCH" in x86_64) ARCH=amd64 ;; aarch64) ARCH=arm64 ;; esac
+                                docker run --rm "docker/buildx-bin:\$BX_VERSION" ls /buildx >/dev/null 2>&1 || docker pull "docker/buildx-bin:\$BX_VERSION"
+                                docker run --rm "docker/buildx-bin:\$BX_VERSION" cat /buildx > "\$BX_BIN"
+                                chmod +x "\$BX_BIN"
+                                fi
+                                docker buildx version
 
+                                # --- (기존) 빌더 준비 ---
                                 if ! docker buildx ls | grep -q '^jenkinsbk\\b'; then
-                                docker buildx create --name jenkinsbk --driver docker-container >/dev/null
+                                docker buildx create --name jenkinsbk --driver docker-container >/dev/null || \
+                                docker buildx create --name jenkinsbk --driver docker >/dev/null
                                 fi
                                 docker buildx use jenkinsbk
                                 docker buildx inspect --bootstrap jenkinsbk >/dev/null
 
-                                DOCKER_BUILDKIT=1 docker buildx build \
-                                --no-cache \
-                                --progress=plain \
-                                -f frontend/Dockerfile \
-                                --secret id=buildenv,src="\$WORKSPACE/frontend/.env" \
-                                -t majoong/frontend-prod:${TAG} \
-                                --load \
-                                frontend 2>&1 | tee -a "\$WORKSPACE/\${LOG_FILE}"
-                                ec=\${PIPESTATUS[0]}
-                                [ "\$ec" -eq 0 ] || exit "\$ec"
+                                # --- (기존) buildx build + tag ---
+                                DOCKER_BUILDKIT=1 docker buildx build \\
+                                --no-cache \\
+                                --progress=plain \\
+                                -f frontend/Dockerfile \\
+                                --secret id=buildenv,src="\\$WORKSPACE/frontend/.env" \\
+                                -t majoong/frontend-prod:${TAG} \\
+                                --load \\
+                                frontend 2>&1 | tee -a "\\$WORKSPACE/\\${LOG_FILE}"
+                                ec=\\${PIPESTATUS[0]}
+                                [ "\\$ec" -eq 0 ] || exit "\\$ec"
 
-                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
+                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "\\$WORKSPACE/\\${LOG_FILE}" 2>&1
                                 """
+
 
                                 sh """
                                 docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
