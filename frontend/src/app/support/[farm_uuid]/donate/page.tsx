@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { getFarm, Farm } from "@/services/apiService";
+import { startKakaoPay } from "@/services/paymentService";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
@@ -149,10 +150,30 @@ export default function DonatePage() {
     }
   };
 
-  const handleConfirmDonation = () => {
-    setShowConfirmPopup(false);
-    // TODO: 카카오페이 API 연결
-    console.log('카카오페이 결제 진행:', { farmData, selectedAmount });
+  const handleConfirmDonation = async () => {
+    try {
+      setShowConfirmPopup(false);
+      
+      if (!farmData || selectedAmount <= 0) {
+        alert('기부 정보가 올바르지 않습니다.');
+        return;
+      }
+
+      // 카카오페이 결제 시작 API 호출
+      await startKakaoPay({
+        totalPrice: selectedAmount.toString(),
+        farmUuid: farmData.id
+      });
+
+      console.log('카카오페이 결제 시작:', { 
+        farmName: farmData.farm_name, 
+        amount: selectedAmount,
+        farmUuid: farmData.id 
+      });
+    } catch (error) {
+      console.error('카카오페이 결제 시작 오류:', error);
+      alert('결제 시작에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleDonate = () => {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { startKakaoPay } from "@/services/paymentService";
 
 interface FarmData {
   id: string;
@@ -143,10 +144,30 @@ export default function GoDonatePage() {
     }
   };
 
-  const handleConfirmDonation = () => {
-    setShowConfirmPopup(false);
-    // TODO: 카카오페이 API 연결
-    console.log('카카오페이 결제 진행:', { selectedAmount });
+  const handleConfirmDonation = async () => {
+    try {
+      setShowConfirmPopup(false);
+      
+      if (!selectedFarm || selectedAmount <= 0) {
+        alert('기부 정보가 올바르지 않습니다.');
+        return;
+      }
+
+      // 카카오페이 결제 시작 API 호출
+      await startKakaoPay({
+        totalPrice: selectedAmount.toString(),
+        farmUuid: selectedFarm.id
+      });
+
+      console.log('카카오페이 결제 시작:', { 
+        farmName: selectedFarm.farm_name, 
+        amount: selectedAmount,
+        farmUuid: selectedFarm.id 
+      });
+    } catch (error) {
+      console.error('카카오페이 결제 시작 오류:', error);
+      alert('결제 시작에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleDonate = () => {
@@ -439,10 +460,10 @@ export default function GoDonatePage() {
                 {/* 직접 입력 버튼 또는 입력창 */}
                 {isCustomInputActive ? (
                   <div className="relative h-12">
-                    <Input
-                      type="text"
-                      value={customAmount}
-                      onChange={(e) => handleCustomAmountChange(e.target.value)}
+                  <Input
+                    type="text"
+                    value={customAmount}
+                    onChange={(e) => handleCustomAmountChange(e.target.value)}
                       onBlur={handleCustomInputBlur}
                       onKeyDown={handleCustomInputKeyDown}
                       placeholder="금액 입력"
@@ -463,7 +484,7 @@ export default function GoDonatePage() {
                     {customAmount ? `${formatAmount(selectedAmount)}원` : "직접 입력"}
                   </Button>
                 )}
-              </div>
+                </div>
 
               {/* 1000원 단위로 딱 떨어지지 않는 경우 안내 문구 */}
               {showAmountWarning && (
@@ -471,7 +492,7 @@ export default function GoDonatePage() {
                   <span className="text-orange-600 text-sm">
                     1,000원 단위로 기부됩니다.
                   </span>
-                </div>
+              </div>
               )}
 
               {/* 기부 금액 표시 */}
@@ -516,18 +537,18 @@ export default function GoDonatePage() {
                     >
                       무통장입금
                     </Button>
-                  </div>
                 </div>
+              </div>
 
-                {/* 기부하기 버튼 */}
+              {/* 기부하기 버튼 */}
                 <div className="flex justify-center pt-4">
-                  <Button
+                <Button
                     onClick={handleDonateClick}
                     className="bg-green-500 hover:bg-green-600 text-white px-12 py-4 text-xl font-semibold"
-                    disabled={selectedAmount <= 0 || !selectedFarm}
-                  >
-                    기부하기
-                  </Button>
+                  disabled={selectedAmount <= 0 || !selectedFarm}
+                >
+                  기부하기
+                </Button>
                 </div>
               </div>
             </div>
@@ -551,19 +572,19 @@ export default function GoDonatePage() {
               <span className="font-medium text-green-600">{formatAmount(selectedAmount)}원</span>을 기부하시겠습니까?
             </p>
             <div className="flex space-x-4 justify-end">
-              <Button
+                <Button
                 onClick={() => setShowConfirmPopup(false)}
-                variant="outline"
+                  variant="outline"
                 className="px-6 py-2"
-              >
-                취소
-              </Button>
-              <Button
+                >
+                  취소
+                </Button>
+                <Button
                 onClick={handleConfirmDonation}
                 className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
-              >
+                >
                 확인
-              </Button>
+                </Button>
             </div>
           </div>
         </div>
