@@ -61,8 +61,7 @@ public class DonateService {
     String txHash = onChain.mintToVaultForDonor(donator.getWalletAddress(), vault.getVaultAddress(), amountWei);
 
     // 5) 누적: DB는 “원화 금액” 기준
-    long current = farm.getTotalDonation() == null ? 0L : farm.getTotalDonation();
-    farm.updateTotalDonation(current + krw);   // 토큰 개수 대신 원화 금액 누적
+    farm.updateTotalDonation(krw);   // 토큰 개수 대신 원화 금액 누적
 
     // 6) donation_history 저장 (farmUuid + tx_hash)
     DonationHistory h = req.toEntity(
