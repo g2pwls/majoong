@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { submitReceiptSettlement } from "../../../services/apiService";
 
 type DonationProofUploadProps = {
   farmUuid: string;
@@ -395,9 +396,6 @@ export default function DonationProofUpload({
         return key;
       };
 
-      // 영수증 이미지를 base64로 변환
-      const { base64: receiptBase64 } = await urlToBase64AndFormat(donationData[farmUuid].receipt);
-
       // 멱등성 키 생성
       const idempotencyKey = generateIdempotencyKey();
       console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
@@ -411,7 +409,12 @@ export default function DonationProofUpload({
           phone: certificationResult.storeInfo?.phone || "전화번호"
         },
         content: `카테고리: ${selectedCategory}, 사용금액: ${usedAmount}원`,
-        items: certificationResult.items || [{
+        items: certificationResult.items ? certificationResult.items.map(item => ({
+          name: item.name,
+          quantity: parseInt(item.quantity) || 1,
+          unitPrice: parseInt(item.unitPrice) || 0,
+          totalPrice: parseInt(item.totalPrice) || 0
+        })) : [{
           name: certificationResult.matchedItems?.[0] || "상품명",
           quantity: 1,
           unitPrice: parseInt(usedAmount.replace(/,/g, "")),
@@ -425,36 +428,22 @@ export default function DonationProofUpload({
 
       console.log("API 요청 payload:", payload);
 
-      // FormData 생성 (multipart/form-data)
-      const formData = new FormData();
-      formData.append('payload', JSON.stringify(payload));
-      
-      // 영수증 사진을 Blob으로 변환하여 추가
+      // 영수증 사진을 File 객체로 변환
+      let photoFile: File;
       try {
         const response = await fetch(donationData[farmUuid].receipt);
         const blob = await response.blob();
-        formData.append('photo', blob, 'receipt.jpg');
+        photoFile = new File([blob], 'receipt.jpg', { type: blob.type });
       } catch (error) {
         console.warn("영수증 사진 변환 실패:", error);
+        throw new Error("영수증 사진을 처리할 수 없습니다.");
       }
 
-      const res = await fetch("/api/v1/receipt/settlement", {
-        method: "POST",
-        // Content-Type 헤더를 설정하지 않음 (FormData 사용 시 브라우저가 자동 설정)
-        body: formData,
-      });
-
-      console.log("제출 응답 상태:", res.status, res.statusText);
-
-      const json = await res.json();
-      console.log("제출 응답 데이터:", json);
-
-      if (!res.ok) {
-        throw new Error(json?.error || json?.message || "제출 실패");
-      }
+      // apiService를 사용하여 정산 제출
+      const result = await submitReceiptSettlement(payload as Parameters<typeof submitReceiptSettlement>[0], photoFile);
 
       setSubmitSuccess(true);
-      console.log("제출 성공:", json);
+      console.log("제출 성공:", result);
     } catch (e: unknown) {
       console.error("제출 에러:", e);
       const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";

@@ -422,3 +422,57 @@ export async function isFarmBookmarked(farmUuid: string): Promise<boolean> {
     return false;
   }
 }
+
+// 영수증 정산 제출 타입 정의
+interface ReceiptSettlementPayload {
+  reason: string;
+  storeInfo: {
+    name: string;
+    address: string;
+    phone: string;
+  };
+  content: string;
+  items: Array<{
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }>;
+  receiptAmount: number;
+  photoUrl: string;
+  categoryId: number;
+  idempotencyKey: string;
+}
+
+interface ReceiptSettlementResponse {
+  id: string;
+  status: string;
+  message: string;
+}
+
+// 영수증 정산 제출
+export async function submitReceiptSettlement(
+  payload: ReceiptSettlementPayload,
+  photoFile: File
+): Promise<ReceiptSettlementResponse> {
+  try {
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(payload));
+    formData.append('photo', photoFile);
+
+    const response = await apiClient.post('/api/v1/receipt/settlement', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (!response.data.isSuccess) {
+      throw new Error(`정산 제출 실패: ${response.data.message}`);
+    }
+
+    return response.data.result;
+  } catch (error) {
+    console.error('정산 제출 실패:', error);
+    throw error;
+  }
+}
