@@ -63,7 +63,7 @@ public class Horse extends BaseEntity {
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
-    public void updateDeletedAt() {
-        this.deletedAt = LocalDateTime.now();
+    public void updateDeletedAt(LocalDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 }

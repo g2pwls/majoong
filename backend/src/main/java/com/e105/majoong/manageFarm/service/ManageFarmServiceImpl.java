@@ -18,8 +18,10 @@ import com.e105.majoong.manageFarm.dto.out.GeoDto;
 import com.e105.majoong.manageFarm.dto.out.HorseListResponseDto;
 import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
+import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -104,7 +107,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
         if (horse.getDeletedAt() != null) {
             throw new BaseException(BaseResponseStatus.IS_DELETED_HORSE);
         }
-        horse.updateDeletedAt();
+        horse.updateDeletedAt(LocalDateTime.now());
         farmRepository.decrementHorseCount(farmUuid);
     }
 
