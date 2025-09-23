@@ -256,18 +256,23 @@ pipeline {
                                 sh '''#!/usr/bin/env bash
                                 set -Eeuo pipefail
 
-                                set -eu
-                                ec=0
+                                # 콘솔과 파일 동시 출력 + 파이프 실패코드 전파
+                                set +e
+                                set -o pipefail
                                 DOCKER_BUILDKIT=1 docker build \
                                 --no-cache \
                                 --progress=plain \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
                                 -t majoong/frontend-dev:$IMAGE_TAG \
-                                frontend >> "$WORKSPACE/${LOG_FILE}" 2>&1 || ec=$?
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                ec=$?
+                                set -e
+
                                 echo "[FRONTEND][DEV] docker build exit=$ec" >> "$WORKSPACE/${LOG_FILE}"
                                 exit "$ec"
                                 '''
+
 
                                 // 아래 run 부분은 그대로 두되, 로그 리다이렉션도 이스케이프 권장
                                 sh """
@@ -334,20 +339,23 @@ pipeline {
                                 sh '''#!/usr/bin/env bash
                                 set -Eeuo pipefail
 
-                                set -eu
-                                ec=0
+                                set +e
+                                set -o pipefail
                                 DOCKER_BUILDKIT=1 docker build \
                                 --no-cache \
                                 --progress=plain \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
                                 -t majoong/frontend-prod:$IMAGE_TAG \
-                                frontend >> "$WORKSPACE/${LOG_FILE}" 2>&1 || ec=$?
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                ec=$?
+                                set -e
+
                                 echo "[FRONTEND][PROD] docker build exit=$ec" >> "$WORKSPACE/${LOG_FILE}"
-                                # (선택) latest 태그
                                 docker tag majoong/frontend-prod:$IMAGE_TAG majoong/frontend-prod:latest >> "$WORKSPACE/${LOG_FILE}" 2>&1 || true
                                 exit "$ec"
                                 '''
+
 
                                 sh """
                                 docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
