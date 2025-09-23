@@ -8,6 +8,7 @@ import com.e105.majoong.common.model.horseState.QHorseState;
 import com.e105.majoong.common.model.monthlyReport.MonthlyReport;
 import com.e105.majoong.common.model.receiptHistory.QReceiptHistory;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -20,12 +21,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport> {
 
     private final OpenAIService openAiService;
     private final JPAQueryFactory queryFactory;
-
-    private static final String DEFAULT_THUMBNAIL = "default_thumbnail_url";
 
     public MonthlyReportProcessor(OpenAIService openAiService, JPAQueryFactory queryFactory) {
         this.openAiService = openAiService;
@@ -106,11 +106,7 @@ public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport
                 combinedContent
         );
 
-        String thumbnailUrl = horseStates.stream()
-                .map(HorseState::getFrontImage)
-                .filter(img -> img != null && !img.isBlank())
-                .findFirst()
-                .orElse(DEFAULT_THUMBNAIL);
+        String thumbnailUrl = openAiService.generateThumbnail(finalReportContent);
 
         return MonthlyReport.builder()
                 .farmUuid(farm.getFarmUuid())

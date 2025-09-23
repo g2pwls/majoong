@@ -6,4 +6,5 @@ import reactor.core.publisher.Mono;
 public interface OpenAIService {
     Mono<String> analyzeHorseImage(String type, String imageUrl);
     String analyzeReport(String farmName, int year, int month, String content);
+    String generateThumbnail(String prompt);
 }
