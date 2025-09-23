@@ -33,11 +33,13 @@ public class MyScore {
     private Long scoreCategoryId;
 
     @Column(nullable = false)
-    private Integer score;
+    private Double score;
 
     @Column(nullable = false)
+    private int delta;
+
     private Integer year;
 
-    @Column(nullable = false)
     private Integer month;
+
 }

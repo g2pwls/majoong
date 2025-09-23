@@ -11,8 +11,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableBatchProcessing
 @SpringBootApplication
 public class MajoongApplication {
-     
-	public static void main(String[] args) {
-		SpringApplication.run(MajoongApplication.class, args);
-	}
+
+    public static void main(String[] args) {
+        SpringApplication.run(MajoongApplication.class, args);
+    }
 }
