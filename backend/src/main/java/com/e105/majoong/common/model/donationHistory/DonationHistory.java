@@ -39,6 +39,9 @@ public class DonationHistory {
     @Column(name = "tx_hash", length = 66)
     private String txHash;
 
+    @Column
+    private Long balance;
+
     public void updateDonationToken(Long donationToken) {
         this.donationToken = donationToken;
     }

@@ -113,7 +113,7 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
         .categoryId(req.getCategoryId())
         .build();
 
-    receiptHistoryRepository.save(receipt);
+    ReceiptHistory receiptHistory = receiptHistoryRepository.save(receipt);
 
     // 상세 저장
     req.getItems().forEach(it -> {
@@ -143,15 +143,15 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
           vaultAddress, farmerWallet, tokenWei, e);
 
       historyRepository.save(SettlementHistory.failed(
-          farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, shorten(e.getMessage())));
+          farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, shorten(e.getMessage()), 0L, krw, receiptHistory.getId()));
       throw new BaseException(BaseResponseStatus.SETTLEMENT_RELEASE_FAILED);
     }
 
     // ── (5) 사용금액 누적 + 성공 이력 ────────────────────────────────
     farm.updateUsedAmount(krw);
-
+    Long balance = farm.getTotalDonation() - farm.getUsedAmount();
     historyRepository.save(SettlementHistory.released(
-        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, txHash));
+        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, txHash, balance, krw, receiptHistory.getId()));
 
     // ── (6) 응답 ─────────────────────────────────────────────────────
     return ReceiptSettlementResponseDto.ok(txHash, farmerWallet, vaultAddress, tokenHuman);

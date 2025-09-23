@@ -1,5 +1,6 @@
 package com.e105.majoong.kakaoPay.dto.out;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 @Getter
@@ -8,5 +9,10 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ReadyResponseDto {
     String tid;
-    String next_redirect_pc_url;
+    @JsonProperty("next_redirect_pc_url")
+    private String nextRedirectPcUrl;
+
+    @JsonProperty("next_redirect_mobile_url")
+    private String nextRedirectMobileUrl;
+
 }

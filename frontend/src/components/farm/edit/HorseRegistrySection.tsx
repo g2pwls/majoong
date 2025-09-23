@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 
@@ -21,14 +21,17 @@ type Props = {
   onHorseRegistered?: () => void;
 };
 
-export default function HorseRegistrySection({ farmUuid, onHorseRegistered }: Props) {
+const HorseRegistrySection = memo(function HorseRegistrySection({ farmUuid, onHorseRegistered }: Props) {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchHorses = async () => {
+  const fetchHorses = useCallback(async () => {
+    if (!farmUuid) return;
+    
     try {
       setLoading(true);
+      setError(null);
       const horsesData = await FarmService.getHorses(farmUuid);
       setHorses(horsesData);
     } catch (err) {
@@ -36,13 +39,11 @@ export default function HorseRegistrySection({ farmUuid, onHorseRegistered }: Pr
     } finally {
       setLoading(false);
     }
-  };
+  }, [farmUuid]);
 
   useEffect(() => {
-    if (farmUuid) {
-      fetchHorses();
-    }
-  }, [farmUuid, fetchHorses]);
+    fetchHorses();
+  }, [fetchHorses]);
 
   // 말 등록 콜백이 호출될 때마다 목록 새로고침
   useEffect(() => {
@@ -114,6 +115,8 @@ export default function HorseRegistrySection({ farmUuid, onHorseRegistered }: Pr
       )}
     </section>
   );
-}
+});
+
+export default HorseRegistrySection;
 
 
