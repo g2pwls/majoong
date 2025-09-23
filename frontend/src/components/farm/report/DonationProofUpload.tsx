@@ -44,6 +44,24 @@ export default function DonationProofUpload({
     matchedItems: string[];
     receiptAmount?: string;
     amountMatch?: boolean;
+    storeInfo?: {
+      name?: string;
+      address?: string;
+      phone?: string;
+      businessNumber?: string;
+    };
+    items?: Array<{
+      name: string;
+      quantity: string;
+      unitPrice: string;
+      totalPrice: string;
+    }>;
+    paymentInfo?: {
+      totalAmount?: string;
+      paymentMethod?: string;
+      paymentDate?: string;
+      receiptNumber?: string;
+    };
   } | null>(null);
   const [certificationError, setCertificationError] = useState<string | null>(null);
 
@@ -260,11 +278,25 @@ export default function DonationProofUpload({
 
       const json = await res.json();
       console.log("인증 사진 검증 응답 데이터:", json);
+      console.log("응답 상태:", res.status, res.statusText);
 
       if (!res.ok) {
+        console.error("검증 API 에러:", json);
         throw new Error(json?.error || "인증 사진 검증 실패");
       }
 
+      // 응답 데이터 검증
+      if (!json.result) {
+        console.warn("응답에 result 필드가 없음:", json);
+        json.result = "부적격";
+      }
+      
+      if (!json.reason) {
+        console.warn("응답에 reason 필드가 없음:", json);
+        json.reason = "검증 결과를 가져올 수 없습니다.";
+      }
+
+      console.log("최종 검증 결과:", json);
       setCertificationResult(json);
     } catch (e: unknown) {
       console.error("인증 사진 검증 에러:", e);
@@ -476,12 +508,36 @@ export default function DonationProofUpload({
                 <p className="text-sm text-gray-700 leading-relaxed">
                   {(() => {
                     try {
-                      if (certificationResult.reason.includes('{')) {
+                      // JSON 형태의 문자열인지 확인
+                      if (certificationResult.reason.includes('{') && certificationResult.reason.includes('}')) {
+                        // JSON이 ```json ... ``` 형태로 감싸져 있는 경우 처리
+                        const jsonMatch = certificationResult.reason.match(/```json\s*([\s\S]*?)\s*```/);
+                        if (jsonMatch) {
+                          const parsed = JSON.parse(jsonMatch[1]);
+                          return parsed.reason || parsed.detail || certificationResult.reason;
+                        }
+                        
+                        // JSON이 ``` ... ``` 형태로 감싸져 있는 경우 처리
+                        const codeMatch = certificationResult.reason.match(/```\s*([\s\S]*?)\s*```/);
+                        if (codeMatch) {
+                          const parsed = JSON.parse(codeMatch[1]);
+                          return parsed.reason || parsed.detail || certificationResult.reason;
+                        }
+                        
+                        // JSON이 { ... } 형태로 감싸져 있는 경우 처리
+                        const braceMatch = certificationResult.reason.match(/\{[\s\S]*\}/);
+                        if (braceMatch) {
+                          const parsed = JSON.parse(braceMatch[0]);
+                          return parsed.reason || parsed.detail || certificationResult.reason;
+                        }
+                        
+                        // 전체 문자열이 JSON인 경우
                         const parsed = JSON.parse(certificationResult.reason);
-                        return parsed.reason || certificationResult.reason;
+                        return parsed.reason || parsed.detail || certificationResult.reason;
                       }
                       return certificationResult.reason;
-                    } catch {
+                    } catch (error) {
+                      console.log("reason 파싱 실패:", error);
                       return certificationResult.reason;
                     }
                   })()}
@@ -525,6 +581,102 @@ export default function DonationProofUpload({
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* 영수증 상세 정보 표시 */}
+                {(certificationResult.storeInfo || certificationResult.items || certificationResult.paymentInfo) && (
+                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                    <h5 className="text-lg font-semibold mb-4 text-gray-800">영수증 상세 정보</h5>
+                    
+                    {/* 가게 정보 */}
+                    {certificationResult.storeInfo && (
+                      <div className="mb-4">
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">가게 정보</h6>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          {certificationResult.storeInfo.name && (
+                            <div>
+                              <span className="text-gray-600">상호명:</span>
+                              <span className="ml-2 font-medium">{certificationResult.storeInfo.name}</span>
+                            </div>
+                          )}
+                          {certificationResult.storeInfo.address && (
+                            <div>
+                              <span className="text-gray-600">주소:</span>
+                              <span className="ml-2 font-medium">{certificationResult.storeInfo.address}</span>
+                            </div>
+                          )}
+                          {certificationResult.storeInfo.phone && (
+                            <div>
+                              <span className="text-gray-600">전화번호:</span>
+                              <span className="ml-2 font-medium">{certificationResult.storeInfo.phone}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 구매 상품 목록 */}
+                    {certificationResult.items && certificationResult.items.length > 0 && (
+                      <div className="mb-4">
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">구매 상품</h6>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm border-collapse border border-gray-300">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="border border-gray-300 px-3 py-2 text-left">상품명</th>
+                                <th className="border border-gray-300 px-3 py-2 text-center">수량</th>
+                                <th className="border border-gray-300 px-3 py-2 text-right">단가</th>
+                                <th className="border border-gray-300 px-3 py-2 text-right">금액</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {certificationResult.items.map((item, index) => (
+                                <tr key={index} className="hover:bg-gray-50">
+                                  <td className="border border-gray-300 px-3 py-2">{item.name}</td>
+                                  <td className="border border-gray-300 px-3 py-2 text-center">{item.quantity}</td>
+                                  <td className="border border-gray-300 px-3 py-2 text-right">{item.unitPrice}원</td>
+                                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">{item.totalPrice}원</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 결제 정보 */}
+                    {certificationResult.paymentInfo && (
+                      <div>
+                        <h6 className="text-sm font-medium text-gray-700 mb-2">결제 정보</h6>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          {certificationResult.paymentInfo.totalAmount && (
+                            <div>
+                              <span className="text-gray-600">총 금액:</span>
+                              <span className="ml-2 font-bold text-lg text-gray-900">{certificationResult.paymentInfo.totalAmount}원</span>
+                            </div>
+                          )}
+                          {certificationResult.paymentInfo.paymentMethod && (
+                            <div>
+                              <span className="text-gray-600">결제 방법:</span>
+                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.paymentMethod}</span>
+                            </div>
+                          )}
+                          {certificationResult.paymentInfo.paymentDate && (
+                            <div>
+                              <span className="text-gray-600">결제일시:</span>
+                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.paymentDate}</span>
+                            </div>
+                          )}
+                          {certificationResult.paymentInfo.receiptNumber && (
+                            <div>
+                              <span className="text-gray-600">영수증번호:</span>
+                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.receiptNumber}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
