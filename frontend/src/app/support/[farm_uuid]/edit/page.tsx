@@ -89,6 +89,11 @@ export default function FarmEdit({ params }: PageProps) {
         {/* 말 정보 수정 패널 */}
         <h2 className="mt-6 text-lg font-semibold mb-2">말 정보 수정</h2>
         <HorseInfoPanel farm_uuid={farm_uuid} onHorseRegistered={handleHorseRegistration} />
+
+        <HorseRegistrySection 
+          farmUuid={farm_uuid} 
+          onHorseRegistered={() => {}}
+        />
       </main>
     </div>
   );
