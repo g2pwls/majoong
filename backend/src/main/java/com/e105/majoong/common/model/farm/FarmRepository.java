@@ -28,7 +28,7 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
             """)
     void incrementHorseCount(@Param("farmUuid") String farmUuid);
 
-    @Modifying(clearAutomatically = true)
+    @Modifying(flushAutomatically = true, clearAutomatically = false)
     @Query("""
             update Farm f
                set f.horseCount = case when f.horseCount > 0 then f.horseCount - 1 else 0 end
