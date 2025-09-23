@@ -38,19 +38,19 @@ public class DonateService {
 
   @Transactional
   public DonationResponseDto donate(DonationRequestDto req, String memberUuid) throws Exception {
-    long unit = chainProps.getKrwPerToken(); // 1000
+    long unit = chainProps.getKrwPerToken();
     long krw  = req.getAmountKrw();
 
     // 1000원 단위 정책(정수 토큰)
     long tokenCount = TokenUnits.krwToMaronTokensExact(krw, unit);
     BigInteger amountWei = TokenUnits.maronTokensToWei(tokenCount);
 
-    // 1)  목장주memberUuid로 Farm 조회 → farmUuid 확보
-    Farm farm = farmRepo.findByMemberUuid(req.getFarmMemberUuid())
+    // 1) farmUuid로 Farm 조회
+    Farm farm = farmRepo.findByFarmUuid(req.getFarmUuid())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
-    // 2) 목장 금고 조회 (목장주 기준 최신/ACTIVE)
-    FarmVault vault = vaultRepo.findTopByMemberUuidOrderByIdDesc(req.getFarmMemberUuid())
+    // 2) farmUuid로 금고 조회 (farm_vaults.farm_id == farm.farm_uuid)
+    FarmVault vault = vaultRepo.findTopByFarmUuidOrderByIdDesc(req.getFarmUuid())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM_VAULT));
 
     // 3) 기부자 지갑 조회 (donator.member_uuid == req.memberUuid)

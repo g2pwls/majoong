@@ -48,20 +48,13 @@ public class VaultService {
   // Vault 생성/조회
   // ===================================================================================
 
-  /** 이미 있으면 반환, 없으면 체인에 생성 후 upsert */
-  @Transactional
-  public FarmVault getOrCreateVault(BigInteger farmId, String owner, String memberUuid) {
-    final String farmIdHex = toHex256(farmId);
-    return farmVaultRepository.findByFarmId(farmIdHex)
-        .orElseGet(() -> createVaultAndPersist(farmId, owner, memberUuid));
-  }
 
   /** 체인에 Vault 생성 → vaultOf로 주소 조회 → DB upsert */
   @Transactional
-  public FarmVault createVaultAndPersist(BigInteger farmId, String owner, String memberUuid) {
-    final String farmIdHex = toHex256(farmId);
+  public FarmVault createVaultAndPersist(BigInteger keccakKey, String owner, String memberUuid) {
+    final String keccakKeyHex = toHex256(keccakKey);
 
-    Optional<FarmVault> exists = farmVaultRepository.findByFarmId(farmIdHex);
+    Optional<FarmVault> exists = farmVaultRepository.findByKeccakKey(keccakKeyHex);
     if (exists.isPresent()) return exists.get();
 
     try {
@@ -69,17 +62,15 @@ public class VaultService {
       final String factory = chainProps.getFactoryAddress();
       if (!isValidAddress(factory)) throw new IllegalArgumentException("Invalid FACTORY_ADDRESS: " + factory);
       if (!isValidAddress(owner))   throw new IllegalArgumentException("Invalid ownerAddress: " + owner);
-      if (farmId == null || farmId.signum() < 0) throw new IllegalArgumentException("Invalid farmId: " + farmId);
-
       // 팩토리 코드 존재 확인 (주소 오타/네트워크 불일치 조기 발견)
       String code = web3j.ethGetCode(factory, DefaultBlockParameterName.LATEST).send().getCode();
       if (code == null || "0x".equalsIgnoreCase(code))
         throw new IllegalStateException("Factory address has no code: " + factory);
 
-      // createVault(farmId, owner) 인코딩
+      // createVault(keccakKey, owner) 인코딩
       Function fn = new Function(
           "createVault",
-          List.of(new Uint256(farmId), new Address(owner)),
+          List.of(new Uint256(keccakKey), new Address(owner)),
           Collections.emptyList()
       );
       String data = FunctionEncoder.encode(fn);
@@ -106,15 +97,15 @@ public class VaultService {
       TransactionReceipt receipt = waitForReceipt(txHash);
       log.info("[VaultFactory.createVault] mined block={}, status={}", receipt.getBlockNumber(), receipt.isStatusOK());
 
-      // vaultOf(farmId) 조회로 실제 vault 주소 확인
-      String vaultAddress = callVaultOf(farmId);
+      // vaultOf(keccakKey) 조회로 실제 vault 주소 확인
+      String vaultAddress = callVaultOf(keccakKey);
       if (!isValidAddress(vaultAddress))
         throw new IllegalStateException("Factory returned invalid vault address: " + vaultAddress);
 
       // DB upsert
       FarmVault fv = farmVaultRepository.findByMemberUuid(memberUuid)
           .orElse(FarmVault.builder().memberUuid(memberUuid).build());
-      fv.updateFarmId(farmIdHex);
+      fv.updateKeccakKey(keccakKeyHex);
       fv.updateVaultAddress(vaultAddress);
       fv.updateDeployTxHash(txHash);
       fv.updateStatus(FarmVault.Status.ACTIVE);
@@ -124,11 +115,6 @@ public class VaultService {
     } catch (Exception e) {
       throw new RuntimeException("Vault 생성/저장 실패", e);
     }
-  }
-
-  @Transactional(readOnly = true)
-  public Optional<FarmVault> findByFarmId(BigInteger farmId) {
-    return farmVaultRepository.findByFarmId(toHex256(farmId));
   }
 
   // ===================================================================================
@@ -218,11 +204,11 @@ public class VaultService {
   // VIEW & UTIL
   // ===================================================================================
 
-  /** factory.vaultOf(farmId) */
-  private String callVaultOf(BigInteger farmId) throws Exception {
+  /** factory.vaultOf(keccakKey) */
+  private String callVaultOf(BigInteger keccakKey) throws Exception {
     Function view = new Function(
         "vaultOf",
-        List.of(new Uint256(farmId)),
+        List.of(new Uint256(keccakKey)),
         List.of(new TypeReference<Address>() {})
     );
     EthCall call = web3j.ethCall(

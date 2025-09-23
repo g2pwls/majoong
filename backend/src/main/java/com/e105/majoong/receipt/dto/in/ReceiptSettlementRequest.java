@@ -1,4 +1,4 @@
-package com.e105.majoong.settlement.dto.in;
+package com.e105.majoong.receipt.dto.in;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;

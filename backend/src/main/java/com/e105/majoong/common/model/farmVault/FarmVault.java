@@ -2,7 +2,6 @@ package com.e105.majoong.common.model.farmVault;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import org.springframework.data.annotation.CreatedDate;
@@ -20,9 +19,11 @@ public class FarmVault {
   @Column(name = "member_uuid", length = 36, nullable = false)   // ★ farmer와 연결
   private String memberUuid;
 
-  // 온체인 farmId (컨트랙트 createVault의 파라미터)
-  @Column(name = "farm_id", nullable = false, length = 66)
-  private String farmId;
+  @Column(name = "keccak_key", nullable = false, length = 66)
+  private String keccakKey;
+
+  @Column(name = "farm_uuid",length = 36)
+  private String farmUuid;
 
   @Column(name = "vault_address", length = 42, nullable = false)
   private String vaultAddress;
@@ -40,7 +41,7 @@ public class FarmVault {
 
   public enum Status { ACTIVE, CLOSED }
 
-  public void updateFarmId(String farmId) { this.farmId = farmId; }
+  public void updateKeccakKey(String keccakKey) { this.keccakKey = this.keccakKey; }
   public void updateStatus(Status status) { this.status = status; }
   public void updateDeployTxHash(String txHash) { this.deployTxHash = txHash;}
   public void updateVaultAddress(String address) { this.vaultAddress = address;}

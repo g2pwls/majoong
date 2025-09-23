@@ -1,4 +1,4 @@
-package com.e105.majoong.settlement.dto.out;
+package com.e105.majoong.receipt.dto.out;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
