@@ -725,5 +725,34 @@ export class FarmService {
       throw error;
     }
   }
+
+  // 말 삭제
+  static async deleteHorse(farmUuid: string, horseNumber: number): Promise<void> {
+    try {
+      console.log('말 삭제 API 요청:', {
+        farmUuid,
+        horseNumber
+      });
+
+      const response = await apiClient.delete(
+        `/api/v1/members/farmers/my-farm/horses/${horseNumber}`,
+        {
+          params: { farmUuid }
+        }
+      );
+
+      console.log('말 삭제 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('말 삭제 실패:', error);
+      throw error;
+    }
+  }
 }
 

@@ -49,6 +49,8 @@ export default function HorseInfoPanel({
   const [filePreview, setFilePreview] = useState<string | null>(null); // 파일 미리보기 상태 관리
   const [isFetchComplete, setIsFetchComplete] = useState(false); // 마번 조회 완료 여부
   const [registeredHorses, setRegisteredHorses] = useState<Horse[]>([]); // 등록된 말 목록
+  const [deleteConfirmHorse, setDeleteConfirmHorse] = useState<Horse | null>(null); // 삭제 확인할 말
+  const [isDeleting, setIsDeleting] = useState(false); // 삭제 중 상태
 
   // 등록된 말 목록 가져오기
   const fetchRegisteredHorses = async () => {
@@ -204,6 +206,38 @@ export default function HorseInfoPanel({
 
   // "추가하기" 버튼 활성화 조건
   const isButtonDisabled = !file || !horseNo || !isFetchComplete; // 파일과 마번 조회가 완료되어야만 활성화
+
+  // 말 삭제하기
+  const deleteHorse = async (horse: Horse) => {
+    try {
+      setIsDeleting(true);
+      setError("");
+
+      // horseNo를 숫자로 변환 (앞의 0 제거)
+      const horseNumber = parseInt(normalizeHorseNumber(horse.horseNo));
+      
+      console.log('말 삭제 시작:', {
+        farmUuid: farm_uuid,
+        horseNumber: horseNumber,
+        horseName: horse.hrNm
+      });
+
+      await FarmService.deleteHorse(farm_uuid, horseNumber);
+
+      // 성공 시 목록 새로고침
+      await fetchRegisteredHorses();
+      
+      // 삭제 확인 모달 닫기
+      setDeleteConfirmHorse(null);
+
+      console.log('말 삭제 성공');
+    } catch (err) {
+      console.error("말 삭제 실패:", err);
+      setError(err instanceof Error ? err.message : "말 삭제에 실패했습니다.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   // 말 등록하기
   const registerHorse = async () => {
@@ -430,11 +464,20 @@ export default function HorseInfoPanel({
         <div className="mt-6">
           <h3 className="text-sm font-medium text-gray-700 mb-2">현재 등록된 말 목록</h3>
           <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {registeredHorses.map((horse) => (
-                <div key={horse.horseNo} className="text-xs text-gray-600">
-                  <span className="font-medium">마번 {normalizeHorseNumber(horse.horseNo)}</span>
-                  {horse.hrNm && <span> - {horse.hrNm}</span>}
+                <div key={horse.horseNo} className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">마번 {normalizeHorseNumber(horse.horseNo)}</span>
+                    {horse.hrNm && <span> - {horse.hrNm}</span>}
+                  </div>
+                  <button
+                    onClick={() => setDeleteConfirmHorse(horse)}
+                    className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 hover:border-red-300 hover:bg-red-50 transition-colors"
+                    disabled={isDeleting}
+                  >
+                    삭제
+                  </button>
                 </div>
               ))}
             </div>
@@ -473,6 +516,37 @@ export default function HorseInfoPanel({
           </button>
         </div>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {deleteConfirmHorse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">말 삭제 확인</h3>
+            <p className="text-gray-600 mb-6">
+              정말로 <span className="font-medium">마번 {normalizeHorseNumber(deleteConfirmHorse.horseNo)}</span>
+              {deleteConfirmHorse.hrNm && <span> ({deleteConfirmHorse.hrNm})</span>} 말을 삭제하시겠습니까?
+              <br />
+              <span className="text-red-600 text-sm">이 작업은 되돌릴 수 없습니다.</span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmHorse(null)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={isDeleting}
+              >
+                취소
+              </button>
+              <button
+                onClick={() => deleteHorse(deleteConfirmHorse)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
