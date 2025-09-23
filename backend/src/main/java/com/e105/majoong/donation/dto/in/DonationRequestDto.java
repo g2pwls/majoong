@@ -20,7 +20,8 @@ public class DonationRequestDto {
       String farmerUuid,
       String donatorUuid,  // ★ 추가
       String txHash,
-      long tokenCount
+      long tokenCount,
+      long balance
   ) {
     return DonationHistory.builder()
         .donationToken(tokenCount)
@@ -28,6 +29,7 @@ public class DonationRequestDto {
         .farmUuid(farmUuid)
         .farmerUuid(farmerUuid)
         .txHash(txHash)
+        .balance(balance)
         .build();
   }
 }

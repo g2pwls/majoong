@@ -35,7 +35,7 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
     public DonationResponseDto getDonationHistoryByPage(
             String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate) {
         if (!donatorRepository.existsByMemberUuid(memberUuid)) {
-            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+            throw new BaseException(BaseResponseStatus.NO_EXIST_DONATOR);
         }
         return donationHistoryRepository.findDonationHistoryByPage(memberUuid, page, size, startDate, endDate);
     }
