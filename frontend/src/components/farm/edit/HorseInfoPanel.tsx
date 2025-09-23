@@ -145,33 +145,62 @@ export default function HorseInfoPanel({
 
   // 말 등록하기
   const registerHorse = async () => {
-    if (profileData && file && profileData.horseNo && profileData.hrNm && profileData.birthDt && profileData.breed && profileData.sex) {
-      try {
-        setLoading(true);
-        setError("");
+    // 필수 필드 검증
+    if (!file) {
+      setError("말 프로필 사진을 업로드해주세요.");
+      return;
+    }
+    
+    if (!profileData || !profileData.horseNo || !profileData.hrNm || !profileData.birthDt || !profileData.breed || !profileData.sex) {
+      setError("마번 조회를 먼저 완료해주세요.");
+      return;
+    }
 
-        // API에 전달할 데이터 준비
-        const horseData = {
-          farmUuid: farm_uuid,
-          horseNumber: parseInt(profileData.horseNo),
-          horseName: profileData.hrNm,
-          birth: profileData.birthDt,
-          gender: profileData.sex,
-          color: profileData.color || '',
-          breed: profileData.breed,
-          countryOfOrigin: profileData.prdCty || '',
-          raceCount: parseInt(profileData.rcCnt || '0'),
-          firstPlaceCount: parseInt(profileData.fstCnt || '0'),
-          secondPlaceCount: parseInt(profileData.sndCnt || '0'),
-          totalPrize: parseInt(profileData.amt || '0'),
-          retiredDate: profileData.discardDt || undefined,
-          firstRaceDate: profileData.fdebutDt || undefined,
-          lastRaceDate: profileData.lchulDt || undefined,
-          profileImage: file,
-        };
+    try {
+      setLoading(true);
+      setError("");
 
-        // API 호출
-        await FarmService.registerHorse(horseData);
+      // 날짜 형식 변환 함수
+      const formatDate = (dateStr: string | null): string => {
+        if (!dateStr) return '';
+        // YYYYMMDD 형식을 YYYY-MM-DD로 변환
+        if (dateStr.length === 8) {
+          return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+        }
+        return dateStr;
+      };
+
+      // API에 전달할 데이터 준비
+      const horseData = {
+        farmUuid: farm_uuid,
+        horseNumber: parseInt(profileData.horseNo),
+        horseName: profileData.hrNm,
+        birth: formatDate(profileData.birthDt),
+        gender: profileData.sex,
+        color: profileData.color || '',
+        breed: profileData.breed,
+        countryOfOrigin: profileData.prdCty || '',
+        raceCount: parseInt(profileData.rcCnt || '0'),
+        firstPlaceCount: parseInt(profileData.fstCnt || '0'),
+        secondPlaceCount: parseInt(profileData.sndCnt || '0'),
+        totalPrize: parseInt(profileData.amt || '0'),
+        retiredDate: profileData.discardDt ? formatDate(profileData.discardDt) : undefined,
+        firstRaceDate: profileData.fdebutDt ? formatDate(profileData.fdebutDt) : undefined,
+        lastRaceDate: profileData.lchulDt ? formatDate(profileData.lchulDt) : undefined,
+        profileImage: file,
+      };
+
+      console.log('말 등록 데이터:', {
+        farmUuid: horseData.farmUuid,
+        horseNumber: horseData.horseNumber,
+        horseName: horseData.horseName,
+        hasProfileImage: !!horseData.profileImage,
+        profileImageName: horseData.profileImage?.name,
+        profileImageSize: horseData.profileImage?.size
+      });
+
+      // API 호출
+      await FarmService.registerHorse(horseData);
 
         // 성공 시 상위 컴포넌트에 알림
         const registeredHorseData = {
@@ -198,7 +227,6 @@ export default function HorseInfoPanel({
       } finally {
         setLoading(false);
       }
-    }
   };
 
   return (

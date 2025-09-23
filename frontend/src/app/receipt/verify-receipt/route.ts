@@ -234,9 +234,7 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
                                content.includes("동일") ||
                                content.includes("같음");
       
-      // 인증 사진 연관성 추출 시도
-      const photoRelevanceResult = content.includes("인증 사진 연관성") && 
-                                  (content.includes("만족") || content.includes("일치") || content.includes("관련"));
+      // 인증 사진 연관성 추출 시도 (사용하지 않으므로 제거)
       const photoUnrelatedResult = content.includes("인증 사진") && 
                                   (content.includes("관련 없음") || content.includes("연관성 없음") || content.includes("부적격"));
       
