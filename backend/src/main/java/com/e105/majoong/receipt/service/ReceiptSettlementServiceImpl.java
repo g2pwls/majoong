@@ -19,12 +19,14 @@ import com.e105.majoong.common.model.settlementHistory.SettlementHistory;
 import com.e105.majoong.common.model.settlementHistory.SettlementHistoryRepository;
 import com.e105.majoong.receipt.dto.in.ReceiptSettlementRequestDto;
 import com.e105.majoong.receipt.dto.out.ReceiptSettlementResponseDto;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -37,13 +39,14 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
   private final FarmerRepository farmerRepository;
   private final SettlementHistoryRepository historyRepository;
   private final ChainProps chainProps;
-
+  private final com.e105.majoong.common.utils.S3Uploader s3Uploader;
   private final ReceiptHistoryRepository receiptHistoryRepository;
   private final ReceiptDetailHistoryRepository receiptDetailHistoryRepository;
+  private static final String RECEIPT_IMAGE_DIR = "receipt";
 
   @Override
   @Transactional
-  public ReceiptSettlementResponseDto settle(String memberUuid, ReceiptSettlementRequestDto req) {
+  public ReceiptSettlementResponseDto settle(String memberUuid, ReceiptSettlementRequestDto req, MultipartFile photo) {
 
     // ── (0) 기본/멱등 검증 ─────────────────────────────────────────
     if (memberUuid == null || memberUuid.isBlank())
@@ -83,6 +86,20 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
     // ── (2) 영수증 저장 ───────────────────────────────────────────────
     final String content = truncate1k(req.getContent());
 
+    //photourl s3 주소로 바꿔서 저장
+    String photoUrl = null;
+    try {
+      if (photo != null && !photo.isEmpty()) {
+        photoUrl = s3Uploader.upload(photo, RECEIPT_IMAGE_DIR);
+      } else {
+        photoUrl = req.getPhotoUrl();
+      }
+    } catch (IOException e) {
+      throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
+    }
+    if (photoUrl == null || photoUrl.isBlank()) {
+      throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
+    }
     ReceiptHistory receipt = ReceiptHistory.builder()
         .farmUuid(farmUuid)
         .memberUuid(memberUuid)
@@ -90,7 +107,7 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
         .storeAddress(req.getStoreInfo().getAddress())
         .storeNumber(req.getStoreInfo().getPhone())
         .totalAmount((int) krw)
-        .photoUrl(req.getPhotoUrl())
+        .photoUrl(photoUrl)
         .aiSummary(req.getReason())
         .content(content)
         .categoryId(req.getCategoryId())
