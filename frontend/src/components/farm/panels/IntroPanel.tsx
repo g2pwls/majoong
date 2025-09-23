@@ -11,7 +11,6 @@ import { ScoreHistory } from "@/types/farm";
 export default function IntroPanel({ farm }: { farm: Farm }) {
   const [deadlineText, setDeadlineText] = useState<string>("");
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // 디버깅을 위한 콘솔 로그
   console.log('IntroPanel farm data:', farm);
@@ -30,7 +29,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     } catch (e: unknown) {
       console.error('신뢰도 내역 조회 실패:', e);
     }
-  }, [farm?.farmUuid]);
+  }, [farm?.farmUuid, farm?.id]);
 
   useEffect(() => {
     // Calculate the deadline (Sunday) and show the countdown
@@ -114,7 +113,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         {/* Horse registry section */}
         <HorseRegistrySection 
           farmUuid={farm?.id || ""} 
-          onHorseRegistered={() => setRefreshTrigger(prev => prev + 1)}
+          onHorseRegistered={() => {}}
         />
       </div>
     </section>

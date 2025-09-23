@@ -69,17 +69,7 @@ export default function HorseInfoPanel({
     if (farm_uuid) {
       fetchRegisteredHorses();
     }
-  }, [farm_uuid]);
-
-  // 등록된 말 목록이 변경될 때마다 중복 검증 재실행
-  useEffect(() => {
-    if (profileData && profileData.horseNo) {
-      if (isHorseNumberDuplicate(profileData.horseNo)) {
-        setError("이미 등록되어 있는 말입니다.");
-        setIsFetchComplete(false);
-      }
-    }
-  }, [registeredHorses, profileData]);
+  }, [farm_uuid, fetchRegisteredHorses]);
 
   // 마번 형식 정규화 함수 (앞의 0 제거)
   const normalizeHorseNumber = (horseNumber: string): string => {
@@ -104,6 +94,16 @@ export default function HorseInfoPanel({
     
     return isDuplicate;
   };
+
+  // 등록된 말 목록이 변경될 때마다 중복 검증 재실행
+  useEffect(() => {
+    if (profileData && profileData.horseNo) {
+      if (isHorseNumberDuplicate(profileData.horseNo)) {
+        setError("이미 등록되어 있는 말입니다.");
+        setIsFetchComplete(false);
+      }
+    }
+  }, [registeredHorses, profileData, isHorseNumberDuplicate]);
 
   // XML 파싱 함수
   const parseXML = (xmlString: string) => {

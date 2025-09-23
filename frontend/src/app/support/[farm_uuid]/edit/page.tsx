@@ -40,12 +40,9 @@ export default function FarmEdit({ params }: PageProps) {
   }, [farm_uuid]);
 
   // 말 등록 처리 (HorseInfoPanel에서 사용)
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
   const handleHorseRegistration = (horseData: unknown) => {
     console.log("Horse registered:", horseData);
-    // 말 등록 후 목록 새로고침 트리거
-    setRefreshTrigger(prev => prev + 1);
+    // 말 등록 후 목록 새로고침은 HorseInfoPanel에서 자체적으로 처리
   };
 
   const title = loading ? "불러오는 중..." : farm?.farm_name ?? "목장 이름";
@@ -95,7 +92,7 @@ export default function FarmEdit({ params }: PageProps) {
 
         <HorseRegistrySection 
           farmUuid={farm_uuid} 
-          onHorseRegistered={() => setRefreshTrigger(prev => prev + 1)}
+          onHorseRegistered={() => {}}
         />
       </main>
     </div>

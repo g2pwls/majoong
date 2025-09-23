@@ -48,7 +48,6 @@ export default function DonationProofUpload({
       name?: string;
       address?: string;
       phone?: string;
-      businessNumber?: string;
     };
     items?: Array<{
       name: string;
@@ -67,6 +66,11 @@ export default function DonationProofUpload({
 
   // --- 사용 금액 관련 상태 ---
   const [usedAmount, setUsedAmount] = useState<string>("");
+
+  // --- 제출 관련 상태 ---
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     if (donationData[farmUuid]?.[type]) {
@@ -304,6 +308,107 @@ export default function DonationProofUpload({
       setCertificationError(errorMessage);
     } finally {
       setCertificationVerifying(false);
+    }
+  };
+
+  // ---- 제출 처리 ----
+  const handleSubmit = async () => {
+    try {
+      setSubmitting(true);
+      setSubmitError(null);
+      setSubmitSuccess(false);
+
+      // 필수 데이터 검증
+      if (!selectedCategory) {
+        setSubmitError("카테고리를 선택해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!donationData[farmUuid]?.receipt) {
+        setSubmitError("영수증 사진을 업로드해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!donationData[farmUuid]?.certification) {
+        setSubmitError("인증 사진을 업로드해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!usedAmount || isNaN(Number(usedAmount.replace(/,/g, "")))) {
+        setSubmitError("사용 금액을 올바르게 입력해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!extractedText) {
+        setSubmitError("영수증에서 텍스트를 먼저 추출해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!certificationResult) {
+        setSubmitError("인증 사진 검증을 먼저 완료해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      if (certificationResult.result !== "적격") {
+        setSubmitError("인증 사진 검증이 통과되지 않았습니다. 검증 결과를 확인해주세요.");
+        setSubmitting(false);
+        return;
+      }
+
+      console.log("제출 요청 시작:", { 
+        farmUuid, 
+        category: selectedCategory, 
+        usedAmount: usedAmount.replace(/,/g, ""),
+        extractedText,
+        certificationResult
+      });
+
+      // 영수증 이미지를 base64로 변환
+      const { base64: receiptBase64 } = await urlToBase64AndFormat(donationData[farmUuid].receipt);
+
+      // API 요청 데이터 구성
+      const requestData = {
+        payload: {
+          photo: receiptBase64,
+          category: selectedCategory,
+          usedAmount: usedAmount.replace(/,/g, ""),
+          extractedText: extractedText,
+          certificationResult: certificationResult,
+          farmUuid: farmUuid
+        }
+      };
+
+      console.log("API 요청 데이터:", { ...requestData, payload: { ...requestData.payload, photo: receiptBase64.substring(0, 100) + "..." } });
+
+      const res = await fetch("/api/v1/receipt/settlement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+
+      console.log("제출 응답 상태:", res.status, res.statusText);
+
+      const json = await res.json();
+      console.log("제출 응답 데이터:", json);
+
+      if (!res.ok) {
+        throw new Error(json?.error || json?.message || "제출 실패");
+      }
+
+      setSubmitSuccess(true);
+      console.log("제출 성공:", json);
+    } catch (e: unknown) {
+      console.error("제출 에러:", e);
+      const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";
+      setSubmitError(errorMessage);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -696,10 +801,42 @@ export default function DonationProofUpload({
 
       {/* 제출 버튼 */}
       <div className="flex justify-end">
-        <button className="px-6 py-2 bg-blue-600 text-white rounded-lg">
-          제출
+        <button 
+          className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
+          onClick={handleSubmit}
+          disabled={submitting || !selectedCategory || !donationData[farmUuid]?.receipt || !donationData[farmUuid]?.certification || !usedAmount || !extractedText || !certificationResult || certificationResult.result !== "적격"}
+        >
+          {submitting ? "제출 중..." : "제출"}
         </button>
       </div>
+
+      {/* 제출 결과 표시 */}
+      {(submitting || submitError || submitSuccess) && (
+        <div className="mt-4 p-4 bg-white rounded-lg border">
+          {submitting && (
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <p className="text-sm text-gray-600">제출 중입니다...</p>
+            </div>
+          )}
+          {submitError && (
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm text-red-600">에러: {submitError}</p>
+            </div>
+          )}
+          {submitSuccess && (
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <p className="text-sm text-green-600">제출이 완료되었습니다!</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

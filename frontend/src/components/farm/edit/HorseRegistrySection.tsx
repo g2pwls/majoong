@@ -42,14 +42,14 @@ export default function HorseRegistrySection({ farmUuid, onHorseRegistered }: Pr
     if (farmUuid) {
       fetchHorses();
     }
-  }, [farmUuid]);
+  }, [farmUuid, fetchHorses]);
 
   // 말 등록 콜백이 호출될 때마다 목록 새로고침
   useEffect(() => {
     if (onHorseRegistered) {
       fetchHorses();
     }
-  }, [onHorseRegistered]);
+  }, [onHorseRegistered, fetchHorses]);
   return (
     <section>
       <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>

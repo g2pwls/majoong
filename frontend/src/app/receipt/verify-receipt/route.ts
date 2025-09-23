@@ -1,8 +1,115 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// 백엔드 정산 요청 함수
+async function submitToBackendSettlement(
+  verificationResult: {
+    result: string;
+    reason: string;
+    matchedItems?: string[];
+    receiptAmount?: string;
+    amountMatch?: boolean;
+    storeInfo?: {
+      name?: string;
+      address?: string;
+      phone?: string;
+    };
+    items?: Array<{
+      name: string;
+      quantity: string;
+      unitPrice: string;
+      totalPrice: string;
+    }>;
+    paymentInfo?: {
+      totalAmount?: string;
+      paymentMethod?: string;
+      paymentDate?: string;
+      receiptNumber?: string;
+    };
+  }, 
+  usedAmount: number, 
+  category: string, 
+  certificationImage: string,
+  specialNote: string
+) {
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+  
+  // 사용자 제공 JSON 구조에 맞게 데이터 변환
+  const settlementData = {
+    reason: verificationResult.reason || "기부금 증빙 정산",
+    storeInfo: {
+      name: verificationResult.storeInfo?.name || "가게명",
+      address: verificationResult.storeInfo?.address || "주소",
+      phone: verificationResult.storeInfo?.phone || "전화번호"
+    },
+    content: specialNote || `카테고리: ${category}, 사용금액: ${usedAmount}원`,
+    items: verificationResult.items || [{
+      name: verificationResult.matchedItems?.[0] || "상품명",
+      quantity: 1,
+      unitPrice: usedAmount,
+      totalPrice: usedAmount
+    }],
+    receiptAmount: parseInt(verificationResult.receiptAmount?.replace(/[^\d]/g, '') || usedAmount.toString()),
+    photoUrl: certificationImage || "",
+    categoryId: getCategoryId(category),
+    idempotencyKey: generateIdempotencyKey()
+  };
+
+  console.log("백엔드 정산 요청 데이터:", settlementData);
+
+  // FormData 생성 (사진과 JSON을 함께 전송)
+  const formData = new FormData();
+  formData.append('payload', JSON.stringify(settlementData));
+  
+  // 사진이 있으면 FormData에 추가
+  if (certificationImage) {
+    try {
+      // Base64 이미지를 Blob으로 변환
+      const response = await fetch(certificationImage);
+      const blob = await response.blob();
+      formData.append('photo', blob, 'certification.jpg');
+    } catch (error) {
+      console.warn("사진 변환 실패:", error);
+    }
+  }
+
+  const response = await fetch(`${backendUrl}/api/v1/receipt/settlement`, {
+    method: 'POST',
+    headers: {
+      // Authorization 헤더는 프론트엔드에서 처리해야 함
+      // 'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`백엔드 정산 요청 실패: ${response.status} - ${errorText}`);
+  }
+
+  return await response.json();
+}
+
+// 카테고리 ID 매핑 함수
+function getCategoryId(category: string): number {
+  const categoryMap: { [key: string]: number } = {
+    "사료/영양": 1,
+    "발굽 관리": 2,
+    "의료/건강": 3,
+    "시설": 4,
+    "운동/재활": 5,
+    "수송": 6
+  };
+  return categoryMap[category] || 1;
+}
+
+// 중복 방지 키 생성 함수
+function generateIdempotencyKey(): string {
+  return `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { category, extractedText, usedAmount, certificationImage } = await request.json();
+    const { category, extractedText, usedAmount, certificationImage, submitToBackend = false, specialNote = "" } = await request.json();
 
     console.log("API 요청 데이터:", { 
       category, 
@@ -186,6 +293,21 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       // 필수 필드가 있는지 확인
       if (parsedResult.result && parsedResult.reason) {
         console.log("JSON 파싱 성공, 정상 응답 반환");
+        
+        // 검증이 적격이고 백엔드 제출이 요청된 경우
+        if (parsedResult.result === "적격" && submitToBackend) {
+          try {
+            await submitToBackendSettlement(parsedResult, usedAmount, category, certificationImage, specialNote);
+            console.log("백엔드 정산 요청 성공");
+          } catch (backendError) {
+            console.error("백엔드 정산 요청 실패:", backendError);
+            return NextResponse.json({
+              ...parsedResult,
+              backendError: "정산 요청 중 오류가 발생했습니다."
+            });
+          }
+        }
+        
         return NextResponse.json(parsedResult);
       } else {
         throw new Error("필수 필드가 누락됨");
@@ -299,7 +421,7 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
         }
       });
       
-      return NextResponse.json({
+      const responseData = {
         result,
         reason: content,
         matchedItems,
@@ -317,7 +439,23 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
           paymentDate: paymentDateMatch?.[1]?.trim() || null,
           receiptNumber: receiptNumberMatch?.[1]?.trim() || null
         }
-      });
+      };
+      
+      // 검증이 적격이고 백엔드 제출이 요청된 경우
+      if (result === "적격" && submitToBackend) {
+        try {
+          await submitToBackendSettlement(responseData, usedAmount, category, certificationImage, specialNote);
+          console.log("백엔드 정산 요청 성공");
+        } catch (backendError) {
+          console.error("백엔드 정산 요청 실패:", backendError);
+          return NextResponse.json({
+            ...responseData,
+            backendError: "정산 요청 중 오류가 발생했습니다."
+          });
+        }
+      }
+      
+      return NextResponse.json(responseData);
     }
 
   } catch (error) {
