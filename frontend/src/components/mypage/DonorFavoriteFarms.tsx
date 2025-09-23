@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getFavoriteFarms } from '@/services/userService';
+import Link from 'next/link';
+import { getFavoriteFarms, removeFavoriteFarm } from '@/services/userService';
 import type { FavoriteFarmsResponse } from '@/types/user';
 
 interface FavoriteFarm {
@@ -38,9 +39,28 @@ export default function DonorFavoriteFarms() {
     fetchFavoriteFarms();
   }, []);
 
-  const handleRemoveFavorite = (farmUuid: string) => {
-    // TODO: 실제 즐겨찾기 삭제 API 호출
-    setFavoriteFarms(prev => prev.filter(farm => farm.farmUuid !== farmUuid));
+  const handleRemoveFavorite = async (farmUuid: string) => {
+    // 해당 농장의 이름을 찾기
+    const farm = favoriteFarms.find(f => f.farmUuid === farmUuid);
+    const farmName = farm?.farmName || '농장';
+    
+    if (!confirm(`"${farmName}"을 즐겨찾기에서 제거하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      console.log('즐겨찾기 삭제 요청:', farmUuid);
+      await removeFavoriteFarm(farmUuid);
+      
+      // 로컬 상태에서 해당 농장 제거
+      setFavoriteFarms(prev => prev.filter(farm => farm.farmUuid !== farmUuid));
+      
+      console.log('즐겨찾기 삭제 완료:', farmName);
+      // 완료 팝업 제거 - 확인 팝업만 표시하고 즉시 제거 처리
+    } catch (error) {
+      console.error('즐겨찾기 삭제 실패:', error);
+      alert('즐겨찾기 삭제에 실패했습니다. 다시 시도해주세요.');
+    }
   };
 
   const handleVisitFarm = (farmUuid: string) => {
@@ -93,7 +113,13 @@ export default function DonorFavoriteFarms() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">즐겨찾는 농장이 없습니다</h3>
-          <p className="mt-1 text-sm text-gray-500">관심 있는 농장을 즐겨찾기에 추가해보세요.</p>
+          <p className="mt-1 text-sm text-gray-500 mb-4">관심 있는 농장을 즐겨찾기에 추가해보세요.</p>
+          <Link href="/support" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+            <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            농장 둘러보기
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -103,7 +129,7 @@ export default function DonorFavoriteFarms() {
                 <h3 className="text-lg font-semibold text-gray-900">{farm.farmName}</h3>
                 <button
                   onClick={() => handleRemoveFavorite(farm.farmUuid)}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
+                  className="text-red-500 hover:text-red-600 transition-colors p-1"
                   title="즐겨찾기에서 제거"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">

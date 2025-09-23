@@ -137,3 +137,27 @@ export const getMyFarm = async (): Promise<MyFarmResponse> => {
     throw error;
   }
 };
+
+// 즐겨찾기 삭제 API
+export const removeFavoriteFarm = async (farmUuid: string): Promise<{ isSuccess: boolean; message: string }> => {
+  try {
+    console.log('즐겨찾기 삭제 API 호출 시작:', farmUuid);
+    
+    const response = await authApi.delete(`/api/v1/members/donators/bookmarks/farms/${farmUuid}`);
+    
+    console.log('즐겨찾기 삭제 API 응답:', response.data);
+    return {
+      isSuccess: response.data.isSuccess,
+      message: response.data.message
+    };
+  } catch (error: unknown) {
+    console.error('즐겨찾기 삭제 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
