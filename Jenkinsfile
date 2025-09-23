@@ -253,15 +253,28 @@ pipeline {
                         script {
                             try {
                                 sh """
-                               docker buildx version >/dev/null 2>&1 || docker buildx create --use
-                               DOCKER_BUILDKIT=1 docker buildx build \
-                               --no-cache \
-                               --progress=plain \
-                               -f frontend/Dockerfile \
-                               --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                               -t majoong/frontend-dev:${TAG} \
-                               --load \
-                               frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                set -euo pipefail
+                                # buildx 바이너리 확인(없어도 실패는 안 함)
+                                docker buildx version >/dev/null 2>&1 || true
+
+                                # 빌더 없으면 생성(이름: jenkinsbk)
+                                if ! docker buildx ls | grep -q '^jenkinsbk\\b'; then
+                                docker buildx create --name jenkinsbk --driver docker-container >/dev/null
+                                fi
+
+                                # 빌더 선택 + BuildKit 부트스트랩
+                                docker buildx use jenkinsbk
+                                docker buildx inspect --bootstrap jenkinsbk >/dev/null
+
+                                # BuildKit 시크릿 사용해 빌드 (plain 로그 + 로컬 데몬으로 load)
+                                DOCKER_BUILDKIT=1 docker buildx build \
+                                --no-cache \
+                                --progress=plain \
+                                -f frontend/Dockerfile \
+                                --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
+                                -t majoong/frontend-dev:${TAG} \
+                                --load \
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
 
                                 # 기존 컨테이너 제거
                                 docker rm -f ${DEV_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
@@ -325,7 +338,16 @@ pipeline {
                         script {
                             try {
                                 sh """
-                                docker buildx version >/dev/null 2>&1 || docker buildx create --use
+                                set -euo pipefail
+
+                                docker buildx version >/dev/null 2>&1 || true
+
+                                if ! docker buildx ls | grep -q '^jenkinsbk\\b'; then
+                                docker buildx create --name jenkinsbk --driver docker-container >/dev/null
+                                fi
+                                docker buildx use jenkinsbk
+                                docker buildx inspect --bootstrap jenkinsbk >/dev/null
+
                                 DOCKER_BUILDKIT=1 docker buildx build \
                                 --no-cache \
                                 --progress=plain \
@@ -334,7 +356,9 @@ pipeline {
                                 -t majoong/frontend-prod:${TAG} \
                                 --load \
                                 frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
-                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "$WORKSPACE/${LOG_FILE}" 2>&1
+
 
                                 docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
 
