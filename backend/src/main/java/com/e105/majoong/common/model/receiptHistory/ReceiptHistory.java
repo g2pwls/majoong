@@ -52,5 +52,9 @@ public class ReceiptHistory {
 
     @Column(nullable = false)
     private Long categoryId;
+
+    public void updateCategoryId(Long categoryId){ this.categoryId = categoryId; }
+    public void updateSummary(String aiSummary){ this.aiSummary = aiSummary; }
+    public void updateContent(String content){ this.content = content; }
 }
 
