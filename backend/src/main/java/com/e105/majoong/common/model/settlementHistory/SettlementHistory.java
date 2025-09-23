@@ -33,9 +33,8 @@ public class SettlementHistory extends BaseEntity {
   @Column(name = "vault_address", nullable = false)
   private String vaultAddress;
 
-  // 토큰 "표시용" 문자열 (예: "12")
   @Column(name = "released_amount", nullable = false)
-  private String releasedAmount;
+  private Long releasedAmount;
 
   @Column(name = "tx_hash")
   private String txHash;
@@ -61,13 +60,13 @@ public class SettlementHistory extends BaseEntity {
       String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      String releasedAmount,
+      Long releasedAmount,
       String status,
       String txHash,
       String failReason,
       Long balance,
       Long withdrawAmount,
-      Long withdrawToken
+      Long receiptHistoryId
   ) {
     return SettlementHistory.builder()
         .evidenceId(evidenceId)
@@ -80,7 +79,7 @@ public class SettlementHistory extends BaseEntity {
         .failReason(failReason)
         .balance(balance)
         .withdrawAmount(withdrawAmount)
-        .withdrawToken(withdrawToken)
+        .receiptHistoryId(receiptHistoryId)
         .build();
   }
 
@@ -90,15 +89,15 @@ public class SettlementHistory extends BaseEntity {
       String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      String releasedAmount,
+      Long releasedAmount,
       String txHash,
       Long balance,
       Long withdrawAmount,
-      Long withdrawToken
+      Long receiptHistoryId
   ) {
     return toEntity(farmUuid, evidenceId, farmerWallet,
             vaultAddress, releasedAmount, "RELEASED",
-            txHash, null, balance, withdrawAmount, withdrawToken);
+            txHash, null, balance, withdrawAmount, receiptHistoryId);
   }
 
   /** 실패 케이스 편의 생성자 */
@@ -107,14 +106,14 @@ public class SettlementHistory extends BaseEntity {
       String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      String releasedAmount,
+      Long releasedAmount,
       String failReason,
       Long balance,
       Long withdrawAmount,
-      Long withdrawToken
+      Long receiptHistoryId
   ) {
     return toEntity(farmUuid, evidenceId, farmerWallet,
             vaultAddress, releasedAmount, "FAILED",
-            null, failReason, balance, withdrawAmount, withdrawToken);
+            null, failReason, balance, withdrawAmount, receiptHistoryId);
   }
 }

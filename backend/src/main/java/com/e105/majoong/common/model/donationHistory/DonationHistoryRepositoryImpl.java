@@ -149,7 +149,9 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
                         donationHistory.donationDate,
                         donationHistory.txHash,
                         donationHistory.balance,
-                        Expressions.constant("DONATION")))
+                        Expressions.constant("DONATION"),
+                        Expressions.constant(0L)
+                ))
                 .from(donationHistory)
                 .leftJoin(donator).on(donationHistory.donatorUuid.eq(donator.memberUuid))
                 .where(donationBuilder)
@@ -167,12 +169,14 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
         List<VaultHistoryResponseDto> settlements = queryFactory
                 .select(Projections.constructor(VaultHistoryResponseDto.class,
                         Expressions.constant("영수증 증빙"),
-                        settlementHistory.withdrawToken,
+                        settlementHistory.releasedAmount,
                         settlementHistory.withdrawAmount,
                         settlementHistory.createdAt,
                         settlementHistory.txHash,
                         settlementHistory.balance,
-                        Expressions.constant("SETTLEMENT")))
+                        Expressions.constant("SETTLEMENT"),
+                        settlementHistory.receiptHistoryId
+                ))
                 .from(settlementHistory)
                 .where(settlementBuilder)
                 .join(farm).on(settlementHistory.farmUuid.eq(farm.farmUuid))

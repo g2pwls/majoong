@@ -1,7 +1,7 @@
 // 사용자 정보 관련 API 서비스 함수
 
 import { authApi } from './authService';
-import type { FarmerInfoResponse, DonatorInfoResponse, FavoriteFarmsResponse, DonationHistoryRequest, DonationHistoryResponse, DonationDetailResponse } from '@/types/user';
+import type { FarmerInfoResponse, DonatorInfoResponse, FavoriteFarmsResponse, DonationHistoryRequest, DonationHistoryResponse, DonationDetailResponse, MyFarmResponse } from '@/types/user';
 
 // 목장주 정보 조회 API
 export const getFarmerInfo = async (): Promise<FarmerInfoResponse> => {
@@ -107,6 +107,27 @@ export const getDonationDetail = async (donationHistoryId: number): Promise<Dona
     return response.data;
   } catch (error: unknown) {
     console.error('기부 상세 조회 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
+// 목장주 나의 목장 조회 API
+export const getMyFarm = async (): Promise<MyFarmResponse> => {
+  try {
+    console.log('나의 목장 조회 API 호출 시작');
+    
+    const response = await authApi.get<MyFarmResponse>('/api/v1/farms/my-farm');
+    
+    console.log('나의 목장 조회 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('나의 목장 조회 API 오류:', error);
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
       console.error('에러 응답:', axiosError.response?.data);

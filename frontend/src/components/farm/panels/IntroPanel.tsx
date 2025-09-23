@@ -29,7 +29,8 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     } catch (e: unknown) {
       console.error('신뢰도 내역 조회 실패:', e);
     }
-  }, [farm?.id]);
+  }, [farm?.id, farm.farmUuid]);
+  // 주석 추가
 
   useEffect(() => {
     // Calculate the deadline (Sunday) and show the countdown
@@ -111,8 +112,12 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         )}
         
         {/* Horse registry section */}
-        <HorseRegistrySection farmUuid={farm?.id || ""} />
+        <HorseRegistrySection 
+          farmUuid={farm?.id || ""} 
+          onHorseRegistered={() => {}}
+        />
       </div>
     </section>
   );
 }
+

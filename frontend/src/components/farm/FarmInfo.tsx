@@ -1,5 +1,9 @@
 // components/farm/FarmInfo.tsx
 import Image from "next/image";
+import { Star } from "lucide-react";
+// import { addFarmBookmark, removeFarmBookmark } from "@/services/apiService"; // 사용하지 않으므로 주석 처리
+import { isDonator } from "@/services/authService";
+
 type Props = {
   farm_name: string;        // 농장명
   total_score: number;      // 신뢰도
@@ -11,6 +15,10 @@ type Props = {
   horse_count?: number;     // 두수
   className?: string;       // 외부 제어용
   showHeader?: boolean;     // ✅ 헤더(농장명+신뢰도) 출력 여부
+  farm_uuid?: string;       // 농장 UUID (즐겨찾기용)
+  isBookmarked?: boolean;   // 즐겨찾기 상태
+  onBookmarkToggle?: (farmUuid: string) => void; // 즐겨찾기 토글 함수
+  bookmarkLoading?: boolean; // 즐겨찾기 로딩 상태
 };
 
 export default function FarmInfo({
@@ -24,9 +32,21 @@ export default function FarmInfo({
   horse_count,
   className = "",
   showHeader = true,
+  farm_uuid,
+  isBookmarked = false,
+  onBookmarkToggle,
+  bookmarkLoading = false,
 }: Props) {
   const fmtNum = (v?: number | string) =>
     v === undefined || v === null ? "-" : typeof v === "number" ? v.toLocaleString() : v;
+
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (farm_uuid && onBookmarkToggle) {
+      onBookmarkToggle(farm_uuid);
+    }
+  };
 
   return (
     <section className={`rounded-xl bg-white shadow-sm border p-3 ${className}`}>
@@ -35,6 +55,27 @@ export default function FarmInfo({
         <div className="mb-4 flex items-baseline gap-3">
           <h1 className="text-3xl font-extrabold tracking-tight">{farm_name}</h1>
           <span className="text-xl text-gray-800">{fmtNum(total_score)}</span>
+          {/* 즐겨찾기 버튼 */}
+          {isDonator() && farm_uuid && onBookmarkToggle && (
+            <button 
+              className={`rounded-full border p-1 transition-colors ${
+                isBookmarked 
+                  ? 'border-yellow-400 bg-yellow-50' 
+                  : 'border-gray-300 hover:border-yellow-400'
+              } ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+              aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+              onClick={handleBookmarkClick}
+              disabled={bookmarkLoading}
+            >
+              <Star 
+                className={`h-4 w-4 ${
+                  isBookmarked 
+                    ? 'fill-yellow-400 text-yellow-400' 
+                    : 'text-gray-400 hover:text-yellow-400'
+                } ${bookmarkLoading ? 'animate-pulse' : ''}`} 
+              />
+            </button>
+          )}
         </div>
       )}
 

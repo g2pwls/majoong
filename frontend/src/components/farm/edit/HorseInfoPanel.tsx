@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone"; // Import useDropzone from react-dropzone
 import Image from "next/image";
 import { FarmService } from "@/services/farmService";
+import { Horse } from "@/types/farm";
 
 interface HorseProfileData {
   horseNo: string | null;
@@ -47,6 +48,62 @@ export default function HorseInfoPanel({
   const [file, setFile] = useState<File | null>(null); // 업로드한 파일 상태 관리
   const [filePreview, setFilePreview] = useState<string | null>(null); // 파일 미리보기 상태 관리
   const [isFetchComplete, setIsFetchComplete] = useState(false); // 마번 조회 완료 여부
+  const [registeredHorses, setRegisteredHorses] = useState<Horse[]>([]); // 등록된 말 목록
+  const [deleteConfirmHorse, setDeleteConfirmHorse] = useState<Horse | null>(null); // 삭제 확인할 말
+  const [isDeleting, setIsDeleting] = useState(false); // 삭제 중 상태
+
+  // 등록된 말 목록 가져오기
+  const fetchRegisteredHorses = async () => {
+    try {
+      console.log('등록된 말 목록 조회 시작:', farm_uuid);
+      const horses = await FarmService.getHorses(farm_uuid);
+      console.log('등록된 말 목록 조회 성공:', horses);
+      setRegisteredHorses(horses);
+    } catch (err) {
+      console.error('등록된 말 목록 조회 실패:', err);
+    }
+  };
+
+  // 컴포넌트 마운트 시 등록된 말 목록 가져오기
+  useEffect(() => {
+    if (farm_uuid) {
+      fetchRegisteredHorses();
+    }
+  }, [farm_uuid, fetchRegisteredHorses]);
+
+  // 마번 형식 정규화 함수 (앞의 0 제거)
+  const normalizeHorseNumber = (horseNumber: string): string => {
+    return horseNumber.replace(/^0+/, '') || '0';
+  };
+
+  // 중복 마번 검증 함수
+  const isHorseNumberDuplicate = (horseNumber: string): boolean => {
+    const normalizedInput = normalizeHorseNumber(horseNumber);
+    const isDuplicate = registeredHorses.some(horse => {
+      const normalizedRegistered = normalizeHorseNumber(horse.horseNo);
+      return normalizedRegistered === normalizedInput;
+    });
+    
+    console.log('중복 검증:', {
+      입력된마번: horseNumber,
+      정규화된입력마번: normalizedInput,
+      등록된말목록: registeredHorses.map(h => h.horseNo),
+      정규화된등록된말목록: registeredHorses.map(h => normalizeHorseNumber(h.horseNo)),
+      중복여부: isDuplicate
+    });
+    
+    return isDuplicate;
+  };
+
+  // 등록된 말 목록이 변경될 때마다 중복 검증 재실행
+  useEffect(() => {
+    if (profileData && profileData.horseNo) {
+      if (isHorseNumberDuplicate(profileData.horseNo)) {
+        setError("이미 등록되어 있는 말입니다.");
+        setIsFetchComplete(false);
+      }
+    }
+  }, [registeredHorses, profileData, isHorseNumberDuplicate]);
 
   // XML 파싱 함수
   const parseXML = (xmlString: string) => {
@@ -97,12 +154,19 @@ export default function HorseInfoPanel({
 
     try {
       const response = await fetch(
-        `http://apis.data.go.kr/B551015/API42/totalHorseInfo?serviceKey=${serviceKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&hr_no=${horseNo}`
+        `https://apis.data.go.kr/B551015/API42/totalHorseInfo?serviceKey=${serviceKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&hr_no=${horseNo}`
       );
       const data = await response.text(); // XML 데이터를 텍스트로 받음
       const parsedData = parseXML(data); // XML 데이터를 파싱
 
       if (parsedData) {
+        // 중복 마번 검증
+        if (isHorseNumberDuplicate(parsedData.horseNo || '')) {
+          setError("이미 등록되어 있는 말입니다.");
+          setIsFetchComplete(false);
+          return;
+        }
+        
         setProfileData(parsedData); // 응답 데이터 저장
         setIsFetchComplete(true); // 마번 조회 완료
       } else {
@@ -143,35 +207,102 @@ export default function HorseInfoPanel({
   // "추가하기" 버튼 활성화 조건
   const isButtonDisabled = !file || !horseNo || !isFetchComplete; // 파일과 마번 조회가 완료되어야만 활성화
 
+  // 말 삭제하기
+  const deleteHorse = async (horse: Horse) => {
+    try {
+      setIsDeleting(true);
+      setError("");
+
+      // horseNo를 숫자로 변환 (앞의 0 제거)
+      const horseNumber = parseInt(normalizeHorseNumber(horse.horseNo));
+      
+      console.log('말 삭제 시작:', {
+        farmUuid: farm_uuid,
+        horseNumber: horseNumber,
+        horseName: horse.hrNm
+      });
+
+      await FarmService.deleteHorse(farm_uuid, horseNumber);
+
+      // 성공 시 목록 새로고침
+      await fetchRegisteredHorses();
+      
+      // 삭제 확인 모달 닫기
+      setDeleteConfirmHorse(null);
+
+      console.log('말 삭제 성공');
+    } catch (err) {
+      console.error("말 삭제 실패:", err);
+      setError(err instanceof Error ? err.message : "말 삭제에 실패했습니다.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // 말 등록하기
   const registerHorse = async () => {
-    if (profileData && file && profileData.horseNo && profileData.hrNm && profileData.birthDt && profileData.breed && profileData.sex) {
-      try {
-        setLoading(true);
-        setError("");
+    // 필수 필드 검증
+    if (!file) {
+      setError("말 프로필 사진을 업로드해주세요.");
+      return;
+    }
+    
+    if (!profileData || !profileData.horseNo || !profileData.hrNm || !profileData.birthDt || !profileData.breed || !profileData.sex) {
+      setError("마번 조회를 먼저 완료해주세요.");
+      return;
+    }
 
-        // API에 전달할 데이터 준비
-        const horseData = {
-          farmUuid: farm_uuid,
-          horseNumber: parseInt(profileData.horseNo),
-          horseName: profileData.hrNm,
-          birth: profileData.birthDt,
-          gender: profileData.sex,
-          color: profileData.color || '',
-          breed: profileData.breed,
-          countryOfOrigin: profileData.prdCty || '',
-          raceCount: parseInt(profileData.rcCnt || '0'),
-          firstPlaceCount: parseInt(profileData.fstCnt || '0'),
-          secondPlaceCount: parseInt(profileData.sndCnt || '0'),
-          totalPrize: parseInt(profileData.amt || '0'),
-          retiredDate: profileData.discardDt || undefined,
-          firstRaceDate: profileData.fdebutDt || undefined,
-          lastRaceDate: profileData.lchulDt || undefined,
-          profileImage: file,
-        };
+    // 등록 전 중복 검증 (추가 안전장치)
+    if (isHorseNumberDuplicate(profileData.horseNo)) {
+      setError("이미 등록되어 있는 말입니다.");
+      return;
+    }
 
-        // API 호출
-        await FarmService.registerHorse(horseData);
+    try {
+      setLoading(true);
+      setError("");
+
+      // 날짜 형식 변환 함수
+      const formatDate = (dateStr: string | null): string => {
+        if (!dateStr) return '';
+        // YYYYMMDD 형식을 YYYY-MM-DD로 변환
+        if (dateStr.length === 8) {
+          return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
+        }
+        return dateStr;
+      };
+
+      // API에 전달할 데이터 준비
+      const horseData = {
+        farmUuid: farm_uuid,
+        horseNumber: parseInt(profileData.horseNo),
+        horseName: profileData.hrNm,
+        birth: formatDate(profileData.birthDt),
+        gender: profileData.sex,
+        color: profileData.color || '',
+        breed: profileData.breed,
+        countryOfOrigin: profileData.prdCty || '',
+        raceCount: parseInt(profileData.rcCnt || '0'),
+        firstPlaceCount: parseInt(profileData.fstCnt || '0'),
+        secondPlaceCount: parseInt(profileData.sndCnt || '0'),
+        totalPrize: parseInt(profileData.amt || '0'),
+        retiredDate: profileData.discardDt ? formatDate(profileData.discardDt) : undefined,
+        firstRaceDate: profileData.fdebutDt ? formatDate(profileData.fdebutDt) : undefined,
+        lastRaceDate: profileData.lchulDt ? formatDate(profileData.lchulDt) : undefined,
+        profileImage: file,
+      };
+
+      console.log('말 등록 데이터:', {
+        farmUuid: horseData.farmUuid,
+        horseNumber: horseData.horseNumber,
+        horseName: horseData.horseName,
+        hasProfileImage: !!horseData.profileImage,
+        profileImageName: horseData.profileImage?.name,
+        profileImageSize: horseData.profileImage?.size
+      });
+
+      // API 호출
+      await FarmService.registerHorse(horseData);
 
         // 성공 시 상위 컴포넌트에 알림
         const registeredHorseData = {
@@ -184,6 +315,9 @@ export default function HorseInfoPanel({
           sex: profileData.sex,
         };
         onHorseRegistered(registeredHorseData);
+
+        // 등록된 말 목록 새로고침
+        await fetchRegisteredHorses();
 
         // 폼 초기화
         setHorseNo("");
@@ -198,7 +332,6 @@ export default function HorseInfoPanel({
       } finally {
         setLoading(false);
       }
-    }
   };
 
   return (
@@ -257,7 +390,18 @@ export default function HorseInfoPanel({
       {/* API 결과 출력 */}
       <div className="mt-6">
         {loading && <p>로딩 중...</p>}
-        {error && <p className="text-red-500">{error}</p>}
+        {error && (
+          <div className={`p-3 rounded-lg ${
+            error.includes('이미 등록되어 있는 말') 
+              ? 'bg-yellow-50 border border-yellow-200 text-yellow-800' 
+              : 'bg-red-50 border border-red-200 text-red-800'
+          }`}>
+            <p className="font-medium">{error}</p>
+            {error.includes('이미 등록되어 있는 말') && (
+              <p className="text-sm mt-1">다른 마번을 입력하거나 기존 말을 삭제 후 다시 등록해주세요.</p>
+            )}
+          </div>
+        )}
         {profileData && (
           <div className="bg-gray-100 p-4 rounded-lg grid grid-cols-1 md:grid-cols-2 gap-4">
             <h3 className="font-semibold col-span-full">말 프로필</h3>
@@ -315,6 +459,32 @@ export default function HorseInfoPanel({
         )}
       </div>
 
+      {/* 등록된 말 목록 표시 */}
+      {registeredHorses.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-sm font-medium text-gray-700 mb-2">현재 등록된 말 목록</h3>
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {registeredHorses.map((horse) => (
+                <div key={horse.horseNo} className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">마번 {normalizeHorseNumber(horse.horseNo)}</span>
+                    {horse.hrNm && <span> - {horse.hrNm}</span>}
+                  </div>
+                  <button
+                    onClick={() => setDeleteConfirmHorse(horse)}
+                    className="text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded border border-red-200 hover:border-red-300 hover:bg-red-50 transition-colors"
+                    disabled={isDeleting}
+                  >
+                    삭제
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 하단 액션 영역: 선택 파일 표시 + 제거 + 추가하기 */}
       <div className="mt-6 flex items-center justify-between">
         <div className="text-sm text-neutral-600">
@@ -346,6 +516,37 @@ export default function HorseInfoPanel({
           </button>
         </div>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {deleteConfirmHorse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">말 삭제 확인</h3>
+            <p className="text-gray-600 mb-6">
+              정말로 <span className="font-medium">마번 {normalizeHorseNumber(deleteConfirmHorse.horseNo)}</span>
+              {deleteConfirmHorse.hrNm && <span> ({deleteConfirmHorse.hrNm})</span>} 말을 삭제하시겠습니까?
+              <br />
+              <span className="text-red-600 text-sm">이 작업은 되돌릴 수 없습니다.</span>
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDeleteConfirmHorse(null)}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={isDeleting}
+              >
+                취소
+              </button>
+              <button
+                onClick={() => deleteHorse(deleteConfirmHorse)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                disabled={isDeleting}
+              >
+                {isDeleting ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

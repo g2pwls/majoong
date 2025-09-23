@@ -7,7 +7,7 @@ import { FarmService } from "@/services/farmService";
 import { MonthlyReportDetail } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Star, FileText, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Star, FileText } from "lucide-react";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { getFarm, Farm } from "@/services/apiService";
 
