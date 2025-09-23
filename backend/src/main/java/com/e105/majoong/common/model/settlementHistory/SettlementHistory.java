@@ -33,9 +33,8 @@ public class SettlementHistory extends BaseEntity {
   @Column(name = "vault_address", nullable = false)
   private String vaultAddress;
 
-  // 토큰 "표시용" 문자열 (예: "12")
   @Column(name = "released_amount", nullable = false)
-  private String releasedAmount;
+  private Long releasedAmount;
 
   @Column(name = "tx_hash")
   private String txHash;
@@ -53,7 +52,7 @@ public class SettlementHistory extends BaseEntity {
       String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      String releasedAmount,
+      Long releasedAmount,
       String status,
       String txHash,
       String failReason
@@ -76,7 +75,7 @@ public class SettlementHistory extends BaseEntity {
       String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      String releasedAmount,
+      Long releasedAmount,
       String txHash
   ) {
     return toEntity(farmUuid, evidenceId, farmerWallet, vaultAddress, releasedAmount, "RELEASED", txHash, null);
@@ -88,7 +87,7 @@ public class SettlementHistory extends BaseEntity {
       String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      String releasedAmount,
+      Long releasedAmount,
       String failReason
   ) {
     return toEntity(farmUuid, evidenceId, farmerWallet, vaultAddress, releasedAmount, "FAILED", null, failReason);

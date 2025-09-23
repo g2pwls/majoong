@@ -143,7 +143,7 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
           vaultAddress, farmerWallet, tokenWei, e);
 
       historyRepository.save(SettlementHistory.failed(
-          farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenHuman, shorten(e.getMessage())));
+          farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, shorten(e.getMessage())));
       throw new BaseException(BaseResponseStatus.SETTLEMENT_RELEASE_FAILED);
     }
 
@@ -151,7 +151,7 @@ public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
     farm.updateUsedAmount(krw);
 
     historyRepository.save(SettlementHistory.released(
-        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenHuman, txHash));
+        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, txHash));
 
     // ── (6) 응답 ─────────────────────────────────────────────────────
     return ReceiptSettlementResponseDto.ok(txHash, farmerWallet, vaultAddress, tokenHuman);
