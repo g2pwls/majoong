@@ -44,6 +44,13 @@ export default function FarmTabs({
         return;
       }
 
+      // 기부자일 때는 내 목장 확인을 하지 않음
+      if (isDonator()) {
+        setIsOwner(false);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const isMyFarmResult = await isMyFarm(farmUuid);
         setIsOwner(isMyFarmResult);

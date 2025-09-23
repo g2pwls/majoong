@@ -69,9 +69,18 @@ export async function POST(request: NextRequest) {
 2. 선택된 카테고리와 연관성이 있는 상품이 포함되어 있는지 확인하세요
 3. 영수증에서 총 금액, 합계, 총액 등의 숫자를 찾아보세요
 4. 사용자가 입력한 금액과 영수증의 총 금액이 일치하는지 확인하세요 (소액 차이는 허용)
-5. 인증 사진이 제공된 경우, 영수증과 관련된 실제 사용 증빙인지 확인하세요
-6. 카테고리 연관성, 금액 일치성, 인증 사진 연관성을 모두 만족하면 "적격", 하나라도 만족하지 않으면 "부적격"으로 판단하세요
-7. 판단 근거를 간단히 설명해주세요
+5. 인증 사진 검증 (매우 중요):
+   - 인증 사진이 영수증에 명시된 상품들과 직접적으로 관련이 있는지 확인
+   - 사진에서 영수증의 상품들이 실제로 사용되는 모습이 보이는지 확인
+   - 사진이 영수증의 구매 목적과 일치하는지 확인 (예: 사료 구매 → 말이 사료를 먹는 모습)
+   - 사진이 단순히 영수증을 찍은 것이 아니라 실제 사용 증빙인지 확인
+   - 인증 사진이 영수증과 전혀 관련이 없거나 일반적인 사진이면 부적격으로 판단
+6. 다음 3가지 조건을 모두 만족해야 "적격":
+   - 카테고리 연관성: 선택된 카테고리와 영수증 상품의 연관성
+   - 금액 일치성: 입력한 금액과 영수증 총 금액의 일치성
+   - 인증 사진 연관성: 인증 사진이 영수증 상품의 실제 사용을 보여주는지
+7. 위 3가지 중 하나라도 만족하지 않으면 "부적격"으로 판단하세요
+8. 판단 근거를 간단히 설명해주세요
 
 중요: 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트나 설명은 포함하지 마세요.
 
@@ -111,9 +120,17 @@ export async function POST(request: NextRequest) {
 추출된 영수증 텍스트:
 ${extractedText}
 
-${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${certificationImage.length}자)` : '인증 사진: 제공되지 않음'}
+${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${certificationImage.length}자)
+- 이 인증 사진이 영수증에 명시된 상품들의 실제 사용을 보여주는지 분석해주세요
+- 사진에서 영수증의 상품들이 실제로 사용되는 모습이 보이는지 확인해주세요
+- 사진이 영수증의 구매 목적과 일치하는지 검증해주세요` : '인증 사진: 제공되지 않음'}
 
-위 정보를 바탕으로 종합적으로 적격/부적격을 판단해주세요.`
+위 정보를 바탕으로 다음 3가지 조건을 모두 만족하는지 엄격하게 검증해주세요:
+1. 카테고리 연관성: 선택된 카테고리와 영수증 상품의 연관성
+2. 금액 일치성: 입력한 금액과 영수증 총 금액의 일치성  
+3. 인증 사진 연관성: 인증 사진이 영수증 상품의 실제 사용을 보여주는지
+
+모든 조건을 만족해야 "적격", 하나라도 만족하지 않으면 "부적격"으로 판단해주세요.`
           }
         ],
         temperature: 0.3,
@@ -177,9 +194,6 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       console.log("JSON 파싱 실패, 텍스트에서 정보 추출:", parseError);
       console.log("원본 content:", content);
       
-      // 텍스트에서 정보 추출
-      const result = content.includes("적격") ? "적격" : "부적격";
-      
       // 금액 정보 추출 시도 (더 정확한 패턴)
       const amountPatterns = [
         /(\d{1,3}(?:,\d{3})*)\s*원/g,
@@ -219,6 +233,27 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
                                content.includes("일치") || 
                                content.includes("동일") ||
                                content.includes("같음");
+      
+      // 인증 사진 연관성 추출 시도
+      const photoRelevanceResult = content.includes("인증 사진 연관성") && 
+                                  (content.includes("만족") || content.includes("일치") || content.includes("관련"));
+      const photoUnrelatedResult = content.includes("인증 사진") && 
+                                  (content.includes("관련 없음") || content.includes("연관성 없음") || content.includes("부적격"));
+      
+      // 텍스트에서 정보 추출 - 더 엄격한 판단
+      let result = "부적격"; // 기본값을 부적격으로 설정
+      
+      // 적격 조건: 모든 조건이 만족되어야 함
+      if (content.includes("적격") && 
+          !content.includes("부적격") && 
+          !photoUnrelatedResult) {
+        result = "적격";
+      }
+      
+      // 명시적으로 부적격이 언급된 경우
+      if (content.includes("부적격") || photoUnrelatedResult) {
+        result = "부적격";
+      }
       
       // 가게 정보 추출 시도
       const storeNameMatch = content.match(/(?:상호|가게|업체)[:\s]*([^\n]+)/i);

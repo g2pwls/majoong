@@ -211,6 +211,7 @@ export async function getFarm(farmUuid: string): Promise<Farm> {
       description: farm.description,
       month_total_amount: farm.monthTotalAmount,
       purpose_total_amount: farm.purposeTotalAmount,
+      bookmark: farm.bookmark || false, // 북마크 상태 추가
       horses: (farm.horses || []).map((horse: {
         horseNumber: number;
         horseName: string;
@@ -290,7 +291,12 @@ export async function isMyFarm(farmUuid: string): Promise<boolean> {
   try {
     const myFarm = await getMyFarm();
     return myFarm.id === farmUuid;
-  } catch (error) {
+  } catch (error: any) {
+    // 404 에러는 기부자가 호출했을 때 발생하는 정상적인 경우
+    if (error?.response?.status === 404) {
+      console.log('내 목장이 없음 (기부자 또는 목장이 등록되지 않은 사용자)');
+      return false;
+    }
     console.error('내 목장 확인 실패:', error);
     return false;
   }
