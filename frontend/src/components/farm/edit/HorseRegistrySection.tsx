@@ -3,6 +3,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 
 type Horse = {
@@ -72,9 +73,11 @@ export default function HorseRegistrySection({ farmUuid }: Props) {
               className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
             >
               {horse.image ? (
-                <img
+                <Image
                   src={horse.image}
                   alt={horse.hrNm ?? "말 이미지"}
+                  width={300}
+                  height={192}
                   className="w-full h-48 object-cover bg-gray-50"
                 />
               ) : (

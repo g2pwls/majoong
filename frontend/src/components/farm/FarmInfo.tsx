@@ -1,4 +1,5 @@
 // components/farm/FarmInfo.tsx
+import Image from "next/image";
 type Props = {
   farm_name: string;        // 농장명
   total_score: number;      // 신뢰도
@@ -40,9 +41,11 @@ export default function FarmInfo({
       {/* 대표 이미지 */}
       {image_url && (
         <div className="rounded-lg overflow-hidden bg-gray-100">
-          <img
+          <Image
             src={image_url}
             alt={`${farm_name} 대표 이미지`}
+            width={400}
+            height={192}
             className="w-full h-48 object-cover"
           />
         </div>

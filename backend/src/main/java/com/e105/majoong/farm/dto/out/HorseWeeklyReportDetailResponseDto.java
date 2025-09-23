@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Builder
 @NoArgsConstructor
@@ -17,6 +19,7 @@ public class HorseWeeklyReportDetailResponseDto {
     private String stableImage;
     private String aiSummary;
     private String content;
+    private LocalDateTime uploadedAt;
 
     public static HorseWeeklyReportDetailResponseDto toDto(HorseState state) {
         return HorseWeeklyReportDetailResponseDto.builder()
@@ -26,6 +29,7 @@ public class HorseWeeklyReportDetailResponseDto {
                 .stableImage(state.getStableImage())
                 .aiSummary(state.getAiSummary())
                 .content(state.getContent())
+                .uploadedAt(state.getUploadedAt())
                 .build();
     }
 }

@@ -1,72 +1,140 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { getDonationHistory } from '@/services/userService';
+import type { DonationHistoryRequest, DonationHistoryResponse } from '@/types/user';
+import DonationDetailModal from './DonationDetailModal';
 
 interface SupportRecord {
-  id: string;
+  donationHistoryId: number;
+  farmUuid: string;
+  donationDate: string;
   farmName: string;
-  amount: number;
-  date: string;
-  status: 'completed' | 'pending' | 'cancelled';
-  transactionHash?: string;
+  donationToken: number;
 }
 
 export default function DonorSupportHistory() {
   const [supportHistory, setSupportHistory] = useState<SupportRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalCoin, setTotalCoin] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const pageSize = 10;
+  
+  // 날짜 필터 상태
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  
+  // 리스트 영역 로딩 상태 (전체 컴포넌트와 분리)
+  const [isListLoading, setIsListLoading] = useState(false);
+  
+  // 모달 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDonationId, setSelectedDonationId] = useState<number | null>(null);
+
+  const fetchDonationHistory = useCallback(async (page: number = 0, isInitialLoad: boolean = false) => {
+    try {
+      // 초기 로드는 전체 로딩, 그 외에는 리스트만 로딩
+      if (isInitialLoad) {
+        setIsLoading(true);
+      } else {
+        setIsListLoading(true);
+      }
+      setError(null);
+      
+      const params: DonationHistoryRequest = {
+        page,
+        size: pageSize,
+      };
+      
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      
+      const response: DonationHistoryResponse = await getDonationHistory(params);
+      
+      if (response.isSuccess && response.result) {
+        setSupportHistory(response.result.donationHistory.content);
+        setTotalCoin(response.result.totalCoin);
+        setTotalAmount(response.result.totalAmount);
+        setTotalPages(response.result.donationHistory.totalPages);
+        setTotalElements(response.result.donationHistory.totalElements);
+        setCurrentPage(page);
+      } else {
+        setError('기부내역을 불러올 수 없습니다.');
+      }
+    } catch (error) {
+      console.error('기부내역 조회 오류:', error);
+      setError('기부내역을 불러오는 중 오류가 발생했습니다.');
+    } finally {
+      if (isInitialLoad) {
+        setIsLoading(false);
+      } else {
+        setIsListLoading(false);
+      }
+    }
+  }, [pageSize, startDate, endDate]);
 
   useEffect(() => {
-    // TODO: 실제 API에서 후원 내역을 가져와야 함
-    // 현재는 임시 데이터 사용
-    const mockData: SupportRecord[] = [
-      {
-        id: '1',
-        farmName: '행복한 목장',
-        amount: 100000,
-        date: '2024-01-15',
-        status: 'completed',
-        transactionHash: '0xabcdef1234567890abcdef1234567890abcdef12'
-      },
-      {
-        id: '2',
-        farmName: '사랑의 농장',
-        amount: 50000,
-        date: '2024-01-10',
-        status: 'completed',
-        transactionHash: '0x1234567890abcdef1234567890abcdef12345678'
-      },
-      {
-        id: '3',
-        farmName: '희망의 목장',
-        amount: 200000,
-        date: '2024-01-05',
-        status: 'pending'
-      }
-    ];
-    
-    setSupportHistory(mockData);
-    setIsLoading(false);
-  }, []);
+    // 컴포넌트 마운트 시에만 초기 데이터 로드
+    fetchDonationHistory(0, true);
+  }, [fetchDonationHistory]); // fetchDonationHistory를 의존성에 추가
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">완료</span>;
-      case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">대기중</span>;
-      case 'cancelled':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">취소</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{status}</span>;
-    }
+  const handleDateFilter = () => {
+    fetchDonationHistory(0, false); // 리스트만 로딩
   };
 
-  const formatAmount = (amount: number) => {
+  const handlePageChange = (page: number) => {
+    fetchDonationHistory(page, false); // 리스트만 로딩
+  };
+
+  const clearDateFilter = () => {
+    setStartDate('');
+    setEndDate('');
+  };
+
+
+  const formatAmount = (donationToken: number) => {
+    const amount = donationToken * 1000; // 마론 1개 = 1,000원
     return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
+  const formatTotalAmount = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
+  };
+
+  const formatCoin = (donationToken: number) => {
+    return new Intl.NumberFormat('ko-KR').format(donationToken) + ' MARON';
+  };
+
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR');
+    return new Date(dateString).toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  };
+
+  const handleVisitFarm = (farmUuid: string) => {
+    window.open(`/support/${farmUuid}`, '_blank');
+  };
+
+  const handleDonationClick = (donationHistoryId: number) => {
+    setSelectedDonationId(donationHistoryId);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedDonationId(null);
   };
 
   if (isLoading) {
@@ -84,41 +152,201 @@ export default function DonorSupportHistory() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <svg className="mx-auto h-12 w-12 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">오류가 발생했습니다</h3>
+          <p className="mt-1 text-sm text-gray-500">{error}</p>
+          <button 
+            onClick={() => fetchDonationHistory(currentPage)} 
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+          >
+            다시 시도
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">후원 내역</h2>
-      
-      {supportHistory.length === 0 ? (
-        <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">후원 내역이 없습니다</h3>
-          <p className="mt-1 text-sm text-gray-500">아직 후원한 농장이 없습니다.</p>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">후원 내역</h2>
+         <div className="flex items-center space-x-4 text-sm text-gray-600">
+           <span>총 기부금: <strong>{formatTotalAmount(totalAmount)}</strong></span>
+           <span>총 코인: <strong>{formatCoin(totalCoin)}</strong></span>
+         </div>
+      </div>
+
+      {/* 날짜 필터 */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">시작일:</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">종료일:</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+            />
+          </div>
+          <button
+            onClick={handleDateFilter}
+            className="px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
+          >
+            조회
+          </button>
+          <button
+            onClick={clearDateFilter}
+            className="px-4 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition-colors"
+          >
+            초기화
+          </button>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {supportHistory.map((record) => (
-            <div key={record.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">{record.farmName}</h3>
-                  <p className="text-sm text-gray-500">후원일: {formatDate(record.date)}</p>
-                  {record.transactionHash && (
-                    <p className="text-xs text-gray-400 font-mono mt-1">
-                      TX: {record.transactionHash.slice(0, 20)}...
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-lg font-semibold text-gray-900">{formatAmount(record.amount)}</p>
-                  <div className="mt-1">
-                    {getStatusBadge(record.status)}
+      </div>
+      
+      {/* 리스트 영역 로딩 인디케이터 */}
+      {isListLoading && (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-gray-600">로딩 중...</span>
+        </div>
+      )}
+
+      {/* 리스트 컨텐츠 */}
+      {!isListLoading && (
+        <>
+          {supportHistory.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">후원 내역이 없습니다</h3>
+              <p className="mt-1 text-sm text-gray-500">아직 후원한 농장이 없습니다.</p>
+            </div>
+          ) : (
+             <div className="space-y-4">
+               {supportHistory.map((record, index) => (
+                 <div 
+                   key={`${record.farmUuid}-${record.donationDate}-${index}`} 
+                   className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+                   onClick={() => handleDonationClick(record.donationHistoryId)}
+                 >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2">
+                        <h3 className="text-lg font-medium text-gray-900">{record.farmName}</h3>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // 모달 열기 방지
+                            handleVisitFarm(record.farmUuid);
+                          }}
+                          className="text-blue-600 hover:text-blue-800 text-sm underline"
+                        >
+                          농장 보기
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-500">후원일시: {formatDate(record.donationDate)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
+                      <p className="text-sm text-blue-600">{formatCoin(record.donationToken)}</p>
+                      <div className="mt-1">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          완료
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
+        </>
+      )}
+
+      {/* 페이지네이션 */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex justify-center">
+          <nav className="flex items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(0)}
+              disabled={currentPage === 0}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              첫 페이지
+            </button>
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 0}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              이전
+            </button>
+            
+            {/* 페이지 번호들 */}
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i;
+              } else if (currentPage < 3) {
+                pageNum = i;
+              } else if (currentPage >= totalPages - 3) {
+                pageNum = totalPages - 5 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`px-3 py-2 text-sm font-medium border rounded-md ${
+                    currentPage === pageNum
+                      ? 'text-blue-600 bg-blue-50 border-blue-300'
+                      : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {pageNum + 1}
+                </button>
+              );
+            })}
+            
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage >= totalPages - 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              다음
+            </button>
+            <button
+              onClick={() => handlePageChange(totalPages - 1)}
+              disabled={currentPage >= totalPages - 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              마지막 페이지
+            </button>
+          </nav>
+        </div>
+      )}
+
+      {/* 페이지 정보 */}
+      {totalElements > 0 && (
+        <div className="mt-4 text-center text-sm text-gray-500">
+          {totalElements}개 중 {currentPage * pageSize + 1}-{Math.min((currentPage + 1) * pageSize, totalElements)}개 표시
         </div>
       )}
 
@@ -139,6 +367,15 @@ export default function DonorSupportHistory() {
           </div>
         </div>
       </div>
+
+      {/* 기부 상세 모달 */}
+      {selectedDonationId && (
+        <DonationDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          donationHistoryId={selectedDonationId}
+        />
+      )}
     </div>
   );
 }

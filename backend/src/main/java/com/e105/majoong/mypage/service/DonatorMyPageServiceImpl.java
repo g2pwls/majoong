@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DonatorMyPageServiceImpl implements DonatorMyPageService {
 
-    private final DonationHistoryRepositoryCustom donationHistoryRepositoryCustom;
     private final DonationHistoryRepository donationHistoryRepository;
     private final DonatorRepository donatorRepository;
     private final BookmarkRepositoryCustom bookmarkRepositoryCustom;
@@ -37,8 +36,7 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
         if (!donatorRepository.existsByMemberUuid(memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
         }
-        return donationHistoryRepositoryCustom
-                .findDonationHistoryByPage(memberUuid, page, size, startDate, endDate);
+        return donationHistoryRepository.findDonationHistoryByPage(memberUuid, page, size, startDate, endDate);
     }
 
     @Override
@@ -68,9 +66,7 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
         if (!donationHistoryRepository.existsByIdAndDonatorUuid(donationHistoryId, memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
         }
-
-        return donationHistoryRepositoryCustom.findDonationHistoryDetail(memberUuid, donationHistoryId);
+        return donationHistoryRepository.findDonationHistoryDetail(memberUuid, donationHistoryId);
     }
-
 
 }

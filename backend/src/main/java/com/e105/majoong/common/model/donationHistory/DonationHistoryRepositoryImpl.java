@@ -18,7 +18,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
-@Repository
 @RequiredArgsConstructor
 public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryCustom {
     private final JPAQueryFactory queryFactory;
@@ -48,6 +47,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
 
         List<DonationHistoryResponseDto> list = queryFactory
                 .select(Projections.constructor(DonationHistoryResponseDto.class,
+                        donationHistory.id,
                         donationHistory.farmUuid,
                         donationHistory.donationDate,
                         farm.farmName,
@@ -102,5 +102,24 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
                         .and(donator.memberUuid.eq(memberUuid)))
                 .fetchOne();
 
+    }
+
+    @Override
+    public long getMonthlyTotalDonation(String farmUuid, int year, int month) {
+        QDonationHistory dh = QDonationHistory.donationHistory;
+
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+        Long result = queryFactory
+                .select(dh.donationToken.sum())
+                .from(dh)
+                .where(
+                        dh.farmUuid.eq(farmUuid),
+                        dh.donationDate.between(start.atStartOfDay(), end.atTime(23, 59, 59))
+                )
+                .fetchOne();
+
+        return (result != null) ? result : 0L;
     }
 }

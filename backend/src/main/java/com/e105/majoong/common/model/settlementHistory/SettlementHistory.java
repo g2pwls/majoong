@@ -1,7 +1,6 @@
 package com.e105.majoong.common.model.settlementHistory;
 
 import com.e105.majoong.common.entity.BaseEntity;
-import com.e105.majoong.settlement.dto.in.ReceiptEvidenceRequest;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,7 +8,7 @@ import lombok.*;
 @Table(
     name = "settlement_history",
     indexes = {
-        @Index(name = "idx_settlement_farm_uuid", columnList = "farmUuid")
+        @Index(name = "idx_settlement_farm_uuid", columnList = "farm_uuid")
     }
 )
 @Getter
@@ -22,40 +21,45 @@ public class SettlementHistory extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(length = 36, unique = true, nullable = false)
+  @Column(name = "evidence_id", length = 36, unique = true, nullable = false)
   private String evidenceId;
 
-  @Column(length = 12, nullable = false)
+  @Column(name = "farm_uuid", length = 12, nullable = false)
   private String farmUuid;
 
-  @Column(nullable = false)
+  @Column(name = "farmer_wallet", nullable = false)
   private String farmerWallet;
 
-  @Column(nullable = false)
+  @Column(name = "vault_address", nullable = false)
   private String vaultAddress;
 
-  @Column(nullable = false)
-  private String releasedAmount; // 표시용(정수 토큰 문자열 등)
+  // 토큰 "표시용" 문자열 (예: "12")
+  @Column(name = "released_amount", nullable = false)
+  private String releasedAmount;
 
+  @Column(name = "tx_hash")
   private String txHash;
 
-  @Column(nullable = false)
-  private String status; // PENDING/RELEASED/FAILED
+  // PENDING / RELEASED / FAILED
+  @Column(name = "status", nullable = false)
+  private String status;
 
+  @Column(name = "fail_reason")
   private String failReason;
 
+  /** DTO 의존 제거: 필요한 값만 받아서 엔티티 생성 */
   public static SettlementHistory toEntity(
       String farmUuid,
+      String evidenceId,
       String farmerWallet,
       String vaultAddress,
-      ReceiptEvidenceRequest req,
       String releasedAmount,
       String status,
       String txHash,
       String failReason
   ) {
     return SettlementHistory.builder()
-        .evidenceId(req.getEvidenceId())
+        .evidenceId(evidenceId)
         .farmUuid(farmUuid)
         .farmerWallet(farmerWallet)
         .vaultAddress(vaultAddress)
@@ -64,5 +68,29 @@ public class SettlementHistory extends BaseEntity {
         .status(status)
         .failReason(failReason)
         .build();
+  }
+
+  /** 성공 케이스 편의 생성자 */
+  public static SettlementHistory released(
+      String farmUuid,
+      String evidenceId,
+      String farmerWallet,
+      String vaultAddress,
+      String releasedAmount,
+      String txHash
+  ) {
+    return toEntity(farmUuid, evidenceId, farmerWallet, vaultAddress, releasedAmount, "RELEASED", txHash, null);
+  }
+
+  /** 실패 케이스 편의 생성자 */
+  public static SettlementHistory failed(
+      String farmUuid,
+      String evidenceId,
+      String farmerWallet,
+      String vaultAddress,
+      String releasedAmount,
+      String failReason
+  ) {
+    return toEntity(farmUuid, evidenceId, farmerWallet, vaultAddress, releasedAmount, "FAILED", null, failReason);
   }
 }

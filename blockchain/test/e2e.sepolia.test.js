@@ -15,12 +15,21 @@ describe("E2E on Sepolia (deployed contracts)", function () {
     return;
   }
 
-  let deployer, token, factory;
+  let deployer, token, factory, farmer; // ✅ farmer를 전역 변수로
 
   before(async () => {
     [deployer] = await ethers.getSigners(); // hardhat.config.js의 accounts[0] = DEPLOYER_PRIVATE_KEY
     token = await ethers.getContractAt("MaronToken", addr.token, deployer);
     factory = await ethers.getContractAt("FarmVaultFactory", addr.factory, deployer);
+
+    // ✅ 테스트 시작 시 farmer(=deployer) 잔액 전량 소각해서 초기화
+    farmer = await deployer.getAddress();
+    const prev = await token.balanceOf(farmer);
+    if (prev > 0n) {
+      console.log("Farmer balance cleanup, burning:", prev.toString());
+      const tx = await token.burnFromFarmer(farmer, prev);
+      await tx.wait();
+    }
   });
 
   it("reads basic info", async () => {
@@ -35,7 +44,6 @@ describe("E2E on Sepolia (deployed contracts)", function () {
     const farmId = Math.floor(Date.now() / 1000);
 
     // 1) 금고 생성
-    const farmer = await deployer.getAddress(); // 데모: 배포자 자신을 farmer로
     const tx1 = await factory.createVault(farmId, farmer);
     const rc1 = await tx1.wait();
     console.log("createVault gas used:", rc1.gasUsed.toString());
@@ -46,7 +54,7 @@ describe("E2E on Sepolia (deployed contracts)", function () {
 
     // 2) 기부 토큰 민트(금고로)
     const amount = ethers.parseEther("0.1");
-    const donor = await deployer.getAddress();
+    const donor = farmer; // 데모: 배포자 자신을 donor로
     const tx2 = await token.mintToVaultForDonor(donor, vaultAddr, amount);
     const rc2 = await tx2.wait();
     console.log("mintToVaultForDonor gas used:", rc2.gasUsed.toString());
@@ -59,6 +67,7 @@ describe("E2E on Sepolia (deployed contracts)", function () {
     const rc3 = await tx3.wait();
     console.log("vault.release gas used:", rc3.gasUsed.toString());
 
+    // ✅ farmer 시작 잔액을 0으로 만들어놨으므로 정확히 releaseAmt여야 함
     expect(await token.balanceOf(farmer)).to.equal(releaseAmt);
 
     // 4) 소각(농부 지갑에서)

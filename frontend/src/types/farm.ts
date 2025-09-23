@@ -11,6 +11,9 @@ export interface Farm {
   area?: number | string;
   horse_count?: number;
   description?: string; // 목장 소개
+  month_total_amount?: number; // 이번 달 모금액
+  purpose_total_amount?: number; // 목표 모금액
+  member_uuid?: string; // 목장 소유자 UUID
 }
 
 export interface FarmUpdateRequest {
@@ -27,6 +30,31 @@ export interface FarmUpdateResponse {
   success: boolean;
   message: string;
   farm?: Farm;
+}
+
+// 농장 상세 조회 API 응답 타입
+export interface FarmDetailResponse {
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    farmUuid: string;
+    farmName: string;
+    profileImage: string;
+    totalScore: number;
+    address: string;
+    phoneNumber: string;
+    horseCount: number;
+    monthTotalAmount: number;
+    purposeTotalAmount: number;
+    area: number;
+    description: string;
+    monthlyScores: Array<{
+      year: number;
+      month: number;
+      score: number;
+    }>;
+  };
 }
 
 export interface Horse {
@@ -46,6 +74,7 @@ export interface WeeklyReport {
   month: number;
   week: number;
   aiSummary: string;
+  uploadedAt?: string;
 }
 
 export interface HorseDetailResult {

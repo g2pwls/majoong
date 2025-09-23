@@ -4,30 +4,41 @@ import React, { useState, useEffect } from 'react';
 import { getTokens } from '@/services/authService';
 
 interface DonorInfo {
-  name: string;
+  role: string;
+  nameString: string;
   email: string;
   walletAddress: string;
 }
 
-export default function DonorProfile() {
+interface DonorProfileProps {
+  donatorInfo?: DonorInfo;
+  userRole?: string;
+}
+
+export default function DonorProfile({ donatorInfo: propDonatorInfo }: DonorProfileProps) {
   const [donorInfo, setDonorInfo] = useState<DonorInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: 실제 API에서 기부자 정보를 가져와야 함
-    // 현재는 임시 데이터 사용
-    const tokens = getTokens();
-    
-    // 임시 데이터
-    const mockData: DonorInfo = {
-      name: '김기부',
-      email: tokens.email || 'donor@example.com',
-      walletAddress: '0x1234567890abcdef1234567890abcdef12345678'
-    };
-    
-    setDonorInfo(mockData);
-    setIsLoading(false);
-  }, []);
+    if (propDonatorInfo) {
+      // props로 받은 데이터 사용
+      setDonorInfo(propDonatorInfo);
+      setIsLoading(false);
+    } else {
+      // 기존 로직 (임시 데이터)
+      const tokens = getTokens();
+      
+      const mockData: DonorInfo = {
+        role: 'donator',
+        nameString: '김기부',
+        email: tokens.email || 'donor@example.com',
+        walletAddress: '0x1234567890abcdef1234567890abcdef12345678'
+      };
+      
+      setDonorInfo(mockData);
+      setIsLoading(false);
+    }
+  }, [propDonatorInfo]);
 
   if (isLoading) {
     return (
@@ -54,7 +65,7 @@ export default function DonorProfile() {
             이름
           </label>
           <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-            {donorInfo?.name}
+            {donorInfo?.nameString}
           </div>
         </div>
 

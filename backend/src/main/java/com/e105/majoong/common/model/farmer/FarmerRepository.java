@@ -14,4 +14,7 @@ public interface FarmerRepository extends JpaRepository<Farmer, Long> {
 
     @Query("SELECT f.email FROM Farmer f WHERE f.memberUuid = :memberUuid")
     Optional<String> findEmailByMemberUuid(@Param("memberUuid") String memberUuid);
+
+    @Query("select f.walletAddress from Farmer f where f.memberUuid = :memberUuid")
+    Optional<String> findWalletAddressByMemberUuid(String memberUuid);
 }

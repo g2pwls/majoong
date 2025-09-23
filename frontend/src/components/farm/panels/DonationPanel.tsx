@@ -1,7 +1,7 @@
 // src/components/farm/panels/DonationPanel.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { FarmService } from "@/services/farmService";
 import { DonationUsageResponse, MonthlyDonationUsed, ReceiptHistory, ReceiptDetail } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,15 +22,13 @@ interface DonationPanelProps {
 }
 
 export default function DonationPanel({ farmId }: DonationPanelProps) {
-  const [donationData, setDonationData] = useState<DonationUsageResponse | null>(null);
   const [selectedMonthData, setSelectedMonthData] = useState<DonationUsageResponse | null>(null);
   const [yearlyData, setYearlyData] = useState<MonthlyDonationUsed[]>([]);
+  const [allYearData, setAllYearData] = useState<DonationUsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
-  const [currentYear] = useState(new Date().getFullYear());
-  const [currentMonth] = useState(new Date().getMonth() + 1);
+  const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
   
   // 상세 조회를 위한 상태
   const [expandedReceipts, setExpandedReceipts] = useState<Set<number>>(new Set());
@@ -52,26 +50,20 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     details: false
   });
   
-  // 전달 계산
-  const getPreviousMonth = () => {
-    const now = new Date();
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1);
-    return {
-      year: prevMonth.getFullYear(),
-      month: prevMonth.getMonth() + 1
-    };
-  };
   
-  const previousMonth = getPreviousMonth();
 
   // 기부금 사용 내역 조회 (선택된 월용) - 캐싱 적용
-  const fetchDonationUsage = async (year: number, month: number) => {
-    const cacheKey = `${year}-${month}`;
+  const fetchDonationUsage = useCallback(async (year: number, month: number | 'all') => {
+    const cacheKey = month === 'all' ? `${year}-all` : `${year}-${month}`;
     
     // 캐시에서 먼저 확인
     if (dataCache.has(cacheKey)) {
       console.log('캐시에서 데이터 로드:', cacheKey);
-      setSelectedMonthData(dataCache.get(cacheKey)!);
+      const cachedData = dataCache.get(cacheKey)!;
+      setSelectedMonthData(cachedData);
+      if (month === 'all') {
+        setAllYearData(cachedData);
+      }
       return;
     }
     
@@ -80,7 +72,51 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
       setError(null);
       
       console.log('기부금 사용 내역 조회 시작:', { farmId, year, month });
-      const data = await FarmService.getDonationUsage(farmId, year, month);
+      
+      let data: DonationUsageResponse;
+      if (month === 'all') {
+        // 전체 년도 조회 - 모든 월의 데이터를 수집
+        console.log('전체 년도 데이터 수집 시작:', year);
+        const allReceipts: ReceiptHistory[] = [];
+        const allMonthlyData: MonthlyDonationUsed[] = [];
+        
+        // 1월부터 12월까지 각 달의 데이터를 가져옴
+        for (let m = 1; m <= 12; m++) {
+          try {
+            console.log(`${year}년 ${m}월 데이터 조회 중...`);
+            const monthData = await FarmService.getDonationUsage(farmId, year, m);
+            
+            if (monthData.receiptHistory && monthData.receiptHistory.length > 0) {
+              console.log(`${year}년 ${m}월 영수증 ${monthData.receiptHistory.length}개 추가`);
+              allReceipts.push(...monthData.receiptHistory);
+            }
+            
+            if (monthData.monthlyDonationUsed && monthData.monthlyDonationUsed.length > 0) {
+              allMonthlyData.push(...monthData.monthlyDonationUsed);
+            }
+          } catch (error) {
+            console.warn(`${year}년 ${m}월 데이터 조회 실패:`, error);
+            // 해당 월 데이터가 없어도 계속 진행
+          }
+        }
+        
+        // 전체 데이터 구성
+        data = {
+          monthlyDonationUsed: allMonthlyData,
+          receiptHistory: allReceipts
+        };
+        
+        console.log('전체 년도 데이터 수집 완료:', {
+          totalReceipts: allReceipts.length,
+          totalMonthlyData: allMonthlyData.length
+        });
+        
+        setAllYearData(data);
+      } else {
+        // 특정 월 조회
+        data = await FarmService.getDonationUsage(farmId, year, month);
+      }
+      
       console.log('기부금 사용 내역 조회 성공:', data);
       
       // 캐시에 저장
@@ -93,10 +129,10 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     } finally {
       setLoadingStates(prev => ({ ...prev, monthly: false }));
     }
-  };
+  }, [farmId, dataCache]);
 
   // 연간 기부금 사용 내역 조회 (막대 그래프용) - 캐싱 적용
-  const fetchYearlyData = async (year: number) => {
+  const fetchYearlyData = useCallback(async (year: number) => {
     // 캐시에서 먼저 확인
     if (yearlyCache.has(year)) {
       console.log('연간 데이터 캐시에서 로드:', year);
@@ -143,82 +179,9 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     } finally {
       setLoadingStates(prev => ({ ...prev, yearly: false }));
     }
-  };
+  }, [farmId, yearlyCache]);
 
-  // 전달 기부금 사용 내역 조회 (원형 그래프용) - 캐싱 적용
-  const fetchPreviousMonthData = async () => {
-    const cacheKey = `${previousMonth.year}-${previousMonth.month}`;
-    
-    // 캐시에서 먼저 확인
-    if (dataCache.has(cacheKey)) {
-      console.log('전달 데이터 캐시에서 로드:', cacheKey);
-      setDonationData(dataCache.get(cacheKey)!);
-      return;
-    }
-    
-    try {
-      console.log('전달 기부금 사용 내역 조회 시작:', { farmId, year: previousMonth.year, month: previousMonth.month });
-      const data = await FarmService.getDonationUsage(farmId, previousMonth.year, previousMonth.month);
-      console.log('전달 기부금 사용 내역 조회 성공:', data);
-      
-      // 캐시에 저장
-      setDataCache(prev => new Map(prev).set(cacheKey, data));
-      setDonationData(data);
-    } catch (e: unknown) {
-      console.error('전달 기부금 사용 내역 조회 실패:', e);
-      // 에러를 throw하지 않고 null로 설정
-      setDonationData(null);
-    }
-  };
 
-  // 전체 기부금 사용 내역 조회 (선택된 년의 모든 월) - 캐싱 적용
-  const fetchAllDonationData = async (year: number) => {
-    const cacheKey = `all-${year}`;
-    
-    // 캐시에서 먼저 확인
-    if (dataCache.has(cacheKey)) {
-      console.log('전체 데이터 캐시에서 로드:', cacheKey);
-      setSelectedMonthData(dataCache.get(cacheKey)!);
-      return;
-    }
-    
-    try {
-      setLoadingStates(prev => ({ ...prev, details: true }));
-      console.log('전체 기부금 사용 내역 조회 시작:', { farmId, year });
-      
-      const allReceipts: ReceiptHistory[] = [];
-      
-      // 선택된 년의 1월부터 12월까지 모든 데이터를 가져옴
-      for (let month = 1; month <= 12; month++) {
-        try {
-          const data = await FarmService.getDonationUsage(farmId, year, month);
-          if (data.receiptHistory && data.receiptHistory.length > 0) {
-            allReceipts.push(...data.receiptHistory);
-          }
-        } catch (error) {
-          console.warn(`${year}년 ${month}월 데이터 조회 실패:`, error);
-          // 해당 월 데이터가 없어도 계속 진행
-        }
-      }
-      
-      // 전체 데이터를 하나의 DonationUsageResponse 형태로 구성
-      const allData: DonationUsageResponse = {
-        monthlyDonationUsed: [], // 월별 데이터는 사용하지 않음
-        receiptHistory: allReceipts
-      };
-      
-      // 캐시에 저장
-      setDataCache(prev => new Map(prev).set(cacheKey, allData));
-      console.log('전체 기부금 사용 내역 조회 성공:', allData);
-      setSelectedMonthData(allData);
-    } catch (e: unknown) {
-      console.error('전체 기부금 사용 내역 조회 실패:', e);
-      // 에러를 throw하지 않고 null로 설정
-      setSelectedMonthData(null);
-    } finally {
-      setLoadingStates(prev => ({ ...prev, details: false }));
-    }
-  };
 
   useEffect(() => {
     // 초기 로드 시 필요한 데이터만 가져옴
@@ -229,43 +192,28 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
       // 항상 연간 데이터를 먼저 가져옴 (막대그래프용)
       await fetchYearlyData(selectedYear);
       
-      // 현재 월이면 전체 데이터도 가져옴, 아니면 전달 데이터와 선택된 월 데이터를 가져옴
-      if (selectedYear === currentYear && selectedMonth === currentMonth) {
-        // 현재 월이면 전체 데이터도 조회
-        await Promise.all([
-          fetchAllDonationData(selectedYear),
-          fetchPreviousMonthData()
-        ]);
+      // 전체 선택이면 연간 데이터 조회, 아니면 기존 로직
+      if (selectedMonth === 'all') {
+        // 전체 선택 시 연간 데이터 조회
+        await fetchDonationUsage(selectedYear, 'all');
       } else {
-        // 다른 월이면 전달 데이터와 선택된 월 데이터를 병렬로 조회
-        await Promise.all([
-          fetchPreviousMonthData(),
-          fetchDonationUsage(selectedYear, selectedMonth)
-        ]);
+        // 특정 월 선택 시 해당 월 데이터 조회
+        await fetchDonationUsage(selectedYear, selectedMonth);
       }
       
       setLoading(false);
     };
 
     initializeData();
-  }, [farmId, selectedYear]);
+  }, [farmId, selectedYear, selectedMonth, fetchDonationUsage, fetchYearlyData]);
 
-  // 선택된 달이 변경될 때만 해당 달의 상세 데이터를 가져옴
-  useEffect(() => {
-    if (selectedYear !== currentYear || selectedMonth !== currentMonth) {
-      fetchDonationUsage(selectedYear, selectedMonth);
-    } else if (selectedYear === currentYear && selectedMonth === currentMonth) {
-      // 현재 년월이면 전체 데이터 조회
-      fetchAllDonationData(selectedYear);
-    }
-  }, [selectedMonth]);
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
     setCurrentPage(1); // 페이지 리셋
   };
 
-  const handleMonthChange = (month: number) => {
+  const handleMonthChange = (month: number | 'all') => {
     setSelectedMonth(month);
     setCurrentPage(1); // 페이지 리셋
   };
@@ -398,11 +346,13 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
 
   // 전체 기부금 사용 내역을 차트용으로 변환
   const getAllDonationUsageData = (): DonationUsageItem[] => {
-    // 실제 데이터가 있으면 사용
-    if (selectedMonthData?.receiptHistory && selectedMonthData.receiptHistory.length > 0) {
+    // 전체 선택 시에는 allYearData 사용, 아니면 selectedMonthData 사용
+    const dataToUse = isAllSelected ? allYearData : selectedMonthData;
+    
+    if (dataToUse?.receiptHistory && dataToUse.receiptHistory.length > 0) {
       // 카테고리별로 그룹화하고 금액 합계 및 건수 계산
       const categoryMap = new Map<string, { amount: number; count: number }>();
-      selectedMonthData.receiptHistory.forEach(receipt => {
+      dataToUse.receiptHistory.forEach(receipt => {
         const current = categoryMap.get(receipt.category) || { amount: 0, count: 0 };
         categoryMap.set(receipt.category, {
           amount: current.amount + receipt.totalAmount,
@@ -475,18 +425,18 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     );
   }
 
-  // 현재 선택된 년월이 현재 년월과 같은지 확인
-  const isCurrentMonth = selectedYear === currentYear && selectedMonth === currentMonth;
+  // 전체 선택 여부 확인
+  const isAllSelected = selectedMonth === 'all';
   
   // 원형 그래프용 데이터와 제목 결정
-  const chartData = isCurrentMonth ? getAllDonationUsageData() : getSelectedMonthDonationUsageData();
-  const chartTitle = isCurrentMonth 
+  const chartData = isAllSelected ? getAllDonationUsageData() : getSelectedMonthDonationUsageData();
+  const chartTitle = isAllSelected
     ? `${selectedYear}년 전체 기부금 사용 비율`
     : `${selectedYear}년 ${selectedMonth}월 기부금 사용 비율`;
   const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
 
-  // 상세 내역용 데이터 결정 (현재 월이면 전체 데이터, 아니면 선택된 월 데이터)
-  const detailData = selectedMonthData;
+  // 상세 내역용 데이터 결정 (전체 선택 시 allYearData, 아니면 selectedMonthData)
+  const detailData = isAllSelected ? allYearData : selectedMonthData;
   
   // 페이지네이션 계산 (최근순 정렬)
   const sortedReceipts = detailData?.receiptHistory?.sort((a, b) => 
@@ -528,7 +478,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
             <div className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-purple-600" />
               <h4 className="text-lg font-semibold">
-                {isCurrentMonth 
+                {isAllSelected
                   ? `${selectedYear}년 전체 기부금 사용 내역`
                   : `${selectedYear}년 ${selectedMonth}월 기부금 사용 상세 내역`
                 }
@@ -549,9 +499,10 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
               </select>
               <select
                 value={selectedMonth}
-                onChange={(e) => handleMonthChange(parseInt(e.target.value))}
+                onChange={(e) => handleMonthChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                 className="px-3 py-1 border rounded-md text-sm"
               >
+                <option value="all">전체</option>
                 <option value={1}>1월</option>
                 <option value={2}>2월</option>
                 <option value={3}>3월</option>
@@ -815,7 +766,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
             <div className="text-center py-8">
               <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
-                {isCurrentMonth 
+                {isAllSelected
                   ? `${selectedYear}년의 기부금 사용 내역이 없습니다.`
                   : `${selectedYear}년 ${selectedMonth}월의 기부금 사용 내역이 없습니다.`
                 }
