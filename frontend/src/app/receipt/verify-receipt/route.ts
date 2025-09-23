@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
           {
             role: "system",
             content: `당신은 기부금 증빙 검증 전문가입니다. 
-            
+
 선택된 카테고리와 영수증에서 추출된 상품 목록의 연관성, 사용자가 입력한 금액과 영수증의 총 금액 일치성, 그리고 인증 사진의 적절성을 종합적으로 판단해야 합니다.
 
 카테고리별 연관 상품 예시:
@@ -58,6 +58,12 @@ export async function POST(request: NextRequest) {
 - 운동/재활: 운동기구, 재활용품, 마사지 도구, 물리치료 용품, 안장, 고삐 등
 - 수송: 연료, 차량 부품, 타이어, 정비용품, 운송비, 주차비 등
 
+영수증에서 추출해야 할 정보:
+1. 가게 정보: 상호명, 주소, 전화번호
+2. 구매 상품: 각 상품의 이름, 수량, 단가, 금액
+3. 결제 정보: 총 금액, 결제 방법, 결제일시
+4. 기타: 영수증 번호, 할인 정보 등
+
 판단 기준:
 1. 추출된 텍스트에서 상품명, 브랜드명, 품목명 등을 찾아보세요
 2. 선택된 카테고리와 연관성이 있는 상품이 포함되어 있는지 확인하세요
@@ -67,13 +73,33 @@ export async function POST(request: NextRequest) {
 6. 카테고리 연관성, 금액 일치성, 인증 사진 연관성을 모두 만족하면 "적격", 하나라도 만족하지 않으면 "부적격"으로 판단하세요
 7. 판단 근거를 간단히 설명해주세요
 
-응답 형식:
+중요: 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트나 설명은 포함하지 마세요.
+
 {
   "result": "적격" 또는 "부적격",
   "reason": "판단 근거 설명 (카테고리 연관성, 금액 일치성, 인증사진 연관성 포함)",
   "matchedItems": ["연관된 상품명들"],
   "receiptAmount": "영수증에서 추출된 총 금액",
-  "amountMatch": true 또는 false
+  "amountMatch": true 또는 false,
+  "storeInfo": {
+    "name": "가게 이름",
+    "address": "가게 주소",
+    "phone": "전화번호",
+  },
+  "items": [
+    {
+      "name": "상품명",
+      "quantity": "수량",
+      "unitPrice": "단가",
+      "totalPrice": "금액"
+    }
+  ],
+  "paymentInfo": {
+    "totalAmount": "총 금액",
+    "paymentMethod": "결제 방법",
+    "paymentDate": "결제일시",
+    "receiptNumber": "영수증 번호"
+  }
 }`
           },
           {
@@ -106,17 +132,158 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       throw new Error("OpenAI 응답을 파싱할 수 없습니다.");
     }
 
+    // 개발 환경에서 디버깅을 위한 로그
+    console.log("OpenAI 응답 원본:", content);
+    console.log("응답 길이:", content.length);
+
     // JSON 응답 파싱 시도
     try {
-      const parsedResult = JSON.parse(content);
-      return NextResponse.json(parsedResult);
-    } catch {
-      // JSON 파싱 실패 시 텍스트에서 정보 추출
+      // 먼저 content에서 JSON 부분만 추출 시도
+      let jsonContent = content;
+      
+      // JSON이 ```json ... ``` 형태로 감싸져 있는 경우 처리
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonContent = jsonMatch[1];
+        console.log("JSON 코드 블록에서 추출:", jsonContent);
+      }
+      
+      // JSON이 ``` ... ``` 형태로 감싸져 있는 경우 처리
+      const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+      if (codeMatch && !jsonMatch) {
+        jsonContent = codeMatch[1];
+        console.log("코드 블록에서 추출:", jsonContent);
+      }
+      
+      // JSON이 { ... } 형태로 감싸져 있는 경우 처리
+      const braceMatch = content.match(/\{[\s\S]*\}/);
+      if (braceMatch && !jsonMatch && !codeMatch) {
+        jsonContent = braceMatch[0];
+        console.log("중괄호에서 추출:", jsonContent);
+      }
+      
+      // JSON 파싱 시도
+      const parsedResult = JSON.parse(jsonContent);
+      console.log("파싱된 결과:", parsedResult);
+      
+      // 필수 필드가 있는지 확인
+      if (parsedResult.result && parsedResult.reason) {
+        console.log("JSON 파싱 성공, 정상 응답 반환");
+        return NextResponse.json(parsedResult);
+      } else {
+        throw new Error("필수 필드가 누락됨");
+      }
+    } catch (parseError) {
+      console.log("JSON 파싱 실패, 텍스트에서 정보 추출:", parseError);
+      console.log("원본 content:", content);
+      
+      // 텍스트에서 정보 추출
       const result = content.includes("적격") ? "적격" : "부적격";
+      
+      // 금액 정보 추출 시도 (더 정확한 패턴)
+      const amountPatterns = [
+        /(\d{1,3}(?:,\d{3})*)\s*원/g,
+        /총\s*금액[:\s]*(\d{1,3}(?:,\d{3})*)/gi,
+        /합계[:\s]*(\d{1,3}(?:,\d{3})*)/gi,
+        /총액[:\s]*(\d{1,3}(?:,\d{3})*)/gi
+      ];
+      
+      let receiptAmount = null;
+      for (const pattern of amountPatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          receiptAmount = match[1] || match[0].replace(/[^\d,]/g, '');
+          break;
+        }
+      }
+      
+      // 연관 상품 추출 시도 (더 정확한 패턴)
+      const itemPatterns = [
+        /연관된 상품[:\s]*([^.\n]+)/i,
+        /매칭된 상품[:\s]*([^.\n]+)/i,
+        /관련 상품[:\s]*([^.\n]+)/i,
+        /상품명[:\s]*([^.\n]+)/i
+      ];
+      
+      let matchedItems = [];
+      for (const pattern of itemPatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          matchedItems = match[1].split(/[,，;；]/).map((item: string) => item.trim()).filter((item: string) => item);
+          break;
+        }
+      }
+      
+      // 금액 일치 여부 추출 시도 (더 정확한 패턴)
+      const amountMatchResult = content.includes("금액 일치") || 
+                               content.includes("일치") || 
+                               content.includes("동일") ||
+                               content.includes("같음");
+      
+      // 가게 정보 추출 시도
+      const storeNameMatch = content.match(/(?:상호|가게|업체)[:\s]*([^\n]+)/i);
+      const addressMatch = content.match(/(?:주소|소재지)[:\s]*([^\n]+)/i);
+      const phoneMatch = content.match(/(?:전화|연락처|TEL)[:\s]*([0-9-+\s]+)/i);
+      
+      // 상품 정보 추출 시도 (간단한 패턴)
+      const itemsMatch = content.match(/(?:상품|품목|구매내역)[:\s]*([\s\S]*?)(?:\n\n|\n총|$)/i);
+      let items = [];
+      if (itemsMatch) {
+        const itemsText = itemsMatch[1];
+        const itemLines = itemsText.split('\n').filter((line: string) => line.trim());
+        items = itemLines.map((line: string) => {
+          const parts = line.trim().split(/\s+/);
+          return {
+            name: parts[0] || "상품명",
+            quantity: parts[1] || "1",
+            unitPrice: parts[2] || "0",
+            totalPrice: parts[3] || "0"
+          };
+        });
+      }
+      
+      // 결제 정보 추출 시도
+      const paymentMethodMatch = content.match(/(?:결제|지불)[:\s]*(현금|카드|계좌이체|무통장입금)/i);
+      const paymentDateMatch = content.match(/(?:결제일|구매일|영수증일)[:\s]*([0-9-/\s:]+)/i);
+      const receiptNumberMatch = content.match(/(?:영수증번호|거래번호)[:\s]*([0-9-]+)/i);
+      
+      console.log("추출된 정보:", { 
+        result, 
+        receiptAmount, 
+        matchedItems, 
+        amountMatchResult,
+        storeInfo: {
+          name: storeNameMatch?.[1]?.trim(),
+          address: addressMatch?.[1]?.trim(),
+          phone: phoneMatch?.[1]?.trim(),
+        },
+        items,
+        paymentInfo: {
+          totalAmount: receiptAmount,
+          paymentMethod: paymentMethodMatch?.[1]?.trim(),
+          paymentDate: paymentDateMatch?.[1]?.trim(),
+          receiptNumber: receiptNumberMatch?.[1]?.trim()
+        }
+      });
+      
       return NextResponse.json({
         result,
         reason: content,
-        matchedItems: []
+        matchedItems,
+        receiptAmount,
+        amountMatch: amountMatchResult,
+        storeInfo: {
+          name: storeNameMatch?.[1]?.trim() || null,
+          address: addressMatch?.[1]?.trim() || null,
+          phone: phoneMatch?.[1]?.trim() || null,
+        },
+        items: items.length > 0 ? items : null,
+        paymentInfo: {
+          totalAmount: receiptAmount,
+          paymentMethod: paymentMethodMatch?.[1]?.trim() || null,
+          paymentDate: paymentDateMatch?.[1]?.trim() || null,
+          receiptNumber: receiptNumberMatch?.[1]?.trim() || null
+        }
       });
     }
 
