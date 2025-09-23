@@ -21,7 +21,8 @@ public class UsageDetailResponseDto {
     private String storeNumber;
     private LocalDateTime transactionAt;
     private String aiSummary;
-    private String content; // 목장주가 작성한 글
+    private String content;
+    private String photoUrl;
     private List<UsageDetailItemDto> detailList;
     private Integer totalAmount;
 
@@ -43,6 +44,7 @@ public class UsageDetailResponseDto {
                 .transactionAt(history.getCreatedAt())
                 .aiSummary(history.getAiSummary())
                 .content(history.getContent())
+                .photoUrl(history.getPhotoUrl())
                 .detailList(items)
                 .totalAmount(history.getTotalAmount())
                 .build();
