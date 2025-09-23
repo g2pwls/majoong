@@ -41,7 +41,8 @@ function sortFieldsByReadingOrder(fields: Field[]) {
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("OCR API 호출됨");
+    console.log("OCR API 호출됨 - URL:", req.url);
+    console.log("OCR API 호출됨 - Headers:", Object.fromEntries(req.headers.entries()));
     
     const { data, format = 'jpg', filename = 'upload', lang = 'ko' } =
       (await req.json()) as OcrRequestBody;
@@ -54,8 +55,9 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("환경 변수 확인:", {
-      CLOVA_OCR_INVOKE_URL: !!process.env.CLOVA_OCR_INVOKE_URL,
-      CLOVA_OCR_SECRET: !!process.env.CLOVA_OCR_SECRET
+      CLOVA_OCR_INVOKE_URL: process.env.CLOVA_OCR_INVOKE_URL ? '설정됨' : '설정되지 않음',
+      CLOVA_OCR_SECRET: process.env.CLOVA_OCR_SECRET ? '설정됨' : '설정되지 않음',
+      NODE_ENV: process.env.NODE_ENV
     });
 
     // CLOVA OCR 환경 변수가 없으면 에러 반환
@@ -67,7 +69,7 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
 
-    console.log("실제 CLOVA OCR 호출");
+    console.log("실제 CLOVA OCR 호출 - URL:", process.env.CLOVA_OCR_INVOKE_URL);
 
     const body = {
       version: 'V2',
@@ -83,6 +85,8 @@ export async function POST(req: NextRequest) {
       ],
     };
 
+    console.log("CLOVA OCR 요청 바디:", { ...body, images: [{ ...body.images[0], data: body.images[0].data.substring(0, 100) + '...' }] });
+
     const r = await fetch(process.env.CLOVA_OCR_INVOKE_URL, {
       method: 'POST',
       headers: {
@@ -92,9 +96,15 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(body),
     });
 
+    console.log("CLOVA OCR 응답 상태:", r.status, r.statusText);
+    console.log("CLOVA OCR 응답 헤더:", Object.fromEntries(r.headers.entries()));
+
     const text = await r.text();
+    console.log("CLOVA OCR 응답 텍스트:", text.substring(0, 500) + (text.length > 500 ? '...' : ''));
+    
     if (!r.ok) {
       // CLOVA 측 에러를 그대로 프록시
+      console.log("CLOVA OCR 에러 발생:", text);
       return NextResponse.json({ error: 'CLOVA_ERROR', detail: text }, { status: r.status });
     }
 
