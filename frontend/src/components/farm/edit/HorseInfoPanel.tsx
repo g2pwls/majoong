@@ -97,7 +97,7 @@ export default function HorseInfoPanel({
 
     try {
       const response = await fetch(
-        `http://apis.data.go.kr/B551015/API42/totalHorseInfo?serviceKey=${serviceKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&hr_no=${horseNo}`
+        `https://apis.data.go.kr/B551015/API42/totalHorseInfo?serviceKey=${serviceKey}&pageNo=${pageNo}&numOfRows=${numOfRows}&hr_no=${horseNo}`
       );
       const data = await response.text(); // XML 데이터를 텍스트로 받음
       const parsedData = parseXML(data); // XML 데이터를 파싱
