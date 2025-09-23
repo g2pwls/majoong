@@ -2,6 +2,7 @@ package com.e105.majoong.mypage.service;
 
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
+import com.e105.majoong.common.model.bookmark.Bookmark;
 import com.e105.majoong.common.model.bookmark.BookmarkRepository;
 import com.e105.majoong.common.model.bookmark.BookmarkRepositoryCustom;
 import com.e105.majoong.common.model.donationHistory.DonationHistoryRepository;
@@ -55,10 +56,23 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
         if (!farmRepository.existsByFarmUuid(farmUuid)) {
             throw new BaseException(BaseResponseStatus.INVALID_FARM_UUID);
         }
-        if (bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid)){
+        if (bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid)) {
             throw new BaseException(BaseResponseStatus.DUPLICATED_BOOKMARK);
         }
         bookmarkRepository.save(BookmarkRequestDto.toEntity(memberUuid, farmUuid));
+    }
+
+    @Override
+    public void deleteBookmarks(String memberUuid, String farmUuid) {
+        if (!donatorRepository.existsByMemberUuid(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
+        if (!farmRepository.existsByFarmUuid(farmUuid)) {
+            throw new BaseException(BaseResponseStatus.INVALID_FARM_UUID);
+        }
+        Bookmark bookmark = bookmarkRepository.findByMemberUuidAndFarmUuid(memberUuid, farmUuid)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.DUPLICATED_BOOKMARK));
+        bookmarkRepository.delete(bookmark);
     }
 
     @Override
