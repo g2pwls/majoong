@@ -181,7 +181,7 @@ public class FinApiServiceImpl implements FinApiService {
         String uniqueNo = today + nowTime + String.format("%06d", (int)(Math.random() * 1000000));
 
         Farmer farmer = farmerRepository.findByMemberUuid(memberUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY));
 
         String accountNo = farmer.getAccountNo();
         log.info("inquireTransactionHistoryList: accountNo={}", accountNo);
