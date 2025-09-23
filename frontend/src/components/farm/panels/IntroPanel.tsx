@@ -29,11 +29,8 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     } catch (e: unknown) {
       console.error('신뢰도 내역 조회 실패:', e);
     }
-<<<<<<< HEAD
   }, [farm?.id, farm.farmUuid]);
-=======
-  }, [farm?.farmUuid, farm?.id]);
->>>>>>> a47ca06da8e6f267539f76f41070bf1c08dc0564
+  // 주석 추가
 
   useEffect(() => {
     // Calculate the deadline (Sunday) and show the countdown
@@ -123,3 +120,4 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     </section>
   );
 }
+
