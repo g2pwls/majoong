@@ -291,11 +291,14 @@ export async function isMyFarm(farmUuid: string): Promise<boolean> {
   try {
     const myFarm = await getMyFarm();
     return myFarm.id === farmUuid;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // 404 에러는 기부자가 호출했을 때 발생하는 정상적인 경우
-    if (error?.response?.status === 404) {
-      console.log('내 목장이 없음 (기부자 또는 목장이 등록되지 않은 사용자)');
-      return false;
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { status?: number } };
+      if (axiosError.response?.status === 404) {
+        console.log('내 목장이 없음 (기부자가 호출했을 때 발생하는 정상적인 경우)');
+        return false;
+      }
     }
     console.error('내 목장 확인 실패:', error);
     return false;
