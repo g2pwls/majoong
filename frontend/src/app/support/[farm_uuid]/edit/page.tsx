@@ -41,8 +41,8 @@ export default function FarmEdit({ params }: PageProps) {
 
   // 말 등록 처리 (HorseInfoPanel에서 사용)
   const handleHorseRegistration = (horseData: unknown) => {
-    // HorseRegistrySection이 자체적으로 API를 호출하므로 여기서는 상태 업데이트만
     console.log("Horse registered:", horseData);
+    // 말 등록 후 목록 새로고침은 HorseInfoPanel에서 자체적으로 처리
   };
 
   const title = loading ? "불러오는 중..." : farm?.farm_name ?? "목장 이름";
@@ -90,7 +90,10 @@ export default function FarmEdit({ params }: PageProps) {
         <h2 className="mt-6 text-lg font-semibold mb-2">말 정보 수정</h2>
         <HorseInfoPanel farm_uuid={farm_uuid} onHorseRegistered={handleHorseRegistration} />
 
-        <HorseRegistrySection farmUuid={farm_uuid} />
+        <HorseRegistrySection 
+          farmUuid={farm_uuid} 
+          onHorseRegistered={() => {}}
+        />
       </main>
     </div>
   );
