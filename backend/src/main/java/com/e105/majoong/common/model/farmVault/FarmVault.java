@@ -41,7 +41,7 @@ public class FarmVault {
 
   public enum Status { ACTIVE, CLOSED }
 
-  public void updateKeccakKey(String keccakKey) { this.keccakKey = this.keccakKey; }
+  public void updateKeccakKey(String keccakKey) { this.keccakKey = keccakKey; }
   public void updateStatus(Status status) { this.status = status; }
   public void updateDeployTxHash(String txHash) { this.deployTxHash = txHash;}
   public void updateVaultAddress(String address) { this.vaultAddress = address;}
