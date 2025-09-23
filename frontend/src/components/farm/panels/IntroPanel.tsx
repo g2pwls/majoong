@@ -22,8 +22,8 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     const currentYear = new Date().getFullYear();
     
     try {
-      console.log('신뢰도 내역 조회 시작:', { farmId: farm.id, year: currentYear });
-      const response = await FarmService.getScoreHistory(farm.id, currentYear);
+      console.log('신뢰도 내역 조회 시작:', { farmUuid: farm.farmUuid, year: currentYear });
+      const response = await FarmService.getScoreHistory(farm.farmUuid, currentYear);
       console.log('신뢰도 내역 조회 성공:', response);
       setScoreHistory(response.result);
     } catch (e: unknown) {

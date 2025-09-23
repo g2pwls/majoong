@@ -1,4 +1,4 @@
-// app/api/ocr/route.ts
+// app/receipt/ocr/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs'; // 대용량 바디/이미지 처리를 위해 Node 런타임 권장

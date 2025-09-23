@@ -60,10 +60,10 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   if (loading) return <div className="p-6">로딩 중…</div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
-  const farmId = farm.id;
-  
-  // farmId가 없으면 에러 표시
-  if (!farmId) {
+  const farmUuid = farm.farmUuid;
+
+  // farmUuid가 없으면 에러 표시
+  if (!farmUuid) {
     return <div className="p-6">농장 ID를 찾을 수 없습니다.</div>;
   }
 
@@ -99,12 +99,12 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmId} />
+          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmUuid} />
           <div className="mt-4.5">
             {tab === "intro" && <IntroPanel farm={farm} />}
-            {tab === "newsletter" && <NewsletterPanel farmId={farmId} />}
-            {tab === "donations" && <DonationPanel farmId={farmId} />}
-            {tab === "trust" && <TrustPanel farmId={farmId} currentScore={farm.total_score} />}
+            {tab === "newsletter" && <NewsletterPanel farmUuid={farmUuid} />}
+            {tab === "donations" && <DonationPanel farmUuid={farmUuid} />}
+            {tab === "trust" && <TrustPanel farmUuid={farmUuid} currentScore={farm.total_score} />}
           </div>
         </section>
       </div>

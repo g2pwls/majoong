@@ -177,7 +177,7 @@ export default function DonationProofUpload({
       };
       console.log("OCR 요청 데이터:", { ...requestBody, data: base64.substring(0, 100) + "..." });
 
-      const res = await fetch(`${window.location.origin}/api/ocr`, {
+      const res = await fetch("/receipt/ocr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
@@ -245,7 +245,7 @@ export default function DonationProofUpload({
       // 인증 사진을 base64로 변환
       const { base64: certificationBase64 } = await urlToBase64AndFormat(certificationUrl);
 
-      const res = await fetch("/api/verify-receipt", {
+      const res = await fetch("/receipt/verify-receipt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

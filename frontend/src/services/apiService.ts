@@ -40,6 +40,7 @@ apiClient.interceptors.response.use(
 
 export interface Farm {
   id: string;
+  farmUuid: string; // 백엔드 API와 일치하도록 추가
   farm_name: string;
   address: string;
   name: string;
@@ -179,9 +180,9 @@ export async function getFarms(params: {
 }
 
 // 농장 상세 조회
-export async function getFarm(farmId: string): Promise<Farm> {
+export async function getFarm(farmUuid: string): Promise<Farm> {
   try {
-    const response = await apiClient.get(`/api/v1/farms/${farmId}`);
+    const response = await apiClient.get(`/api/v1/farms/${farmUuid}`);
     
     console.log('농장 상세 API 응답:', response.data);
     
@@ -197,6 +198,7 @@ export async function getFarm(farmId: string): Promise<Farm> {
     
     return {
       id: farm.farmUuid,
+      farmUuid: farm.farmUuid,
       farm_name: farm.farmName,
       address: farm.address,
       name: farm.ownerName,
@@ -247,6 +249,7 @@ export async function getMyFarm(): Promise<Farm> {
     
     return {
       id: farm.farmUuid,
+      farmUuid: farm.farmUuid,
       farm_name: farm.farmName,
       address: farm.address,
       name: farm.ownerName,
