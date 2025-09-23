@@ -178,12 +178,6 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
                     <Calendar className="h-4 w-4" />
                     <span>생성일: {new Date(report.createdAt).toLocaleDateString('ko-KR')}</span>
                   </div>
-                  {report.updatedAt !== report.createdAt && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span>수정일: {new Date(report.updatedAt).toLocaleDateString('ko-KR')}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>

@@ -9,11 +9,11 @@ import { Calendar, Shield } from "lucide-react";
 import TrustScoreChart from "./TrustScoreChart";
 
 interface TrustPanelProps {
-  farmId: string;
+  farmUuid: string;
   currentScore?: number;
 }
 
-export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
+export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
   const [scoreHistoryList, setScoreHistoryList] = useState<ScoreHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +29,8 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
       setLoading(true);
       setError(null);
       
-      console.log('신뢰도 내역 조회 시작:', { farmId, year, month });
-      const response = await FarmService.getScoreHistory(farmId, year, month);
+      console.log('신뢰도 내역 조회 시작:', { farmUuid, year, month });
+      const response = await FarmService.getScoreHistory(farmUuid, year, month);
       console.log('신뢰도 내역 조회 성공:', response);
       setScoreHistory(response.result);
     } catch (e: unknown) {
@@ -40,7 +40,7 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     } finally {
       setLoading(false);
     }
-  }, [farmId]);
+  }, [farmUuid]);
 
   // 신뢰도 목록 조회 (상세 내역)
   const fetchScoreHistoryList = useCallback(async (year?: number, month?: number) => {
@@ -48,8 +48,8 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
       setLoading(true);
       setError(null);
       
-      console.log('신뢰도 목록 조회 시작:', { farmId, year, month });
-      const response = await FarmService.getScoreHistoryList(farmId, year, month);
+      console.log('신뢰도 목록 조회 시작:', { farmUuid, year, month });
+      const response = await FarmService.getScoreHistoryList(farmUuid, year, month);
       console.log('신뢰도 목록 조회 성공:', response);
       setScoreHistoryList(response.result);
     } catch (e: unknown) {
@@ -59,13 +59,13 @@ export default function TrustPanel({ farmId, currentScore }: TrustPanelProps) {
     } finally {
       setLoading(false);
     }
-  }, [farmId]);
+  }, [farmUuid]);
 
   // 년도 변경 시 그래프 데이터와 상세 내역 조회
   useEffect(() => {
     fetchScoreHistory(selectedYear);
     fetchScoreHistoryList(selectedYear, selectedMonth || undefined);
-  }, [farmId, selectedYear, fetchScoreHistory, fetchScoreHistoryList, selectedMonth]);
+  }, [farmUuid, selectedYear, fetchScoreHistory, fetchScoreHistoryList, selectedMonth]);
 
   // 월 변경 시 상세 내역만 다시 조회
   useEffect(() => {

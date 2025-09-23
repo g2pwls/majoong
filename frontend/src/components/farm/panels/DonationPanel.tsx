@@ -18,10 +18,10 @@ interface BarChartData {
 }
 
 interface DonationPanelProps {
-  farmId: string;
+  farmUuid: string;
 }
 
-export default function DonationPanel({ farmId }: DonationPanelProps) {
+export default function DonationPanel({ farmUuid }: DonationPanelProps) {
   const [selectedMonthData, setSelectedMonthData] = useState<DonationUsageResponse | null>(null);
   const [yearlyData, setYearlyData] = useState<MonthlyDonationUsed[]>([]);
   const [allYearData, setAllYearData] = useState<DonationUsageResponse | null>(null);
@@ -71,7 +71,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
       setLoadingStates(prev => ({ ...prev, monthly: true }));
       setError(null);
       
-      console.log('기부금 사용 내역 조회 시작:', { farmId, year, month });
+      console.log('기부금 사용 내역 조회 시작:', { farmUuid, year, month });
       
       let data: DonationUsageResponse;
       if (month === 'all') {
@@ -84,7 +84,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
         for (let m = 1; m <= 12; m++) {
           try {
             console.log(`${year}년 ${m}월 데이터 조회 중...`);
-            const monthData = await FarmService.getDonationUsage(farmId, year, m);
+            const monthData = await FarmService.getDonationUsage(farmUuid, year, m);
             
             if (monthData.receiptHistory && monthData.receiptHistory.length > 0) {
               console.log(`${year}년 ${m}월 영수증 ${monthData.receiptHistory.length}개 추가`);
@@ -114,7 +114,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
         setAllYearData(data);
       } else {
         // 특정 월 조회
-        data = await FarmService.getDonationUsage(farmId, year, month);
+        data = await FarmService.getDonationUsage(farmUuid, year, month);
       }
       
       console.log('기부금 사용 내역 조회 성공:', data);
@@ -129,7 +129,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     } finally {
       setLoadingStates(prev => ({ ...prev, monthly: false }));
     }
-  }, [farmId, dataCache]);
+  }, [farmUuid, dataCache]);
 
   // 연간 기부금 사용 내역 조회 (막대 그래프용) - 캐싱 적용
   const fetchYearlyData = useCallback(async (year: number) => {
@@ -142,14 +142,14 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     
     try {
       setLoadingStates(prev => ({ ...prev, yearly: true }));
-      console.log('연간 기부금 사용 내역 조회 시작:', { farmId, year });
+      console.log('연간 기부금 사용 내역 조회 시작:', { farmUuid, year });
       const monthlyData: MonthlyDonationUsed[] = [];
       
       // 1월부터 12월까지 각 달의 데이터를 가져옴
       for (let month = 1; month <= 12; month++) {
         try {
           console.log(`${year}년 ${month}월 데이터 조회 중...`);
-          const data = await FarmService.getDonationUsage(farmId, year, month);
+          const data = await FarmService.getDonationUsage(farmUuid, year, month);
           console.log(`${year}년 ${month}월 API 응답:`, data);
           
           if (data.monthlyDonationUsed && data.monthlyDonationUsed.length > 0) {
@@ -179,7 +179,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     } finally {
       setLoadingStates(prev => ({ ...prev, yearly: false }));
     }
-  }, [farmId, yearlyCache]);
+  }, [farmUuid, yearlyCache]);
 
 
 
@@ -205,7 +205,7 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     };
 
     initializeData();
-  }, [farmId, selectedYear, selectedMonth, fetchDonationUsage, fetchYearlyData]);
+  }, [farmUuid, selectedYear, selectedMonth, fetchDonationUsage, fetchYearlyData]);
 
 
   const handleYearChange = (year: number) => {
@@ -223,8 +223,8 @@ export default function DonationPanel({ farmId }: DonationPanelProps) {
     try {
       setLoadingDetails(prev => new Set(prev).add(usageId));
       
-      console.log('기부금 사용 내역 상세 조회 시작:', { farmId, usageId });
-      const response = await FarmService.getReceiptDetail(farmId, usageId);
+      console.log('기부금 사용 내역 상세 조회 시작:', { farmUuid, usageId });
+      const response = await FarmService.getReceiptDetail(farmUuid, usageId);
       console.log('기부금 사용 내역 상세 조회 성공:', response);
       
       setReceiptDetails(prev => new Map(prev).set(usageId, response.result));

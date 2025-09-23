@@ -86,6 +86,7 @@ export class FarmService {
       const farm = response.data.result;
       return {
         id: farm.farmUuid,
+        farmUuid: farm.farmUuid,
         farm_name: farm.farmName,
         address: farm.address,
         name: farm.ownerName,

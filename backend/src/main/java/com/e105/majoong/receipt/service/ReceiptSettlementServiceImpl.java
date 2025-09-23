@@ -1,4 +1,4 @@
-package com.e105.majoong.settlement.service;
+package com.e105.majoong.receipt.service;
 
 import com.e105.majoong.blockchain.props.ChainProps;
 import com.e105.majoong.blockchain.service.VaultService;
@@ -13,8 +13,8 @@ import com.e105.majoong.common.model.farmer.Farmer;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
 import com.e105.majoong.common.model.settlementHistory.SettlementHistory;
 import com.e105.majoong.common.model.settlementHistory.SettlementHistoryRepository;
-import com.e105.majoong.settlement.dto.in.ReceiptSettlementRequest;
-import com.e105.majoong.settlement.dto.out.ReceiptSettlementResponse;
+import com.e105.majoong.receipt.dto.in.ReceiptSettlementRequest;
+import com.e105.majoong.receipt.dto.out.ReceiptSettlementResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +25,7 @@ import java.math.BigInteger;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SettlementServiceImpl implements SettlementService {
+public class ReceiptSettlementServiceImpl implements ReceiptSettlementService {
 
   private final VaultService vaultService;
   private final FarmRepository farmRepository;
