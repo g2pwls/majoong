@@ -7,6 +7,8 @@ import javax.swing.text.html.Option;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
 public interface HorseRepository extends JpaRepository<Horse, Long> {
     List<Horse> findByFarm(Farm farm);
@@ -19,5 +21,10 @@ public interface HorseRepository extends JpaRepository<Horse, Long> {
 
     Optional<Horse> findByHorseNumber(Long horseNumber);
 
-    boolean existsByHorseNumber(Long horseNumber);
+    boolean existsByHorseNumberAndDeletedAtIsNull(Long horseNumber);
+
+    List<Horse> findByFarmAndDeletedAtIsNull(Farm farm);
+
+    Optional<Horse> findByHorseNumberAndDeletedAtIsNull(Long horseNumber);
+
 }

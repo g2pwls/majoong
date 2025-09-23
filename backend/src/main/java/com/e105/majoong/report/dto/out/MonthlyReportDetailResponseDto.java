@@ -18,7 +18,7 @@ public class MonthlyReportDetailResponseDto {
     private int year;
     private int month;
     private String content;
-    private int score;
+    private Double score;
     private LocalDateTime createdAt;
 
     public static MonthlyReportDetailResponseDto toDto(MonthlyReport report, MyScore latestScore) {

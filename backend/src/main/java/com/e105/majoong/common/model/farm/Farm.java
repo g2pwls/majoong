@@ -69,4 +69,7 @@ public class Farm extends BaseEntity {
       long base  = (this.usedAmount == null ? 0L : this.usedAmount);
       this.usedAmount = base + delta;
     }
+    public void updateTotalScore(Double totalScore) {
+        this.totalScore = totalScore;
+    }
 }
