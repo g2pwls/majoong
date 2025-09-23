@@ -13,11 +13,9 @@ import org.springframework.data.jpa.repository.Query;
 public interface HorseRepository extends JpaRepository<Horse, Long> {
     List<Horse> findByFarm(Farm farm);
 
-    List<Horse> findByFarmAndDeletedAtIsNotNull(Farm farm);
-
     Page<Horse> findByHorseNameContaining(String horseName, Pageable pageable);
 
-    List<Horse> findByFarmIdAndDeletedAtIsNotNull(Long farmId);
+    List<Horse> findByFarmIdAndDeletedAtIsNull(Long farmId);
 
     Optional<Horse> findByHorseNumberAndFarm_FarmUuid(Long horseNumber, String farmUuid);
 
