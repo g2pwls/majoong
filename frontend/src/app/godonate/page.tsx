@@ -33,8 +33,8 @@ export default function GoDonatePage() {
     const fetchTopFarms = async () => {
       try {
         console.log('농장 목록 조회 시작');
-        // 목장 목록 조회 - 신뢰도 순으로 정렬하기 위해 많은 수의 농장을 가져옴
-        const response = await getFarms({ size: 50 }); // 50개의 농장을 가져와서 상위 5개 선택
+        // 목장 목록 조회 - 정확한 상위 5개를 위해 전체 데이터 가져옴 (size 미지정)
+        const response = await getFarms(); // size 파라미터 없이 호출하여 백엔드 기본값(전체) 사용
         console.log('농장 목록 조회 성공:', response);
         
         // 신뢰도 순으로 정렬하고 상위 5개 선택
