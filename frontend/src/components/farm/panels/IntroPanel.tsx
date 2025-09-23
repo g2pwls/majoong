@@ -11,6 +11,7 @@ import { ScoreHistory } from "@/types/farm";
 export default function IntroPanel({ farm }: { farm: Farm }) {
   const [deadlineText, setDeadlineText] = useState<string>("");
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // 디버깅을 위한 콘솔 로그
   console.log('IntroPanel farm data:', farm);
@@ -111,7 +112,10 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         )}
         
         {/* Horse registry section */}
-        <HorseRegistrySection farmUuid={farm?.id || ""} />
+        <HorseRegistrySection 
+          farmUuid={farm?.id || ""} 
+          onHorseRegistered={() => setRefreshTrigger(prev => prev + 1)}
+        />
       </div>
     </section>
   );
