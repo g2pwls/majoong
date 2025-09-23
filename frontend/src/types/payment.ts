@@ -36,14 +36,14 @@ export interface KakaoPayApproveResponse {
 
 // 기부하기 API 요청 (현재 버전)
 export interface DonationRequest {
-  farmMemberUuid: string;  // 농장 멤버 UUID
-  amountKrw: number;       // 기부 금액 (원)
+  farmUuid: string;       // 농장 UUID
+  amountKrw: number;      // 기부 금액 (원)
 }
 
-// 기부하기 API 요청 (향후 변경 예정)
+// 기부하기 API 요청 (이전 버전 - 참고용)
 // export interface DonationRequest {
-//   farmUuid: string;       // 농장 UUID
-//   amountKrw: number;      // 기부 금액 (원)
+//   farmMemberUuid: string;  // 농장 멤버 UUID
+//   amountKrw: number;       // 기부 금액 (원)
 // }
 
 // 기부하기 API 응답
