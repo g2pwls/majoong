@@ -45,4 +45,7 @@ public class FarmVault {
   public void updateStatus(Status status) { this.status = status; }
   public void updateDeployTxHash(String txHash) { this.deployTxHash = txHash;}
   public void updateVaultAddress(String address) { this.vaultAddress = address;}
+  public void updateFarmUuid(String farmUuid) {
+    this.farmUuid = farmUuid;
+  }
 }

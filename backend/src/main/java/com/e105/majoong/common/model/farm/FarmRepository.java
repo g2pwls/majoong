@@ -18,6 +18,8 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
 
     boolean existsByFarmUuid(String farmUuid);
 
+    Optional<Farm> findTopByMemberUuidOrderByIdDesc(String memberUuid);
+
     @Modifying
     @Query("""
             update Farm f
@@ -28,9 +30,9 @@ public interface FarmRepository extends JpaRepository<Farm, Long> {
 
     @Modifying(clearAutomatically = true)
     @Query("""
-           update Farm f
-              set f.horseCount = case when f.horseCount > 0 then f.horseCount - 1 else 0 end
-            where f.farmUuid = :farmUuid
-           """)
+            update Farm f
+               set f.horseCount = case when f.horseCount > 0 then f.horseCount - 1 else 0 end
+             where f.farmUuid = :farmUuid
+            """)
     void decrementHorseCount(@Param("farmUuid") String farmUuid);
 }

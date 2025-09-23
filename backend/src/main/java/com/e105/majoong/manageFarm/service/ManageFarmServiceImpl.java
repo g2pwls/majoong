@@ -1,6 +1,8 @@
 package com.e105.majoong.manageFarm.service;
 
 import com.e105.majoong.common.model.farm.Farm;
+import com.e105.majoong.common.model.farmVault.FarmVault;
+import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
 import com.e105.majoong.common.model.farmer.Farmer;
 import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.entity.BaseResponseStatus;
@@ -44,6 +46,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     private final S3Uploader s3Uploader;
     private final HorseStateRepository horseStateRepository;
     private final TransactionTemplate txTemplate;
+    private final FarmVaultRepository farmVaultRepository;
     //test
     private final OpenAIService openAIService;
 
@@ -52,16 +55,19 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     private static final String HORSE_STATE_DIR = "horse/state";
 
     @Override
+    @Transactional
     public String updateFarm(String memberUuid, FarmInfoCreateDto updateDto) {
         Farmer farmer = farmerRepository.findByMemberUuid(memberUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_USER));
-
+        FarmVault farmVault = farmVaultRepository.findByMemberUuid(memberUuid).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM_VAULT));
         double[] geo = geoCoding.getCoordinates(updateDto.getAddress());
         double latitude = geo[0];
         double longitude = geo[1];
         try {
             String imageUrl = s3Uploader.upload(updateDto.getProfileImage(), FARM_IMAGE_DIR);
             Farm farm = farmRepository.save(updateDto.toEntity(farmer, latitude, longitude, imageUrl));
+            farmVault.updateFarmUuid(farm.getFarmUuid());
             return farm.getFarmUuid();
         } catch (IOException e) {
             throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
