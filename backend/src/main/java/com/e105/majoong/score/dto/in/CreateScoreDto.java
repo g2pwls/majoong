@@ -10,17 +10,19 @@ public class CreateScoreDto {
     private String farmUuid;
     private String memberUuid;
     private Long scoreCategoryId;
-    private int score;
+    private Double score;
+    private int delta;
     private int year;
     private int month;
 
     public static CreateScoreDto toDto(
-            String farmUuid, String memberUuid, Long scoreCategoryId, int score, int year, int month) {
+            String farmUuid, String memberUuid, Long scoreCategoryId, Double score, int delta, int year, int month) {
         return CreateScoreDto.builder()
                 .farmUuid(farmUuid)
                 .memberUuid(memberUuid)
                 .scoreCategoryId(scoreCategoryId)
                 .score(score)
+                .delta(delta)
                 .year(year)
                 .month(month)
                 .build();
@@ -31,6 +33,7 @@ public class CreateScoreDto {
                 .farmUuid(farmUuid)
                 .memberUuid(memberUuid)
                 .scoreCategoryId(scoreCategoryId)
+                .delta(delta)
                 .score(score)
                 .year(year)
                 .month(month)

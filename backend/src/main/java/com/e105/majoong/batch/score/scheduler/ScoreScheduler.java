@@ -10,6 +10,7 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -19,20 +20,37 @@ import org.springframework.stereotype.Component;
 public class ScoreScheduler {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private final JobLauncher jobLauncher;
+    @Qualifier(value = "weeklyHorseStatusJob")
     private final Job weeklyHorseStatusJob;
+    @Qualifier(value = "dailyReceiptJob")
+    private final Job dailyReceiptJob;
 
 
     @Scheduled(cron = "0 10 0 * * MON", zone = "Asia/Seoul")
-    public void runJob() {
-        LocalDate monday = LocalDate.now(KST);
+    public void runWeeklyJob() {
         JobParameters params = new JobParametersBuilder()
-                .addString("weekRefDate", monday.toString())
+                .addString("weekRefDate", LocalDate.now(KST).toString())
+                .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
         try {
             jobLauncher.run(weeklyHorseStatusJob, params);
         } catch (Exception e) {
-            log.error("[WeeklyHorseStatus] Failed", e);
+            log.error("[WeeklyJob] Failed", e);
+        }
+    }
+
+    @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Seoul")
+    public void runDailyJob() {
+        JobParameters params = new JobParametersBuilder()
+                .addString("targetDate", LocalDate.now(KST).toString())
+                .addLong("time", System.currentTimeMillis())
+                .toJobParameters();
+
+        try {
+            jobLauncher.run(dailyReceiptJob, params);
+        } catch (Exception e) {
+            log.error("[DailyJob] Failed", e);
         }
     }
 }

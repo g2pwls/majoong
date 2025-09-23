@@ -18,9 +18,10 @@ public class ScoreHistoryResponseDto {
     private String sourceId;
     private LocalDateTime createdAt;
     private String category;
-    private int score;
+    private Double score;
     private Integer year;
     private Integer month;
+    private Integer delta;
 
     @JsonProperty("sourceId")
     public String getSourceId() {

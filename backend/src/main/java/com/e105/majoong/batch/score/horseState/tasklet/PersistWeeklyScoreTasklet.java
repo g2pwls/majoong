@@ -5,7 +5,6 @@ import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
-import com.e105.majoong.common.model.myScore.MyScoreRepository;
 import com.e105.majoong.common.model.scoreCategory.ScoreCategory;
 import com.e105.majoong.common.model.scoreCategory.ScoreCategoryRepository;
 import com.e105.majoong.score.dto.in.CreateScoreDto;
@@ -23,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
-public class PersistScoreTasklet implements Tasklet {
+public class PersistWeeklyScoreTasklet implements Tasklet {
 
     private final FarmRepository farmRepository;
     private final ScoreCategoryRepository scoreCategoryRepository;
@@ -65,7 +64,7 @@ public class PersistScoreTasklet implements Tasklet {
             int delta = weeklyNewScore.getDelta();
             if (delta != 0) {
                 CreateScoreDto dto = CreateScoreDto.toDto(
-                        farmUuid, memberUuid, horseUpload.getId(), delta, year, month);
+                        farmUuid, memberUuid, horseUpload.getId(), newScore, delta, year, month);
                 scoreService.createMyScore(dto);
             }
             farm.updateTotalScore(newScore);

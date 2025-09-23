@@ -3,7 +3,7 @@ package com.e105.majoong.batch.score.horseState.config;
 import com.e105.majoong.batch.score.horseState.tasklet.AggregateWeeklyHorseStatusUploadsTasklet;
 import com.e105.majoong.batch.score.horseState.tasklet.CalculateWeeklyPenaltyAndBonusTasklet;
 import com.e105.majoong.batch.score.horseState.tasklet.FetchWeeklyTargetsSnapshotTasklet;
-import com.e105.majoong.batch.score.horseState.tasklet.PersistScoreTasklet;
+import com.e105.majoong.batch.score.horseState.tasklet.PersistWeeklyScoreTasklet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -23,7 +23,7 @@ public class WeeklyHorseStatusJobConfig {
     private final FetchWeeklyTargetsSnapshotTasklet fetchWeeklyTargetsSnapshotTasklet;
     private final AggregateWeeklyHorseStatusUploadsTasklet aggregateWeeklyHorseStatusUploadsTasklet;
     private final CalculateWeeklyPenaltyAndBonusTasklet calculateWeeklyPenaltyAndBonusTasklet;
-    private final PersistScoreTasklet persistScoreTasklet;
+    private final PersistWeeklyScoreTasklet persistWeeklyScoreTasklet;
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
 
@@ -61,9 +61,8 @@ public class WeeklyHorseStatusJobConfig {
     @Bean
     public Step persistScoreStep() {
         return new StepBuilder("persistScoreStep", jobRepository)
-                .tasklet(persistScoreTasklet, transactionManager)
+                .tasklet(persistWeeklyScoreTasklet, transactionManager)
                 .build();
     }
-
 
 }

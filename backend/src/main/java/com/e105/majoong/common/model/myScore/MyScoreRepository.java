@@ -36,7 +36,8 @@ public interface MyScoreRepository extends JpaRepository<MyScore, Long> {
             sc.category,
             ms.score,
             ms.month,
-            ms.year
+            ms.year,
+            ms.delta
         )
         FROM MyScore ms
         JOIN ScoreCategory sc ON sc.id = ms.scoreCategoryId
