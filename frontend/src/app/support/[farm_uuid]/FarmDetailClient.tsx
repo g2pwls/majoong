@@ -11,8 +11,6 @@ import IntroPanel from "@/components/farm/panels/IntroPanel";
 import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { getFarm, Farm } from "@/services/apiService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
@@ -62,10 +60,10 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   if (loading) return <div className="p-6">로딩 중…</div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
-  const farmId = farm.id;
-  
-  // farmId가 없으면 에러 표시
-  if (!farmId) {
+  const farmUuid = farm.farmUuid;
+
+  // farmUuid가 없으면 에러 표시
+  if (!farmUuid) {
     return <div className="p-6">농장 ID를 찾을 수 없습니다.</div>;
   }
 
@@ -97,23 +95,16 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             showHeader={false}   // ✅ 카드 내부 헤더 비표시
             className="mt-4"
           />
-          <div className="flex justify-end">
-            <Link href={`/support/${farmId}/edit`}>
-            <Button className="mt-2 whitespace-nowrap">
-              목장 정보 수정
-            </Button>
-            </Link>
-          </div>
         </aside>
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmId} />
+          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmUuid} />
           <div className="mt-4.5">
             {tab === "intro" && <IntroPanel farm={farm} />}
-            {tab === "newsletter" && <NewsletterPanel farmId={farmId} />}
-            {tab === "donations" && <DonationPanel farmId={farmId} />}
-            {tab === "trust" && <TrustPanel farmId={farmId} currentScore={farm.total_score} />}
+            {tab === "newsletter" && <NewsletterPanel farmUuid={farmUuid} />}
+            {tab === "donations" && <DonationPanel farmUuid={farmUuid} />}
+            {tab === "trust" && <TrustPanel farmUuid={farmUuid} currentScore={farm.total_score} />}
           </div>
         </section>
       </div>

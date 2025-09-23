@@ -1,7 +1,8 @@
 // API 서비스 함수들
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { getCurrentUserMemberUuid } from './authService';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-test.majoong.site';
 
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
@@ -39,6 +40,7 @@ apiClient.interceptors.response.use(
 
 export interface Farm {
   id: string;
+  farmUuid: string; // 백엔드 API와 일치하도록 추가
   farm_name: string;
   address: string;
   name: string;
@@ -53,6 +55,10 @@ export interface Farm {
   farm_phone?: string;
   area?: number | string;
   description?: string;
+  month_total_amount?: number;
+  purpose_total_amount?: number;
+  member_uuid?: string; // 목장 소유자 UUID
+  bookmark?: boolean; // 즐겨찾기 상태
 }
 
 export interface Horse {
@@ -119,13 +125,14 @@ export async function getFarms(params: {
       phoneNumber: string;
       area: number;
       description: string;
+      bookmark?: boolean; // 북마크 상태 추가
       horses?: Array<{
         horseNumber: number;
         horseName: string;
         birth: string;
         breed: string;
         gender: string;
-        horseUrl: string;
+        profileImage: string; // horseUrl 대신 profileImage 사용
       }>;
     }) => ({
       id: farm.farmUuid,
@@ -139,20 +146,21 @@ export async function getFarms(params: {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
+      bookmark: farm.bookmark || false, // 북마크 상태 매핑
       horses: (farm.horses || []).map((horse: {
         horseNumber: number;
         horseName: string;
         birth: string;
         breed: string;
         gender: string;
-        horseUrl: string;
+        profileImage: string; // horseUrl 대신 profileImage 사용
       }) => ({
         id: horse.horseNumber,
         farm_id: farm.farmUuid,
         horseNo: horse.horseNumber?.toString() || '',
         hrNm: horse.horseName,
         birthDt: '',
-        horse_url: horse.horseUrl
+        horse_url: horse.profileImage // profileImage를 horse_url로 매핑
       }))
     }));
 
@@ -172,9 +180,9 @@ export async function getFarms(params: {
 }
 
 // 농장 상세 조회
-export async function getFarm(farmId: string): Promise<Farm> {
+export async function getFarm(farmUuid: string): Promise<Farm> {
   try {
-    const response = await apiClient.get(`/api/v1/farms/${farmId}`);
+    const response = await apiClient.get(`/api/v1/farms/${farmUuid}`);
     
     console.log('농장 상세 API 응답:', response.data);
     
@@ -184,9 +192,13 @@ export async function getFarm(farmId: string): Promise<Farm> {
 
     const farm = response.data.result;
     console.log('농장 상세 result 데이터:', farm);
+    console.log('monthTotalAmount:', farm.monthTotalAmount);
+    console.log('purposeTotalAmount:', farm.purposeTotalAmount);
+    console.log('모든 키들:', Object.keys(farm));
     
     return {
       id: farm.farmUuid,
+      farmUuid: farm.farmUuid,
       farm_name: farm.farmName,
       address: farm.address,
       name: farm.ownerName,
@@ -197,20 +209,22 @@ export async function getFarm(farmId: string): Promise<Farm> {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
+      month_total_amount: farm.monthTotalAmount,
+      purpose_total_amount: farm.purposeTotalAmount,
       horses: (farm.horses || []).map((horse: {
         horseNumber: number;
         horseName: string;
         birth: string;
         breed: string;
         gender: string;
-        horseUrl: string;
+        profileImage: string;
       }) => ({
         id: horse.horseNumber,
         farm_id: farm.farmUuid,
         horseNo: horse.horseNumber?.toString() || '',
         hrNm: horse.horseName,
         birthDt: '',
-        horse_url: horse.horseUrl
+        horse_url: horse.profileImage
       }))
     };
   } catch (error) {
@@ -219,8 +233,71 @@ export async function getFarm(farmId: string): Promise<Farm> {
   }
 }
 
+// 내 목장 조회
+export async function getMyFarm(): Promise<Farm> {
+  try {
+    const response = await apiClient.get('/api/v1/farms/my-farm');
+    
+    console.log('내 목장 API 응답:', response.data);
+    
+    if (!response.data.isSuccess) {
+      throw new Error(`API 호출 실패: ${response.data.message}`);
+    }
+
+    const farm = response.data.result;
+    console.log('내 목장 result 데이터:', farm);
+    
+    return {
+      id: farm.farmUuid,
+      farmUuid: farm.farmUuid,
+      farm_name: farm.farmName,
+      address: farm.address,
+      name: farm.ownerName,
+      horse_count: farm.horseCount,
+      total_score: farm.totalScore,
+      image_url: farm.profileImage,
+      state: farm.status,
+      farm_phone: farm.phoneNumber,
+      area: farm.area,
+      description: farm.description,
+      month_total_amount: farm.monthTotalAmount,
+      purpose_total_amount: farm.purposeTotalAmount,
+      member_uuid: getCurrentUserMemberUuid() || undefined, // 현재 사용자의 memberUuid 추가
+      horses: (farm.horses || []).map((horse: {
+        horseNumber: number;
+        horseName: string;
+        birth: string;
+        breed: string;
+        gender: string;
+        profileImage: string;
+      }) => ({
+        id: horse.horseNumber,
+        farm_id: farm.farmUuid,
+        horseNo: horse.horseNumber?.toString() || '',
+        hrNm: horse.horseName,
+        birthDt: '',
+        horse_url: horse.profileImage
+      }))
+    };
+  } catch (error) {
+    console.error('내 목장 조회 실패:', error);
+    throw error;
+  }
+}
+
+// 현재 목장이 내 목장인지 확인
+export async function isMyFarm(farmUuid: string): Promise<boolean> {
+  try {
+    const myFarm = await getMyFarm();
+    return myFarm.id === farmUuid;
+  } catch (error) {
+    console.error('내 목장 확인 실패:', error);
+    return false;
+  }
+}
+
 // 농장의 말 목록 조회 (현재는 농장 목록에서 함께 반환되므로 별도 호출 불필요)
-export async function getHorses(_farmId: string): Promise<Horse[]> {
+export async function getHorses(): Promise<Horse[]> {
   try {
     // 백엔드에서 농장 목록 조회 시 말 정보도 함께 반환하므로
     // 별도의 API 호출이 필요하지 않습니다.
@@ -230,5 +307,109 @@ export async function getHorses(_farmId: string): Promise<Horse[]> {
   } catch (error) {
     console.error('말 목록 조회 실패:', error);
     throw error;
+  }
+}
+
+// 즐겨찾기 추가
+export async function addFarmBookmark(farmUuid: string): Promise<void> {
+  try {
+    const response = await apiClient.post(`/api/v1/members/donators/bookmarks/farms/${farmUuid}`);
+    
+    if (!response.data.isSuccess) {
+      throw new Error(`즐겨찾기 추가 실패: ${response.data.message}`);
+    }
+    
+    console.log('즐겨찾기 추가 성공');
+  } catch (error) {
+    console.error('즐겨찾기 추가 실패:', error);
+    throw error;
+  }
+}
+
+// 즐겨찾기 삭제
+export async function removeFarmBookmark(farmUuid: string): Promise<void> {
+  try {
+    const response = await apiClient.delete(`/api/v1/members/donators/bookmarks/farms/${farmUuid}`);
+    
+    if (!response.data.isSuccess) {
+      throw new Error(`즐겨찾기 삭제 실패: ${response.data.message}`);
+    }
+    
+    console.log('즐겨찾기 삭제 성공');
+  } catch (error) {
+    console.error('즐겨찾기 삭제 실패:', error);
+    throw error;
+  }
+}
+
+// 즐겨찾기 API 응답 타입 정의
+interface BookmarkFarmResponse {
+  farmUuid: string;
+  farmName: string;
+  address: string;
+  ownerName: string;
+  horseCount: number;
+  totalScore: number;
+  profileImage: string;
+  status: string;
+  phoneNumber: string;
+  area: string;
+  description: string;
+  horses?: BookmarkHorseResponse[];
+}
+
+interface BookmarkHorseResponse {
+  horseNumber: number;
+  horseName: string;
+  profileImage: string;
+}
+
+// 즐겨찾기 목록 조회
+export async function getFarmBookmarks(): Promise<Farm[]> {
+  try {
+    const response = await apiClient.get('/api/v1/members/donators/bookmarks/farms');
+    
+    if (!response.data.isSuccess) {
+      throw new Error(`즐겨찾기 목록 조회 실패: ${response.data.message}`);
+    }
+
+    // 즐겨찾기 목록을 Farm 타입으로 변환
+    const bookmarks = response.data.result.map((bookmark: BookmarkFarmResponse) => ({
+      id: bookmark.farmUuid,
+      farm_name: bookmark.farmName,
+      address: bookmark.address,
+      name: bookmark.ownerName,
+      horse_count: bookmark.horseCount,
+      total_score: bookmark.totalScore,
+      image_url: bookmark.profileImage,
+      state: bookmark.status,
+      farm_phone: bookmark.phoneNumber,
+      area: bookmark.area,
+      description: bookmark.description,
+      horses: (bookmark.horses || []).map((horse: BookmarkHorseResponse) => ({
+        id: horse.horseNumber,
+        farm_id: bookmark.farmUuid,
+        horseNo: horse.horseNumber?.toString() || '',
+        hrNm: horse.horseName,
+        birthDt: '',
+        horse_url: horse.profileImage
+      }))
+    }));
+
+    return bookmarks;
+  } catch (error) {
+    console.error('즐겨찾기 목록 조회 실패:', error);
+    throw error;
+  }
+}
+
+// 특정 농장이 즐겨찾기에 있는지 확인
+export async function isFarmBookmarked(farmUuid: string): Promise<boolean> {
+  try {
+    const bookmarks = await getFarmBookmarks();
+    return bookmarks.some(bookmark => bookmark.id === farmUuid);
+  } catch (error) {
+    console.error('즐겨찾기 확인 실패:', error);
+    return false;
   }
 }

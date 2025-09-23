@@ -129,15 +129,12 @@ public class AuthService {
       var account = finApiService.createDemandDepositAccount(finMember.getUserKey());
       farmer.updateFinAccount(finMember.getUserKey(), account.getRec().getAccountNo());
 
-      farmerRepository.save(farmer);
+      var keccakKey = toUint256FromMemberUuid(memberUuid);
 
-      // 3) farmId 계산 (임시: memberUuid → keccak → uint256)
-      var farmId = toUint256FromMemberUuid(memberUuid);
-
-      // 4) Vault 생성(관리자 서명) + DB 저장(farm_vaults)
-      var fv = vaultService.createVaultAndPersist(farmId, created.address(), memberUuid);
+      // 3) Vault 생성(관리자 서명) + DB 저장(farm_vaults)
+      var fv = vaultService.createVaultAndPersist(keccakKey, created.address(), memberUuid);
       log.info("Vault created & persisted: memberUuid={}, farmId={}, vault={}, tx={}",
-          memberUuid, farmId, fv.getVaultAddress(), fv.getDeployTxHash());
+          memberUuid, keccakKey, fv.getVaultAddress(), fv.getDeployTxHash());
 
     } else if ("donator".equalsIgnoreCase(req.getRole().name())) {
       // 1) 기본 정보 저장
@@ -191,7 +188,7 @@ public class AuthService {
     return AuthSignInResponseDto.ofRefresh(memberUuid, newAccess, newRefresh, Role.valueOf(role.toUpperCase()));
   }
 
-  /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */ //todo
+  /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */
   private static java.math.BigInteger toUint256FromMemberUuid(String memberUuid) {
     if (memberUuid == null || memberUuid.isBlank()) {
       throw new IllegalArgumentException("memberUuid is required for farmer");

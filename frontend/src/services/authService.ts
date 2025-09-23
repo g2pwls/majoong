@@ -59,6 +59,7 @@ export const getTokens = () => {
     tempAccessToken: getValidToken('tempAccessToken'),
     email: getValidToken('email'),
     role: getValidToken('role'),
+    memberUuid: getValidToken('memberUuid'),
   };
 };
 
@@ -121,7 +122,8 @@ authApi.interceptors.response.use(
             newTokens.refreshToken,
             newTokens.tempAccessToken,
             newTokens.email,
-            newTokens.role
+            newTokens.role,
+            newTokens.memberUuid
           );
           
           // 원래 요청 재시도
@@ -219,7 +221,7 @@ export const refreshAccessToken = async (refreshToken: string): Promise<RefreshT
 };
 
 // 토큰을 로컬 스토리지에 저장
-export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string, email?: string, role?: string) => {
+export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string, email?: string, role?: string, memberUuid?: string) => {
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
   
@@ -236,13 +238,17 @@ export const saveTokens = (accessToken: string, refreshToken: string, tempAccess
   if (role) {
     localStorage.setItem('role', role);
   }
+  if (memberUuid) {
+    localStorage.setItem('memberUuid', memberUuid);
+  }
   
   console.log('🔑 토큰 저장 완료:', {
     hasAccessToken: !!accessToken,
     hasRefreshToken: !!refreshToken,
     hasTempAccessToken: !!(tempAccessToken && tempAccessToken !== ''),
     email,
-    role
+    role,
+    memberUuid
   });
   
   // 로그인 상태 변경 이벤트 발생
@@ -257,6 +263,7 @@ export const clearTokens = () => {
   localStorage.removeItem('tempAccessToken');
   localStorage.removeItem('email');
   localStorage.removeItem('role');
+  localStorage.removeItem('memberUuid');
   
   // 로그인 상태 변경 이벤트 발생
   window.dispatchEvent(new Event('authStateChanged'));
@@ -310,4 +317,9 @@ export const isDonator = (): boolean => {
 export const getUserRole = (): string | null => {
   const tokens = getTokens();
   return tokens.role;
+};
+
+export const getCurrentUserMemberUuid = (): string | null => {
+  const tokens = getTokens();
+  return tokens.memberUuid;
 };

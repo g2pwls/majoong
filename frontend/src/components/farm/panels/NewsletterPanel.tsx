@@ -1,19 +1,20 @@
 // src/components/farm/panels/NewsletterPanel.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReport } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, FileText, Star } from "lucide-react";
+import { Calendar, FileText } from "lucide-react";
+import Image from "next/image";
 
 interface NewsletterPanelProps {
-  farmId: string;
+  farmUuid: string;
 }
 
-export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
+export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
   const router = useRouter();
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -21,13 +22,13 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // 월간 보고서 조회
-  const fetchMonthlyReports = async (year: number) => {
+  const fetchMonthlyReports = useCallback(async (year: number) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('월간 보고서 조회 시작:', { farmId, year });
-      const response = await FarmService.getMonthlyReports(farmId, year);
+      console.log('월간 보고서 조회 시작:', { farmUuid, year });
+      const response = await FarmService.getMonthlyReports(farmUuid, year);
       console.log('월간 보고서 조회 성공:', response);
       setReports(response.result);
     } catch (e: unknown) {
@@ -37,18 +38,18 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farmUuid]);
 
   useEffect(() => {
     fetchMonthlyReports(selectedYear);
-  }, [farmId, selectedYear]);
+  }, [farmUuid, selectedYear, fetchMonthlyReports]);
 
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
   };
 
   const handleViewReport = (reportId: number) => {
-    router.push(`/support/${farmId}/report/${reportId}`);
+    router.push(`/support/${farmUuid}/report/${reportId}`);
   };
 
   if (loading) {
@@ -113,9 +114,11 @@ export default function NewsletterPanel({ farmId }: NewsletterPanelProps) {
                   {/* 썸네일 이미지 */}
                   <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
                     {report.thumbnail ? (
-                      <img
+                      <Image
                         src={report.thumbnail}
                         alt={`${report.year}년 ${report.month}월 보고서`}
+                        width={400}
+                        height={225}
                         className="w-full h-full object-cover"
                       />
                     ) : (

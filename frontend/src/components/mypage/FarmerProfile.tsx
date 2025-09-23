@@ -17,7 +17,7 @@ interface FarmerProfileProps {
   userRole?: string;
 }
 
-export default function FarmerProfile({ farmerInfo: propFarmerInfo, userRole }: FarmerProfileProps) {
+export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProfileProps) {
   const [farmerInfo, setFarmerInfo] = useState<FarmerInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingFarmName, setIsEditingFarmName] = useState(false);

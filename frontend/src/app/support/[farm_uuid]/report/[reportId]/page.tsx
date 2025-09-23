@@ -1,7 +1,8 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReportDetail } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +28,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
 
   // 농장 정보 조회
-  const fetchFarm = async () => {
+  const fetchFarm = useCallback(async () => {
     try {
       const data = await getFarm(farm_uuid);
       console.log('농장 정보 조회 성공:', data);
@@ -35,10 +36,10 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     } catch (e) {
       console.error('농장 정보 조회 실패:', e);
     }
-  };
+  }, [farm_uuid]);
 
   // 월간 보고서 상세 조회
-  const fetchReportDetail = async () => {
+  const fetchReportDetail = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -54,12 +55,12 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farm_uuid, reportId]);
 
   useEffect(() => {
     fetchFarm();
     fetchReportDetail();
-  }, [farm_uuid, reportId]);
+  }, [fetchFarm, fetchReportDetail]);
 
   if (loading) {
     return (
@@ -98,7 +99,6 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     );
   }
 
-  const farmId = farm.id;
 
   return (
     <div className="mx-auto max-w-7xl p-6">
@@ -147,9 +147,11 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
               {/* 썸네일 이미지 */}
               {report.thumbnail && (
                 <div className="mb-6">
-                  <img
+                  <Image
                     src={report.thumbnail}
                     alt={`${report.year}년 ${report.month}월 보고서 썸네일`}
+                    width={800}
+                    height={600}
                     className="w-full max-w-2xl mx-auto rounded-lg shadow-md"
                   />
                 </div>
@@ -176,12 +178,6 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
                     <Calendar className="h-4 w-4" />
                     <span>생성일: {new Date(report.createdAt).toLocaleDateString('ko-KR')}</span>
                   </div>
-                  {report.updatedAt !== report.createdAt && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span>수정일: {new Date(report.updatedAt).toLocaleDateString('ko-KR')}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>

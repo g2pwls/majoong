@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone"; // Import useDropzone from react-dropzone
+import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 
 interface HorseProfileData {
@@ -213,9 +214,11 @@ export default function HorseInfoPanel({
         >
           <input {...getInputProps()} />
           {filePreview ? (
-            <img
+            <Image
               src={filePreview}
               alt="Selected file preview"
+              width={300}
+              height={180}
               className="w-full h-full object-contain rounded-lg transition-all duration-300 ease-in-out"
             />
           ) : (
