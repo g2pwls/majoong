@@ -253,37 +253,19 @@ pipeline {
                         script {
                             try {
                                 sh '''#!/usr/bin/env bash
-                    set -Eeuo pipefail
+                                set -Eeuo pipefail
 
-                    BX_VERSION="${DOCKER_BUILDX_VERSION:-v0.27.0}"
-                    BX_DIR="$HOME/.docker/cli-plugins"
-                    BX_BIN="$BX_DIR/docker-buildx"
-                    mkdir -p "$BX_DIR"
-                    if ! docker buildx version >/dev/null 2>&1; then
-                    ARCH=$(uname -m); case "$ARCH" in x86_64) ARCH=amd64 ;; aarch64) ARCH=arm64 ;; esac
-                    docker run --rm "docker/buildx-bin:$BX_VERSION" cat /buildx > "$BX_BIN"
-                    chmod +x "$BX_BIN"
-                    fi
-                    docker buildx version
-
-                    if ! docker buildx ls | grep -q '^jenkinsbk\b'; then
-                    docker buildx create --name jenkinsbk --driver docker-container >/dev/null || \
-                    docker buildx create --name jenkinsbk --driver docker >/dev/null
-                    fi
-                    docker buildx use jenkinsbk
-                    docker buildx inspect --bootstrap jenkinsbk >/dev/null
-
-                    DOCKER_BUILDKIT=1 docker buildx build \
-                    --no-cache \
-                    --progress=plain \
-                    -f frontend/Dockerfile \
-                    --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                    -t majoong/frontend-dev:${TAG} \
-                    --load \
-                    frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
-                    ec=${PIPESTATUS[0]}
-                    [ "$ec" -eq 0 ] || exit "$ec"
-                    '''
+                                # BuildKit만 켜서 일반 docker build 사용 (멀티아키 필요 없음)
+                                DOCKER_BUILDKIT=1 docker build \
+                                --no-cache \
+                                --progress=plain \
+                                -f frontend/Dockerfile \
+                                --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
+                                -t majoong/frontend-dev:${TAG} \
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                ec=${PIPESTATUS[0]}
+                                [ "$ec" -eq 0 ] || exit "$ec"
+                                '''
 
                                 // 아래 run 부분은 그대로 두되, 로그 리다이렉션도 이스케이프 권장
                                 sh """
@@ -347,37 +329,22 @@ pipeline {
                         script {
                             try {
                                 sh '''#!/usr/bin/env bash
-                    set -Eeuo pipefail
+                                set -Eeuo pipefail
 
-                    BX_VERSION="${DOCKER_BUILDX_VERSION:-v0.27.0}"
-                    BX_DIR="$HOME/.docker/cli-plugins"
-                    BX_BIN="$BX_DIR/docker-buildx"
-                    mkdir -p "$BX_DIR"
-                    if ! docker buildx version >/dev/null 2>&1; then
-                    ARCH=$(uname -m); case "$ARCH" in x86_64) ARCH=amd64 ;; aarch64) ARCH=arm64 ;; esac
-                    docker run --rm "docker/buildx-bin:$BX_VERSION" cat /buildx > "$BX_BIN"
-                    chmod +x "$BX_BIN"
-                    fi
-                    docker buildx version
+                                DOCKER_BUILDKIT=1 docker build \
+                                --no-cache \
+                                --progress=plain \
+                                -f frontend/Dockerfile \
+                                --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
+                                -t majoong/frontend-prod:${TAG} \
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                ec=${PIPESTATUS[0]}
+                                [ "$ec" -eq 0 ] || exit "$ec"
 
-                    if ! docker buildx ls | grep -q '^jenkinsbk\b'; then
-                    docker buildx create --name jenkinsbk --driver docker-container >/dev/null || \
-                    docker buildx create --name jenkinsbk --driver docker >/dev/null
-                    fi
-                    docker buildx use jenkinsbk
-                    docker buildx inspect --bootstrap jenkinsbk >/dev/null
+                                # 최신 태그도 찍고 싶다면(선택)
+                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "$WORKSPACE/${LOG_FILE}" 2>&1
+                                '''
 
-                    DOCKER_BUILDKIT=1 docker buildx build \
-                    --no-cache \
-                    --progress=plain \
-                    -f frontend/Dockerfile \
-                    --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                    -t majoong/frontend-prod:${TAG} \
-                    --load \
-                    frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
-                    ec=${PIPESTATUS[0]}
-                    [ "$ec" -eq 0 ] || exit "$ec"
-                    '''
 
 
                                 sh """
