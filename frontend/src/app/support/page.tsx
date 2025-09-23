@@ -55,7 +55,7 @@ const TempBadge: React.FC<{ temp?: number }> = ({ temp }) => {
 const FarmCard: React.FC<{ 
   farm: Farm; 
   isBookmarked: boolean; 
-  onBookmarkToggle: (farmId: string) => void;
+  onBookmarkToggle: (farmUuid: string) => void;
   isLoading?: boolean;
 }> = ({ farm, isBookmarked, onBookmarkToggle, isLoading = false }) => {
   const handleBookmarkClick = (e: React.MouseEvent) => {
@@ -208,34 +208,34 @@ export default function SupportPage() {
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
 
   // 즐겨찾기 토글 함수
-  const handleBookmarkToggle = async (farmId: string) => {
+  const handleBookmarkToggle = async (farmUuid: string) => {
     if (!isDonator()) return;
     
     // 로딩 상태 추가
-    setBookmarkLoading(prev => new Set(prev).add(farmId));
+    setBookmarkLoading(prev => new Set(prev).add(farmUuid));
     
     try {
-      const isCurrentlyBookmarked = bookmarkedFarms.has(farmId);
+      const isCurrentlyBookmarked = bookmarkedFarms.has(farmUuid);
       
       if (isCurrentlyBookmarked) {
-        await removeFarmBookmark(farmId);
+        await removeFarmBookmark(farmUuid);
         // 로컬 상태 업데이트
         setBookmarkedFarms(prev => {
           const newSet = new Set(prev);
-          newSet.delete(farmId);
+          newSet.delete(farmUuid);
           return newSet;
         });
         // farms 배열의 해당 농장의 bookmark 상태도 업데이트
         setFarms(prev => prev.map(farm => 
-          farm.id === farmId ? { ...farm, bookmark: false } : farm
+          farm.id === farmUuid ? { ...farm, bookmark: false } : farm
         ));
       } else {
-        await addFarmBookmark(farmId);
+        await addFarmBookmark(farmUuid);
         // 로컬 상태 업데이트
-        setBookmarkedFarms(prev => new Set(prev).add(farmId));
+        setBookmarkedFarms(prev => new Set(prev).add(farmUuid));
         // farms 배열의 해당 농장의 bookmark 상태도 업데이트
         setFarms(prev => prev.map(farm => 
-          farm.id === farmId ? { ...farm, bookmark: true } : farm
+          farm.id === farmUuid ? { ...farm, bookmark: true } : farm
         ));
       }
     } catch (error) {
@@ -245,7 +245,7 @@ export default function SupportPage() {
       // 로딩 상태 제거
       setBookmarkLoading(prev => {
         const newSet = new Set(prev);
-        newSet.delete(farmId);
+        newSet.delete(farmUuid);
         return newSet;
       });
     }

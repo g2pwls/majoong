@@ -41,7 +41,7 @@ export default function GoDonatePage() {
   useEffect(() => {
     const fetchTopFarms = async () => {
       try {
-        const response = await fetch('/api/farms/all');
+        const response = await fetch('/receipt/farms/all');
         if (response.ok) {
           const data = await response.json();
           // 신뢰도 순으로 정렬하고 상위 5개 선택

@@ -10,7 +10,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ScoreCategory extends BaseEntity {
+public class ScoreCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

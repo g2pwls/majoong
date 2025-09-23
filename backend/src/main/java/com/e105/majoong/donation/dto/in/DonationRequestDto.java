@@ -10,7 +10,7 @@ import lombok.Setter;
 public class DonationRequestDto {
 
   @NotBlank
-  private String farmMemberUuid;   // 목장주 member_uuid (farm.member_uuid)
+  private String farmUuid;   // 목장주 farm_uuid (farm.farm_uuid)
 
   @Min(1000)
   private long amountKrw;          // 원화 금액 (정책: 예) 1000원 = 1 토큰)

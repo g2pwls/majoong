@@ -48,7 +48,7 @@ public enum BaseResponseStatus {
     INVALID_EMAIL_ADDRESS(HttpStatus.BAD_REQUEST, false, 2012, "이메일을 다시 확인해주세요."),
     FAILED_TO_SIGN_UP(HttpStatus.INTERNAL_SERVER_ERROR, false, 2013, "회원가입에 실패했습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, false, 2015, "올바르지 않은 입력값입니다."),
-
+    NO_EXIST_FARMER(HttpStatus.BAD_REQUEST, false, 2016, "존재하지 않는 목장주입니다."),
      // Farm
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
     NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),
@@ -58,6 +58,7 @@ public enum BaseResponseStatus {
     DUPLICATED_BOOKMARK(HttpStatus.CONFLICT, false, 2404, "이미 등록된 농장입니다."),
     NO_EXIST_MY_FARM(HttpStatus.NOT_FOUND, false, 2405, "내 농장을 조회할 수 없습니다."),
     NO_EXIST_HORSE_STATE(HttpStatus.NOT_FOUND, false, 2406, "농장 상태를 조회할 수 없습니다."),
+    IS_DELETED_HORSE(HttpStatus.NOT_FOUND, false, 2407, "이미 삭제된 말입니다"),
 
     //s3
     S3_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 4003, "S3 업로드 중 오류 발생"),
@@ -70,6 +71,9 @@ public enum BaseResponseStatus {
     INVALID_WALLET_ADDRESS(HttpStatus.BAD_REQUEST, false, 2605, "유효하지 않은 지갑 주소입니다."),
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, false, 2606, "유효하지 않은 금액입니다."),
     NO_ACTIVE_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2607, "활성화된 목장 금고가 없습니다."),
+
+    //score
+    INVALID_SCORE_CATEGORY(HttpStatus.BAD_REQUEST, false, 3001, "유효하지 않은 점수 카테고리입니다."),
 
     /**
      * 5000: notification service error
@@ -91,7 +95,11 @@ public enum BaseResponseStatus {
     NO_EXIST_MONTHLY_REPORT(HttpStatus.NOT_FOUND, false, 7001, "월간 보고서가 존재하지 않습니다."),
     //score
     NO_EXIST_MY_SCORE(HttpStatus.NOT_FOUND, false, 7301, "내 신뢰도를 찾을 수 없습니다."),
+    //account
+    NO_EXIST_MY_ACCOUNT_TRANSACTION(HttpStatus.NOT_FOUND, false, 7401, "내 계좌 거래내역를 찾을 수 없습니다."),
 
+    //batch
+    NO_EXIST_JOB_PARAMETER(HttpStatus.NOT_FOUND, false, 8001, "파라미터가 존재하지 않습니다"),
     ;
   private final HttpStatusCode httpStatusCode;
     private final boolean isSuccess;

@@ -7,6 +7,7 @@ import com.e105.majoong.farm.service.*;
 import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
 import com.e105.majoong.report.dto.out.MonthlyReportListResponseDto;
 import com.e105.majoong.report.service.MonthlyReportService;
+import com.e105.majoong.score.service.ScoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

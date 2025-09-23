@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,7 +18,8 @@ public class MonthlyReportDetailResponseDto {
     private int year;
     private int month;
     private String content;
-    private int score;
+    private Double score;
+    private LocalDateTime createdAt;
 
     public static MonthlyReportDetailResponseDto toDto(MonthlyReport report, MyScore latestScore) {
         return MonthlyReportDetailResponseDto.builder()
@@ -25,6 +28,7 @@ public class MonthlyReportDetailResponseDto {
                 .month(report.getCreatedAt().getMonthValue())
                 .content(report.getContent())
                 .score(latestScore.getScore())
+                .createdAt(report.getCreatedAt())
                 .build();
     }
 }
