@@ -29,7 +29,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
     } catch (e: unknown) {
       console.error('신뢰도 내역 조회 실패:', e);
     }
-  }, [farm?.id]);
+  }, [farm?.farmUuid]);
 
   useEffect(() => {
     // Calculate the deadline (Sunday) and show the countdown

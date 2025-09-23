@@ -1,7 +1,7 @@
 // components/farm/FarmInfo.tsx
 import Image from "next/image";
 import { Star } from "lucide-react";
-import { addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
+// import { addFarmBookmark, removeFarmBookmark } from "@/services/apiService"; // 사용하지 않으므로 주석 처리
 import { isDonator } from "@/services/authService";
 
 type Props = {
