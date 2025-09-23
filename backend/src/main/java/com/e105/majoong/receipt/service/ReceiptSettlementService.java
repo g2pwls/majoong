@@ -1,8 +1,8 @@
 package com.e105.majoong.receipt.service;
 
-import com.e105.majoong.receipt.dto.in.ReceiptSettlementRequest;
-import com.e105.majoong.receipt.dto.out.ReceiptSettlementResponse;
+import com.e105.majoong.receipt.dto.in.ReceiptSettlementRequestDto;
+import com.e105.majoong.receipt.dto.out.ReceiptSettlementResponseDto;
 
 public interface ReceiptSettlementService {
-  ReceiptSettlementResponse settle(String memberUuid, ReceiptSettlementRequest req);
+  ReceiptSettlementResponseDto settle(String memberUuid, ReceiptSettlementRequestDto req);
 }

@@ -1,8 +1,8 @@
 package com.e105.majoong.receipt.controller;
 
 import com.e105.majoong.auth.security.CustomUserDetails;
-import com.e105.majoong.receipt.dto.in.ReceiptSettlementRequest;
-import com.e105.majoong.receipt.dto.out.ReceiptSettlementResponse;
+import com.e105.majoong.receipt.dto.in.ReceiptSettlementRequestDto;
+import com.e105.majoong.receipt.dto.out.ReceiptSettlementResponseDto;
 import com.e105.majoong.receipt.service.ReceiptSettlementService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,9 +21,9 @@ public class ReceiptSettlementController {
 
   @PostMapping
   @Operation(summary = "목장주 지갑으로 자동 지급하기")
-  public ReceiptSettlementResponse settle(
+  public ReceiptSettlementResponseDto settle(
       @AuthenticationPrincipal CustomUserDetails user,
-      @Valid @RequestBody ReceiptSettlementRequest req) {
+      @Valid @RequestBody ReceiptSettlementRequestDto req) {
 
     String memberUuid = user.getMemberUuid();
 
