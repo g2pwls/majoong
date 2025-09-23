@@ -210,8 +210,16 @@ export class FarmService {
         farmUuid: horseData.farmUuid,
         horseNumber: horseData.horseNumber,
         horseName: horseData.horseName,
-        hasProfileImage: !!horseData.profileImage
+        hasProfileImage: !!horseData.profileImage,
+        profileImageName: horseData.profileImage?.name,
+        profileImageSize: horseData.profileImage?.size
       });
+
+      // FormData 내용 확인
+      console.log('FormData contents:');
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       const response = await apiClient.post('/api/v1/members/farmers/my-farm/horses', formData, {
         headers: {
@@ -236,6 +244,19 @@ export class FarmService {
         data: axiosError.response?.data,
         config: axiosError.config
       });
+      
+      // 백엔드에서 보낸 에러 메시지가 있다면 표시
+      if (axiosError.response?.data && typeof axiosError.response.data === 'object') {
+        const errorData = axiosError.response.data as { message?: string; result?: string };
+        console.error('백엔드 에러 상세:', errorData);
+        if (errorData.message) {
+          throw new Error(`말 등록 실패: ${errorData.message}`);
+        }
+        if (errorData.result) {
+          throw new Error(`말 등록 실패: ${errorData.result}`);
+        }
+      }
+      
       throw error;
     }
   }
@@ -701,6 +722,35 @@ export class FarmService {
       return response.data;
     } catch (error) {
       console.error('말 주간 보고서 상세 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 삭제
+  static async deleteHorse(farmUuid: string, horseNumber: number): Promise<void> {
+    try {
+      console.log('말 삭제 API 요청:', {
+        farmUuid,
+        horseNumber
+      });
+
+      const response = await apiClient.delete(
+        `/api/v1/members/farmers/my-farm/horses/${horseNumber}`,
+        {
+          params: { farmUuid }
+        }
+      );
+
+      console.log('말 삭제 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('말 삭제 실패:', error);
       throw error;
     }
   }

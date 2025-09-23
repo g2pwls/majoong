@@ -11,7 +11,8 @@ import IntroPanel from "@/components/farm/panels/IntroPanel";
 import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
-import { getFarm, Farm } from "@/services/apiService";
+import { getFarm, Farm, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
+import { isDonator } from "@/services/authService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
 
@@ -24,6 +25,8 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   const [tab, setTab] = useState<FarmTabValue>(
     (searchParams.get("tab") as FarmTabValue) || "intro"
   );
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
 
   // URL → 탭 동기화
   useEffect(() => {
@@ -39,6 +42,11 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         const data = await getFarm(farm_uuid);
         console.log('농장 상세 데이터:', data);
         if (mounted) setFarm(data);
+        
+        // 즐겨찾기 상태 확인 (farm.bookmark 속성 사용)
+        if (isDonator()) {
+          if (mounted) setIsBookmarked(data.bookmark || false);
+        }
       } catch (e) {
         console.error('농장 상세 조회 실패:', e);
       } finally {
@@ -55,6 +63,27 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     const sp = new URLSearchParams(window.location.search);
     sp.set("tab", next);
     router.replace(`?${sp.toString()}`);
+  };
+
+  // 즐겨찾기 토글 핸들러
+  const handleBookmarkToggle = async (farmUuid: string) => {
+    if (!isDonator()) return;
+    
+    setBookmarkLoading(true);
+    
+    try {
+      if (isBookmarked) {
+        await removeFarmBookmark(farmUuid);
+        setIsBookmarked(false);
+      } else {
+        await addFarmBookmark(farmUuid);
+        setIsBookmarked(true);
+      }
+    } catch (error) {
+      console.error('즐겨찾기 토글 실패:', error);
+    } finally {
+      setBookmarkLoading(false);
+    }
   };
 
   if (loading) return <div className="p-6">로딩 중…</div>;
@@ -74,15 +103,9 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
-        {/* 왼쪽: 타이틀(바깥) + 카드(헤더 숨김) */}
+        {/* 왼쪽: 카드(헤더 포함) */}
         <aside className="lg:sticky lg:top-6 self-start">
-          {/* 바깥 헤더 */}
-          <div className="mb-3 flex items-baseline gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight">{farm.farm_name}</h1>
-            <span className="text-xl text-gray-800">{farm.total_score.toFixed(1)}°C</span>
-          </div>
-
-          {/* 카드: 헤더 숨김 */}
+          {/* 카드: 헤더 포함 (즐겨찾기 버튼 포함) */}
           <FarmInfo
             farm_name={farm.farm_name}
             total_score={farm.total_score}
@@ -92,8 +115,12 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             farm_phone={farm.farm_phone}
             area={farm.area}
             horse_count={farm.horse_count}
-            showHeader={false}   // ✅ 카드 내부 헤더 비표시
-            className="mt-4"
+            showHeader={true}   // ✅ 카드 내부 헤더 표시 (즐겨찾기 버튼 포함)
+            farm_uuid={farm_uuid}
+            isBookmarked={isBookmarked}
+            onBookmarkToggle={handleBookmarkToggle}
+            bookmarkLoading={bookmarkLoading}
+            className=""
           />
         </aside>
 

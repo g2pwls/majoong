@@ -1,8 +1,115 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// 백엔드 정산 요청 함수
+async function submitToBackendSettlement(
+  verificationResult: {
+    result: string;
+    reason: string;
+    matchedItems?: string[];
+    receiptAmount?: string;
+    amountMatch?: boolean;
+    storeInfo?: {
+      name?: string;
+      address?: string;
+      phone?: string;
+    };
+    items?: Array<{
+      name: string;
+      quantity: string;
+      unitPrice: string;
+      totalPrice: string;
+    }>;
+    paymentInfo?: {
+      totalAmount?: string;
+      paymentMethod?: string;
+      paymentDate?: string;
+      receiptNumber?: string;
+    };
+  }, 
+  usedAmount: number, 
+  category: string, 
+  certificationImage: string,
+  specialNote: string
+) {
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+  
+  // 사용자 제공 JSON 구조에 맞게 데이터 변환
+  const settlementData = {
+    reason: verificationResult.reason || "기부금 증빙 정산",
+    storeInfo: {
+      name: verificationResult.storeInfo?.name || "가게명",
+      address: verificationResult.storeInfo?.address || "주소",
+      phone: verificationResult.storeInfo?.phone || "전화번호"
+    },
+    content: specialNote || `카테고리: ${category}, 사용금액: ${usedAmount}원`,
+    items: verificationResult.items || [{
+      name: verificationResult.matchedItems?.[0] || "상품명",
+      quantity: 1,
+      unitPrice: usedAmount,
+      totalPrice: usedAmount
+    }],
+    receiptAmount: parseInt(verificationResult.receiptAmount?.replace(/[^\d]/g, '') || usedAmount.toString()),
+    photoUrl: certificationImage || "",
+    categoryId: getCategoryId(category),
+    idempotencyKey: generateIdempotencyKey()
+  };
+
+  console.log("백엔드 정산 요청 데이터:", settlementData);
+
+  // FormData 생성 (사진과 JSON을 함께 전송)
+  const formData = new FormData();
+  formData.append('payload', JSON.stringify(settlementData));
+  
+  // 사진이 있으면 FormData에 추가
+  if (certificationImage) {
+    try {
+      // Base64 이미지를 Blob으로 변환
+      const response = await fetch(certificationImage);
+      const blob = await response.blob();
+      formData.append('photo', blob, 'certification.jpg');
+    } catch (error) {
+      console.warn("사진 변환 실패:", error);
+    }
+  }
+
+  const response = await fetch(`${backendUrl}/api/v1/receipt/settlement`, {
+    method: 'POST',
+    headers: {
+      // Authorization 헤더는 프론트엔드에서 처리해야 함
+      // 'Authorization': `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`백엔드 정산 요청 실패: ${response.status} - ${errorText}`);
+  }
+
+  return await response.json();
+}
+
+// 카테고리 ID 매핑 함수
+function getCategoryId(category: string): number {
+  const categoryMap: { [key: string]: number } = {
+    "사료/영양": 1,
+    "발굽 관리": 2,
+    "의료/건강": 3,
+    "시설": 4,
+    "운동/재활": 5,
+    "수송": 6
+  };
+  return categoryMap[category] || 1;
+}
+
+// 중복 방지 키 생성 함수
+function generateIdempotencyKey(): string {
+  return `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { category, extractedText, usedAmount, certificationImage } = await request.json();
+    const { category, extractedText, usedAmount, certificationImage, submitToBackend = false, specialNote = "" } = await request.json();
 
     console.log("API 요청 데이터:", { 
       category, 
@@ -69,9 +176,18 @@ export async function POST(request: NextRequest) {
 2. 선택된 카테고리와 연관성이 있는 상품이 포함되어 있는지 확인하세요
 3. 영수증에서 총 금액, 합계, 총액 등의 숫자를 찾아보세요
 4. 사용자가 입력한 금액과 영수증의 총 금액이 일치하는지 확인하세요 (소액 차이는 허용)
-5. 인증 사진이 제공된 경우, 영수증과 관련된 실제 사용 증빙인지 확인하세요
-6. 카테고리 연관성, 금액 일치성, 인증 사진 연관성을 모두 만족하면 "적격", 하나라도 만족하지 않으면 "부적격"으로 판단하세요
-7. 판단 근거를 간단히 설명해주세요
+5. 인증 사진 검증 (매우 중요):
+   - 인증 사진이 영수증에 명시된 상품들과 직접적으로 관련이 있는지 확인
+   - 사진에서 영수증의 상품들이 실제로 사용되는 모습이 보이는지 확인
+   - 사진이 영수증의 구매 목적과 일치하는지 확인 (예: 사료 구매 → 말이 사료를 먹는 모습)
+   - 사진이 단순히 영수증을 찍은 것이 아니라 실제 사용 증빙인지 확인
+   - 인증 사진이 영수증과 전혀 관련이 없거나 일반적인 사진이면 부적격으로 판단
+6. 다음 3가지 조건을 모두 만족해야 "적격":
+   - 카테고리 연관성: 선택된 카테고리와 영수증 상품의 연관성
+   - 금액 일치성: 입력한 금액과 영수증 총 금액의 일치성
+   - 인증 사진 연관성: 인증 사진이 영수증 상품의 실제 사용을 보여주는지
+7. 위 3가지 중 하나라도 만족하지 않으면 "부적격"으로 판단하세요
+8. 판단 근거를 간단히 설명해주세요
 
 중요: 반드시 아래 JSON 형식으로만 응답하세요. 다른 텍스트나 설명은 포함하지 마세요.
 
@@ -111,9 +227,17 @@ export async function POST(request: NextRequest) {
 추출된 영수증 텍스트:
 ${extractedText}
 
-${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${certificationImage.length}자)` : '인증 사진: 제공되지 않음'}
+${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${certificationImage.length}자)
+- 이 인증 사진이 영수증에 명시된 상품들의 실제 사용을 보여주는지 분석해주세요
+- 사진에서 영수증의 상품들이 실제로 사용되는 모습이 보이는지 확인해주세요
+- 사진이 영수증의 구매 목적과 일치하는지 검증해주세요` : '인증 사진: 제공되지 않음'}
 
-위 정보를 바탕으로 종합적으로 적격/부적격을 판단해주세요.`
+위 정보를 바탕으로 다음 3가지 조건을 모두 만족하는지 엄격하게 검증해주세요:
+1. 카테고리 연관성: 선택된 카테고리와 영수증 상품의 연관성
+2. 금액 일치성: 입력한 금액과 영수증 총 금액의 일치성  
+3. 인증 사진 연관성: 인증 사진이 영수증 상품의 실제 사용을 보여주는지
+
+모든 조건을 만족해야 "적격", 하나라도 만족하지 않으면 "부적격"으로 판단해주세요.`
           }
         ],
         temperature: 0.3,
@@ -169,6 +293,21 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       // 필수 필드가 있는지 확인
       if (parsedResult.result && parsedResult.reason) {
         console.log("JSON 파싱 성공, 정상 응답 반환");
+        
+        // 검증이 적격이고 백엔드 제출이 요청된 경우
+        if (parsedResult.result === "적격" && submitToBackend) {
+          try {
+            await submitToBackendSettlement(parsedResult, usedAmount, category, certificationImage, specialNote);
+            console.log("백엔드 정산 요청 성공");
+          } catch (backendError) {
+            console.error("백엔드 정산 요청 실패:", backendError);
+            return NextResponse.json({
+              ...parsedResult,
+              backendError: "정산 요청 중 오류가 발생했습니다."
+            });
+          }
+        }
+        
         return NextResponse.json(parsedResult);
       } else {
         throw new Error("필수 필드가 누락됨");
@@ -176,9 +315,6 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
     } catch (parseError) {
       console.log("JSON 파싱 실패, 텍스트에서 정보 추출:", parseError);
       console.log("원본 content:", content);
-      
-      // 텍스트에서 정보 추출
-      const result = content.includes("적격") ? "적격" : "부적격";
       
       // 금액 정보 추출 시도 (더 정확한 패턴)
       const amountPatterns = [
@@ -219,6 +355,25 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
                                content.includes("일치") || 
                                content.includes("동일") ||
                                content.includes("같음");
+      
+      // 인증 사진 연관성 추출 시도 (사용하지 않으므로 제거)
+      const photoUnrelatedResult = content.includes("인증 사진") && 
+                                  (content.includes("관련 없음") || content.includes("연관성 없음") || content.includes("부적격"));
+      
+      // 텍스트에서 정보 추출 - 더 엄격한 판단
+      let result = "부적격"; // 기본값을 부적격으로 설정
+      
+      // 적격 조건: 모든 조건이 만족되어야 함
+      if (content.includes("적격") && 
+          !content.includes("부적격") && 
+          !photoUnrelatedResult) {
+        result = "적격";
+      }
+      
+      // 명시적으로 부적격이 언급된 경우
+      if (content.includes("부적격") || photoUnrelatedResult) {
+        result = "부적격";
+      }
       
       // 가게 정보 추출 시도
       const storeNameMatch = content.match(/(?:상호|가게|업체)[:\s]*([^\n]+)/i);
@@ -266,7 +421,7 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
         }
       });
       
-      return NextResponse.json({
+      const responseData = {
         result,
         reason: content,
         matchedItems,
@@ -284,7 +439,23 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
           paymentDate: paymentDateMatch?.[1]?.trim() || null,
           receiptNumber: receiptNumberMatch?.[1]?.trim() || null
         }
-      });
+      };
+      
+      // 검증이 적격이고 백엔드 제출이 요청된 경우
+      if (result === "적격" && submitToBackend) {
+        try {
+          await submitToBackendSettlement(responseData, usedAmount, category, certificationImage, specialNote);
+          console.log("백엔드 정산 요청 성공");
+        } catch (backendError) {
+          console.error("백엔드 정산 요청 실패:", backendError);
+          return NextResponse.json({
+            ...responseData,
+            backendError: "정산 요청 중 오류가 발생했습니다."
+          });
+        }
+      }
+      
+      return NextResponse.json(responseData);
     }
 
   } catch (error) {

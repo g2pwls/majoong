@@ -133,7 +133,7 @@ pipeline {
                             set -x
                             ./gradlew --no-daemon build -x test --stacktrace --warning-mode all --info \
                             2>&1 | tee -a "\$WORKSPACE/${LOG_FILE}"
-                            ec=\${PIPESTATUS[0]}
+                            ec=\$?
                             set +x
                             echo "[BACKEND] build exit=\${ec}"                  >> "\$WORKSPACE/${LOG_FILE}"
                             exit "\${ec}"
@@ -224,6 +224,7 @@ pipeline {
                     // 네트워크가 없으면 생성
                     sh "docker network inspect ${TEST_NETWORK} >/dev/null 2>&1 || docker network create ${TEST_NETWORK}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = TAG
 
                     if (env.BACK_CHANGED == 'true') {
                         echo "📦 DEV Backend: 이미지 빌드 및 컨테이너 실행"
@@ -252,27 +253,40 @@ pipeline {
                         echo "🖥️ DEV Frontend: 이미지 빌드 및 컨테이너 실행"
                         script {
                             try {
-                                sh """
-                                # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
+                                sh '''#!/usr/bin/env bash
+                                set -Eeuo pipefail
+
+                                # 콘솔과 파일 동시 출력 + 파이프 실패코드 전파
+                                set +e
+                                set -o pipefail
                                 DOCKER_BUILDKIT=1 docker build \
                                 --no-cache \
+                                --progress=plain \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                                -t majoong/frontend-dev:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                -t majoong/frontend-dev:$IMAGE_TAG \
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                ec=$?
+                                set -e
 
-                                # 기존 컨테이너 제거
-                                docker rm -f ${DEV_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                echo "[FRONTEND][DEV] docker build exit=$ec" >> "$WORKSPACE/${LOG_FILE}"
+                                exit "$ec"
+                                '''
 
-                                # 런타임은 기존처럼 .env.runtime 전체 주입
+
+                                // 아래 run 부분은 그대로 두되, 로그 리다이렉션도 이스케이프 권장
+                                sh """
+                                docker rm -f ${DEV_FRONT_CONTAINER} || true >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
+
                                 docker run -d \
-                                --name ${DEV_FRONT_CONTAINER} \
-                                --network ${TEST_NETWORK} \
-                                -p ${DEV_FRONT_PORT}:3000 \
-                                --env-file "$WORKSPACE/frontend/.env.runtime" \
-                                -v next_cache_dev:/app/.next/cache \
-                                --restart unless-stopped \
-                                majoong/frontend-dev:${TAG} >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            """
+                                    --name ${DEV_FRONT_CONTAINER} \
+                                    --network ${TEST_NETWORK} \
+                                    -p ${DEV_FRONT_PORT}:3000 \
+                                    --env-file "\$WORKSPACE/frontend/.env.runtime" \
+                                    -v next_cache_dev:/app/.next/cache \
+                                    --restart unless-stopped \
+                                    majoong/frontend-dev:\$IMAGE_TAG >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
+                                """
                                 echo "✅ DEV Frontend: 배포 완료 (tag=${TAG})"
                             } catch (err) {
                                 sh "echo '[ERROR] Frontend Deploy to Dev failed: ${err}' >> \"$WORKSPACE/${LOG_FILE}\""
@@ -292,6 +306,7 @@ pipeline {
                 script {
                     sh "docker network inspect ${PROD_NETWORK} >/dev/null 2>&1 || docker network create ${PROD_NETWORK}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = TAG
 
                    if (env.BACK_CHANGED == 'true') {
                         echo "📦 PROD Backend: 이미지 빌드/태깅 및 컨테이너 실행"
@@ -321,27 +336,41 @@ pipeline {
                         echo "🖥️ PROD Frontend: 이미지 빌드/태깅 및 컨테이너 실행"
                         script {
                             try {
-                                sh """
-                                # ✅ BuildKit secret로 frontend/.env를 빌드타임에만 로드
+                                sh '''#!/usr/bin/env bash
+                                set -Eeuo pipefail
+
+                                set +e
+                                set -o pipefail
                                 DOCKER_BUILDKIT=1 docker build \
                                 --no-cache \
+                                --progress=plain \
                                 -f frontend/Dockerfile \
                                 --secret id=buildenv,src="$WORKSPACE/frontend/.env" \
-                                -t majoong/frontend-prod:${TAG} frontend >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                -t majoong/frontend-prod:$IMAGE_TAG \
+                                frontend 2>&1 | tee -a "$WORKSPACE/${LOG_FILE}"
+                                ec=$?
+                                set -e
 
-                                docker tag majoong/frontend-prod:${TAG} majoong/frontend-prod:latest >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+                                echo "[FRONTEND][PROD] docker build exit=$ec" >> "$WORKSPACE/${LOG_FILE}"
+                                docker tag majoong/frontend-prod:$IMAGE_TAG majoong/frontend-prod:latest >> "$WORKSPACE/${LOG_FILE}" 2>&1 || true
+                                exit "$ec"
+                                '''
 
-                                docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/${LOG_FILE}" 2>&1
+
+                                sh """
+                                docker rm -f ${PROD_FRONT_CONTAINER} || true >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
 
                                 docker run -d \
-                                --name ${PROD_FRONT_CONTAINER} \
-                                --network ${PROD_NETWORK} \
-                                -p ${PROD_FRONT_PORT}:3000 \
-                                --env-file "$WORKSPACE/frontend/.env.runtime" \
-                                -v next_cache_prod:/app/.next/cache \
-                                --restart unless-stopped \
-                                majoong/frontend-prod:${TAG} >> "\$WORKSPACE/${LOG_FILE}" 2>&1
-                            """
+                                    --name ${PROD_FRONT_CONTAINER} \
+                                    --network ${PROD_NETWORK} \
+                                    -p ${PROD_FRONT_PORT}:3000 \
+                                    --env-file "\$WORKSPACE/frontend/.env.runtime" \
+                                    -v next_cache_prod:/app/.next/cache \
+                                    --restart unless-stopped \
+                                    majoong/frontend-prod:\$IMAGE_TAG >> "\$WORKSPACE/\${LOG_FILE}" 2>&1
+
+                                """
+
                                 echo "✅ PROD Frontend: 배포 완료 (tag=${TAG})"
                             } catch(err) {
                                 sh "echo '[ERROR] Frontend Deploy to Main failed: ${err}' >> \"$WORKSPACE/${LOG_FILE}\""

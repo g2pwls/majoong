@@ -3,10 +3,14 @@ package com.e105.majoong.donation.dto.in;
 import com.e105.majoong.common.model.donationHistory.DonationHistory;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class DonationRequestDto {
 
   @NotBlank

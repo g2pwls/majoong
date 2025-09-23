@@ -18,30 +18,38 @@ type Horse = {
 
 type Props = {
   farmUuid: string;
+  onHorseRegistered?: () => void;
 };
 
-export default function HorseRegistrySection({ farmUuid }: Props) {
+export default function HorseRegistrySection({ farmUuid, onHorseRegistered }: Props) {
   const [horses, setHorses] = useState<Horse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchHorses = async () => {
-      try {
-        setLoading(true);
-        const horsesData = await FarmService.getHorses(farmUuid);
-        setHorses(horsesData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '말 목록을 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchHorses = async () => {
+    try {
+      setLoading(true);
+      const horsesData = await FarmService.getHorses(farmUuid);
+      setHorses(horsesData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '말 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (farmUuid) {
       fetchHorses();
     }
-  }, [farmUuid]);
+  }, [farmUuid, fetchHorses]);
+
+  // 말 등록 콜백이 호출될 때마다 목록 새로고침
+  useEffect(() => {
+    if (onHorseRegistered) {
+      fetchHorses();
+    }
+  }, [onHorseRegistered, fetchHorses]);
   return (
     <section>
       <h2 className="mt-6 text-lg font-semibold">등록된 말</h2>
