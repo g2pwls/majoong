@@ -1,7 +1,5 @@
 import { authApi } from './authService';
-import { KakaoPayReadyRequest, KakaoPayReadyResponse, DonationRequest, DonationResponse } from '../types/payment';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+import { KakaoPayReadyRequest, KakaoPayReadyResponse } from '../types/payment';
 
 // 카카오페이 결제 시작 API
 export const startKakaoPay = async (request: KakaoPayReadyRequest): Promise<KakaoPayReadyResponse> => {
@@ -41,44 +39,5 @@ export const startKakaoPay = async (request: KakaoPayReadyRequest): Promise<Kaka
   }
 };
 
-// 기부하기 API (현재 버전: farmUuid 사용)
-export const createDonation = async (request: DonationRequest): Promise<DonationResponse> => {
-  try {
-    console.log('기부하기 API 호출:', request);
-    
-    const response = await authApi.post<DonationResponse>('/api/v1/donation', request);
-    
-    console.log('기부하기 API 응답:', response.data);
-    return response.data;
-  } catch (error: unknown) {
-    console.error('기부하기 API 오류:', error);
-    if (error && typeof error === 'object' && 'response' in error) {
-      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
-      console.error('에러 응답:', axiosError.response?.data);
-      console.error('에러 상태:', axiosError.response?.status);
-      console.error('에러 헤더:', axiosError.response?.headers);
-    }
-    throw error;
-  }
-};
-
-// 기부하기 API (이전 버전 - 참고용: farmMemberUuid 사용)
-// export const createDonation = async (request: { farmMemberUuid: string; amountKrw: number }): Promise<DonationResponse> => {
-//   try {
-//     console.log('기부하기 API 호출:', request);
-//     
-//     const response = await authApi.post<DonationResponse>('/api/v1/donation', request);
-//     
-//     console.log('기부하기 API 응답:', response.data);
-//     return response.data;
-//   } catch (error: unknown) {
-//     console.error('기부하기 API 오류:', error);
-//     if (error && typeof error === 'object' && 'response' in error) {
-//       const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
-//       console.error('에러 응답:', axiosError.response?.data);
-//       console.error('에러 상태:', axiosError.response?.status);
-//       console.error('에러 헤더:', axiosError.response?.headers);
-//     }
-//     throw error;
-//   }
-// };
+// 기부하기 API는 백엔드에서 카카오페이 승인과 함께 자동 처리됨
+// 따라서 프론트엔드에서는 별도로 호출하지 않음

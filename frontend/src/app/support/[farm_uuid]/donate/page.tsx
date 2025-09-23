@@ -176,24 +176,7 @@ export default function DonatePage() {
     }
   };
 
-  const handleDonate = () => {
-    if (selectedAmount > 0) {
-      setShowConfirmModal(true);
-    } else {
-      alert("기부 금액을 선택해주세요.");
-    }
-  };
-
-  const handleConfirmDonate = () => {
-    // TODO: 실제 기부 처리 로직 구현
-    console.log(`${formatAmount(selectedAmount)}원 기부 완료`);
-    setShowConfirmModal(false);
-    // 기부 완료 후 처리 (예: 성공 페이지로 이동)
-  };
-
-  const handleCancelDonate = () => {
-    setShowConfirmModal(false);
-  };
+  // 미사용 함수들 제거됨 - 현재 handleConfirmDonation으로 대체됨
 
   if (isLoading) {
     return (

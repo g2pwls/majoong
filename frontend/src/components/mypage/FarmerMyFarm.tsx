@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { getMyFarm } from '@/services/userService';
 import { MyFarmResponse } from '@/types/user';
 
@@ -88,26 +89,10 @@ export default function FarmerMyFarm() {
     setIsEditing(false);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">활성</span>;
-      case 'inactive':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">비활성</span>;
-      case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">검토중</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{status}</span>;
-    }
-  };
-
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR');
-  };
+  // 현재 미사용 함수들 - 향후 필요 시 활성화
+  // const getStatusBadge = (status: string) => { ... };
+  // const formatAmount = (amount: number) => { ... };
+  // const formatDate = (dateString: string) => { ... };
 
   if (isLoading) {
     return (
@@ -155,9 +140,11 @@ export default function FarmerMyFarm() {
         {/* 목장 이미지 */}
         {myFarmData?.profileImage && (
           <div className="mb-6">
-            <img
+            <Image
               src={myFarmData.profileImage}
               alt={farmInfo.name}
+              width={800}
+              height={192}
               className="w-full h-48 object-cover rounded-lg"
             />
           </div>

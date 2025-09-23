@@ -34,29 +34,5 @@ export interface KakaoPayApproveResponse {
   };
 }
 
-// 기부하기 API 요청 (현재 버전)
-export interface DonationRequest {
-  farmUuid: string;       // 농장 UUID
-  amountKrw: number;      // 기부 금액 (원)
-}
-
-// 기부하기 API 요청 (이전 버전 - 참고용)
-// export interface DonationRequest {
-//   farmMemberUuid: string;  // 농장 멤버 UUID
-//   amountKrw: number;       // 기부 금액 (원)
-// }
-
-// 기부하기 API 응답
-export interface DonationResponse {
-  httpStatus: string;
-  isSuccess: boolean;
-  message: string;
-  code: number;
-  result: {
-    txHash: string;         // 블록체인 트랜잭션 해시
-    fromAddress: string;    // 기부자 주소
-    vaultAddress: string;   // 볼트 주소
-    tokenAmount: string;    // 토큰 금액
-    amountWei: string;      // Wei 단위 금액
-  };
-}
+// 기부하기 API는 백엔드에서 카카오페이 승인과 함께 자동 처리되므로
+// 프론트엔드에서 별도의 기부 API 타입은 불필요함

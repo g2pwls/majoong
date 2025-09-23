@@ -130,8 +130,8 @@ export interface MyFarmResponse {
     monthTotalAmount: number;
     area: number;
     description: string;
-    monthlyScores: any[]; // 향후 구체적인 타입 정의 필요
-    horses: any[]; // 향후 구체적인 타입 정의 필요
+    monthlyScores: unknown[]; // 향후 구체적인 타입 정의 필요
+    horses: unknown[]; // 향후 구체적인 타입 정의 필요
     ownerName: string;
   };
 }
