@@ -441,34 +441,57 @@ export default function DonationProofUpload({
       const idempotencyKey = generateIdempotencyKey();
       console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
 
-      // 백엔드 API 요구사항에 맞는 데이터 구성 (단순화)
+      // 백엔드 API 요구사항에 맞는 데이터 구성 (타입 및 유효성 검증 강화)
+      const reason = (certificationResult.reason || "기부금 증빙 정산").substring(0, 1000); // 최대 1000자
+      const storeName = (certificationResult.storeInfo?.name || "가게명").substring(0, 255); // 최대 255자
+      const storeAddress = (certificationResult.storeInfo?.address || "주소").substring(0, 255); // 최대 255자
+      const storePhone = (certificationResult.storeInfo?.phone || "전화번호").substring(0, 15); // 최대 15자
+      const content = `카테고리: ${selectedCategory}, 사용금액: ${usedAmount}원`.substring(0, 1000); // 최대 1000자
+      
+      const items = certificationResult.items ? certificationResult.items.map(item => ({
+        name: (item.name || "상품명").substring(0, 255), // 최대 255자
+        quantity: Math.max(1, parseInt(item.quantity) || 1), // 최소 1
+        unitPrice: Math.max(1, parseInt(item.unitPrice) || 0), // 최소 1
+        totalPrice: Math.max(1, parseInt(item.totalPrice) || 0) // 최소 1
+      })) : [{
+        name: (certificationResult.matchedItems?.[0] || "상품명").substring(0, 255),
+        quantity: 1,
+        unitPrice: Math.max(1, parseInt(usedAmount.replace(/,/g, ""))),
+        totalPrice: Math.max(1, parseInt(usedAmount.replace(/,/g, "")))
+      }];
+      
+      const receiptAmount = Math.max(1, parseInt(usedAmount.replace(/,/g, ""))); // 최소 1
+      const categoryId = getCategoryId(selectedCategory);
+      const approvalNumber = (certificationResult.paymentInfo?.approvalNumber || 
+        `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).substring(0, 255); // 최대 255자
+      
       const payload = {
-        reason: certificationResult.reason || "기부금 증빙 정산",
+        reason: reason,
         storeInfo: {
-          name: certificationResult.storeInfo?.name || "가게명",
-          address: certificationResult.storeInfo?.address || "주소",
-          phone: certificationResult.storeInfo?.phone || "전화번호"
+          name: storeName,
+          address: storeAddress,
+          phone: storePhone
         },
-        content: `카테고리: ${selectedCategory}, 사용금액: ${usedAmount}원`,
-        items: certificationResult.items ? certificationResult.items.map(item => ({
-          name: item.name,
-          quantity: parseInt(item.quantity) || 1,
-          unitPrice: parseInt(item.unitPrice) || 0,
-          totalPrice: parseInt(item.totalPrice) || 0
-        })) : [{
-          name: certificationResult.matchedItems?.[0] || "상품명",
-          quantity: 1,
-          unitPrice: parseInt(usedAmount.replace(/,/g, "")),
-          totalPrice: parseInt(usedAmount.replace(/,/g, ""))
-        }],
-        receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
-        categoryId: getCategoryId(selectedCategory),
+        content: content,
+        items: items,
+        receiptAmount: receiptAmount,
+        categoryId: categoryId,
         idempotencyKey: idempotencyKey,
-        approvalNumber: certificationResult.paymentInfo?.approvalNumber || 
-          `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 승인번호 (없으면 고유한 값 생성)
+        approvalNumber: approvalNumber,
       };
 
       console.log("API 요청 payload:", payload);
+      
+      // 데이터 유효성 검증
+      console.log("=== 데이터 유효성 검증 ===");
+      console.log("reason:", payload.reason, "길이:", payload.reason?.length);
+      console.log("storeInfo:", payload.storeInfo);
+      console.log("content:", payload.content, "길이:", payload.content?.length);
+      console.log("items:", payload.items, "개수:", payload.items?.length);
+      console.log("receiptAmount:", payload.receiptAmount, "타입:", typeof payload.receiptAmount);
+      console.log("categoryId:", payload.categoryId, "타입:", typeof payload.categoryId);
+      console.log("idempotencyKey:", payload.idempotencyKey, "길이:", payload.idempotencyKey?.length);
+      console.log("approvalNumber:", payload.approvalNumber, "길이:", payload.approvalNumber?.length);
       
       // 백엔드로 보낼 JSON 데이터를 콘솔에 출력
       console.log("=== 백엔드로 보낼 JSON 데이터 ===");
