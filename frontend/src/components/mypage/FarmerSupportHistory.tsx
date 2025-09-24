@@ -68,8 +68,11 @@ export default function FarmerSupportHistory() {
       if (response.isSuccess) {
         const { result } = response;
         
-        // 후원내역 데이터 설정
-        setDonationHistory(result.vaultHistoryResponseDtos.content);
+        // 후원내역 데이터 설정 (최신순으로 정렬)
+        const sortedContent = result.vaultHistoryResponseDtos.content.sort((a, b) => 
+          new Date(b.donationDate).getTime() - new Date(a.donationDate).getTime()
+        );
+        setDonationHistory(sortedContent);
         setTotalPages(result.vaultHistoryResponseDtos.totalPages);
         setTotalElements(result.vaultHistoryResponseDtos.totalElements);
         setCurrentPage(page);

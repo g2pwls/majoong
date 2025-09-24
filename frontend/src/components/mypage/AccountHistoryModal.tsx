@@ -13,6 +13,10 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
   const [accountHistory, setAccountHistory] = useState<AccountHistoryResponse['result'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   // 날짜 포맷팅 함수
   const formatDate = (dateStr: string) => {
@@ -35,23 +39,30 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
     return parseInt(amount).toLocaleString('ko-KR') + '원';
   };
 
-  // 거래 타입 판별 함수
-  const getTransactionType = (transaction: AccountTransaction, index: number, transactions: AccountTransaction[]) => {
-    // 첫 번째 거래이거나 이전 거래와 날짜가 다르면 입금으로 판단
-    if (index === 0) {
-      return '입금';
-    }
+  // 거래 타입 판별 함수 (계좌 거래 내역은 모두 입금)
+  const getTransactionType = () => {
+    return '입금';
+  };
+
+  // 페이지네이션 계산
+  const getPaginatedTransactions = () => {
+    if (!accountHistory?.transactions) return [];
     
-    const prevTransaction = transactions[index - 1];
-    const currentAmount = parseInt(transaction.amount);
-    const prevBalance = parseInt(prevTransaction.afterBalance);
-    
-    // 현재 잔액이 이전 잔액보다 크면 입금, 작으면 출금
-    if (parseInt(transaction.afterBalance) > prevBalance) {
-      return '입금';
-    } else {
-      return '출금';
-    }
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return accountHistory.transactions.slice(startIndex, endIndex);
+  };
+
+  const totalPages = accountHistory?.transactions ? Math.ceil(accountHistory.transactions.length / itemsPerPage) : 0;
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // 모달이 열릴 때 첫 페이지로 리셋
+  const resetPagination = () => {
+    setCurrentPage(1);
   };
 
   // 계좌 내역 조회
@@ -64,8 +75,17 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
       const response = await getAccountHistory();
       
       if (response.isSuccess) {
-        setAccountHistory(response.result);
-        console.log('계좌 내역 조회 성공:', response.result);
+        // 거래 내역을 최신순으로 정렬 (날짜+시간 기준)
+        const sortedResult = {
+          ...response.result,
+          transactions: response.result.transactions.sort((a, b) => {
+            const dateA = a.date + a.time; // YYYYMMDDHHMMSS 형식
+            const dateB = b.date + b.time;
+            return dateB.localeCompare(dateA); // 최신순 정렬
+          })
+        };
+        setAccountHistory(sortedResult);
+        console.log('계좌 내역 조회 성공 (최신순 정렬):', sortedResult);
       } else {
         setError(response.message || '계좌 내역을 불러올 수 없습니다.');
       }
@@ -80,6 +100,7 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
   // 모달이 열릴 때 데이터 조회
   useEffect(() => {
     if (isOpen) {
+      resetPagination();
       fetchAccountHistory();
     }
   }, [isOpen]);
@@ -189,12 +210,13 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {accountHistory.transactions.map((transaction, index) => {
-                            const transactionType = getTransactionType(transaction, index, accountHistory.transactions);
-                            const isDeposit = transactionType === '입금';
+                          {getPaginatedTransactions().map((transaction, index) => {
+                            // 전체 인덱스 계산 (페이지네이션을 고려한 실제 인덱스)
+                            const actualIndex = (currentPage - 1) * itemsPerPage + index;
+                            const transactionType = getTransactionType(); // 모든 거래는 입금
                             
                             return (
-                              <tr key={index} className="hover:bg-gray-50">
+                              <tr key={actualIndex} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                   <div>
                                     <div className="font-medium">{formatDate(transaction.date)}</div>
@@ -202,19 +224,13 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
                                   </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                    isDeposit 
-                                      ? 'bg-green-100 text-green-800' 
-                                      : 'bg-red-100 text-red-800'
-                                  }`}>
+                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     {transactionType}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                  <span className={`font-medium ${
-                                    isDeposit ? 'text-green-600' : 'text-red-600'
-                                  }`}>
-                                    {isDeposit ? '+' : '-'}{formatAmount(transaction.amount)}
+                                  <span className="font-medium text-green-600">
+                                    +{formatAmount(transaction.amount)}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -225,6 +241,83 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
                           })}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* 페이지네이션 */}
+                {totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-6 px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+                    <div className="flex-1 flex justify-between sm:hidden">
+                      <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        이전
+                      </button>
+                      <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        다음
+                      </button>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          총 <span className="font-medium">{accountHistory?.transactions.length || 0}</span>개 중{' '}
+                          <span className="font-medium">
+                            {(currentPage - 1) * itemsPerPage + 1}
+                          </span>
+                          -
+                          <span className="font-medium">
+                            {Math.min(currentPage * itemsPerPage, accountHistory?.transactions.length || 0)}
+                          </span>
+                          개 표시
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                          <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="sr-only">이전</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          
+                          {/* 페이지 번호들 */}
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                page === currentPage
+                                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                          
+                          <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <span className="sr-only">다음</span>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                        </nav>
+                      </div>
                     </div>
                   </div>
                 )}
