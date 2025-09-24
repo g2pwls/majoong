@@ -210,6 +210,9 @@ export interface ScoreHistoryItem {
   createdAt: string;
   category: string;
   score: number;
+  year: number;
+  month: number;
+  delta: number;
   sourceId: string;
 }
 

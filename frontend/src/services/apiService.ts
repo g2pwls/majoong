@@ -460,7 +460,7 @@ export async function submitReceiptSettlement(
     formData.append('payload', JSON.stringify(payload));
     formData.append('photo', photoFile);
 
-    const response = await apiClient.post('/api/v1/receipt/settlement', formData, {
+    const response = await apiClient.post('/api/v1/settlement-withdraw-burn', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
