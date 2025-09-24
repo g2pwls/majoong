@@ -1,6 +1,7 @@
 package com.e105.majoong.farm.service;
 
 import com.e105.majoong.common.model.receiptHistory.ReceiptHistory;
+import com.e105.majoong.common.model.receiptHistory.ReceiptHistoryCustom;
 import com.e105.majoong.farm.dto.out.*;
 import com.e105.majoong.common.model.receiptHistory.ReceiptHistoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 public class MonthlyDonationServiceImpl implements MonthlyDonationService {
 
     private final ReceiptHistoryRepository receiptHistoryRepository;
+    private final ReceiptHistoryCustom receiptHistoryCustom;
 
     @Override
     public DonationUsageResponseDto getDonationUsage(String farmUuid, Integer year, Integer month) {
@@ -27,7 +29,7 @@ public class MonthlyDonationServiceImpl implements MonthlyDonationService {
         int targetYear = (year != null) ? year : now.getYear();
         int targetMonth = (month != null) ? month : now.getMonthValue();
 
-        List<Object[]> monthlyRaw = receiptHistoryRepository.findMonthlyDonationUsed(farmUuid);
+        List<Object[]> monthlyRaw = receiptHistoryCustom.findMonthlyDonationUsed(farmUuid);
         List<MonthlyDonationUsedDto> monthlyDonationUsed = monthlyRaw.stream()
                 .map(MonthlyDonationUsedDto::from)
                 .collect(Collectors.toList());
@@ -56,12 +58,12 @@ public class MonthlyDonationServiceImpl implements MonthlyDonationService {
         LocalDateTime start = firstDayOfLastMonth.atStartOfDay();
         LocalDateTime end = lastDayOfLastMonth.atTime(LocalTime.MAX);
 
-        Object[] total = (Object[]) receiptHistoryRepository.findTotalStatsLastMonth(farmUuid, start, end);
+        Object[] total = (Object[]) receiptHistoryCustom.findTotalStatsLastMonth(farmUuid, start, end);
 
         int totalCount = total[0] != null ? ((Number) total[0]).intValue() : 0;
         long totalAmount = total[1] != null ? ((Number) total[1]).longValue() : 0L;
 
-        List<Object[]> categoryStats = receiptHistoryRepository.findCategoryStatsLastMonth(farmUuid, start, end);
+        List<Object[]> categoryStats = receiptHistoryCustom.findCategoryStatsLastMonth(farmUuid, start, end);
 
         List<LastMonthUsageDetailDto> details = categoryStats.stream()
                 .map(obj -> new LastMonthUsageDetailDto(
