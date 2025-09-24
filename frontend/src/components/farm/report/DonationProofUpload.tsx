@@ -84,6 +84,15 @@ export default function DonationProofUpload({
     };
   }, [abortController]);
 
+  // 컴포넌트 렌더링 추적
+  useEffect(() => {
+    console.log("=== DonationProofUpload 컴포넌트 렌더링됨 ===", { 
+      farmUuid, 
+      submitting,
+      timestamp: new Date().toISOString()
+    });
+  });
+
   const handleDragStart = (e: React.DragEvent, type: string) => {
     if (donationData[farmUuid]?.[type]) {
       setDraggedType(type);
@@ -325,6 +334,8 @@ export default function DonationProofUpload({
 
   // ---- 제출 처리 ----
   const handleSubmit = async () => {
+    console.log("=== handleSubmit 호출됨 ===", { submitting, timestamp: new Date().toISOString() });
+    
     // 중복 실행 방지
     if (submitting) {
       console.log("이미 제출 중입니다. 중복 요청을 무시합니다.");
@@ -333,14 +344,17 @@ export default function DonationProofUpload({
 
     // 이전 요청이 있다면 취소
     if (abortController) {
+      console.log("이전 요청을 취소합니다.");
       abortController.abort();
     }
 
     // 새로운 AbortController 생성
     const newAbortController = new AbortController();
     setAbortController(newAbortController);
+    console.log("새로운 AbortController 생성됨");
 
     try {
+      console.log("setSubmitting(true) 호출");
       setSubmitting(true);
       setSubmitError(null);
       setSubmitSuccess(false);
@@ -467,6 +481,8 @@ export default function DonationProofUpload({
       console.log("payload:", JSON.stringify(payload));
       console.log("photo: File 객체 (certification 이미지)");
       console.log("================================");
+      
+      console.log("=== API 호출 시작 ===", { timestamp: new Date().toISOString() });
 
       // 인증사진을 File 객체로 변환
       let photoFile: File;
@@ -503,7 +519,15 @@ export default function DonationProofUpload({
       formData.append('photo', photoFile);
 
       const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const response = await fetch(`${backendUrl}/api/v1/settlement-withdraw-burn`, {
+      const apiUrl = `${backendUrl}/api/v1/settlement-withdraw-burn`;
+      console.log("=== fetch 요청 시작 ===", { 
+        url: apiUrl, 
+        method: 'POST',
+        timestamp: new Date().toISOString(),
+        hasSignal: !!newAbortController.signal
+      });
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
@@ -511,6 +535,13 @@ export default function DonationProofUpload({
         },
         body: formData,
         signal: newAbortController.signal,
+      });
+      
+      console.log("=== fetch 응답 받음 ===", { 
+        status: response.status, 
+        statusText: response.statusText,
+        ok: response.ok,
+        timestamp: new Date().toISOString()
       });
 
       if (!response.ok) {
@@ -941,6 +972,12 @@ export default function DonationProofUpload({
         <button 
           className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
           onClick={(e) => {
+            console.log("=== 제출 버튼 클릭됨 ===", { 
+              submitting, 
+              timestamp: new Date().toISOString(),
+              eventType: e.type,
+              target: e.target
+            });
             e.preventDefault();
             e.stopPropagation();
             handleSubmit();
