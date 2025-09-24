@@ -49,21 +49,21 @@ export default function FarmerMyFarm() {
             imageUrl: farmData.profileImage,
             totalSupport: farmData.monthTotalAmount,
             supportCount: 0, // API에서 제공되지 않는 필드
-            status: 'active',
+      status: 'active',
             createdAt: '', // API에서 제공되지 않는 필드
             lastUpdated: '' // API에서 제공되지 않는 필드
-          };
-          
+    };
+    
           setFarmInfo(farmInfo);
-          setEditedInfo({
+    setEditedInfo({
             name: farmData.farmName,
             description: farmData.description
-          });
+    });
         }
       } catch (error) {
         console.error('나의 목장 정보 조회 오류:', error);
       } finally {
-        setIsLoading(false);
+    setIsLoading(false);
       }
     };
 
@@ -134,12 +134,12 @@ export default function FarmerMyFarm() {
             >
               내 목장 보기
             </button>
-            <button
-              onClick={() => setIsEditing(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              정보 수정
-            </button>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            정보 수정
+          </button>
           </div>
         )}
       </div>
@@ -213,28 +213,28 @@ export default function FarmerMyFarm() {
           {isEditing ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  목장명
-                </label>
-                <input
-                  type="text"
-                  value={editedInfo.name}
-                  onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="목장명을 입력하세요"
-                />
-              </div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            목장명
+          </label>
+            <input
+              type="text"
+              value={editedInfo.name}
+              onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="목장명을 입력하세요"
+            />
+            </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  목장 설명
-                </label>
-                <textarea
-                  value={editedInfo.description}
-                  onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="목장에 대한 설명을 입력하세요"
-                />
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            목장 설명
+          </label>
+            <textarea
+              value={editedInfo.description}
+              onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="목장에 대한 설명을 입력하세요"
+            />
               </div>
             </div>
           ) : (
