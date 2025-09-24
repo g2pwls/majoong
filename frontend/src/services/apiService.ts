@@ -443,9 +443,29 @@ interface ReceiptSettlementPayload {
 }
 
 interface ReceiptSettlementResponse {
-  id: string;
-  status: string;
-  message: string;
+  settlement: {
+    released: boolean;
+    reason: string;
+    farmerWallet: string;
+    vaultAddress: string;
+    releasedAmount: string;
+  };
+  withdraw: {
+    responseCode: string;
+    responseMessage: string;
+    rec: Array<{
+      transactionUniqueNo: string;
+      accountNo: string;
+      transactionDate: string;
+      transactionType: string;
+      transactionTypeName: string;
+      transactionAccountNo: string;
+    }>;
+  };
+  burn: {
+    burnTxHash: string | null;
+    burnSucceeded: boolean;
+  };
 }
 
 // 중복 요청 방지를 위한 요청 추적 (멱등성 키별로 관리)
@@ -480,15 +500,22 @@ export async function submitReceiptSettlement(
 
     console.log("=== submitReceiptSettlement 응답 받음 ===", { 
       status: response.status,
-      isSuccess: response.data?.isSuccess,
+      responseData: response.data,
       timestamp: new Date().toISOString()
     });
 
-    if (!response.data.isSuccess) {
-      throw new Error(`정산 제출 실패: ${response.data.message}`);
+    // 백엔드에서 SettlementWithdrawBurnResponseDto를 직접 반환하므로 응답 구조가 다름
+    // response.data가 직접 SettlementWithdrawBurnResponseDto 객체
+    if (response.status !== 200) {
+      throw new Error(`정산 제출 실패: HTTP ${response.status}`);
     }
 
-    return response.data.result;
+    // 정산 결과 확인
+    if (response.data?.settlement?.released === false) {
+      throw new Error(`정산 제출 실패: ${response.data.settlement?.reason || '알 수 없는 오류'}`);
+    }
+
+    return response.data;
   } catch (error: unknown) {
     console.error('정산 제출 실패:', error);
     

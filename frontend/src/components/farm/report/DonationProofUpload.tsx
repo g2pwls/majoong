@@ -583,6 +583,11 @@ export default function DonationProofUpload({
       
       setSubmitSuccess(true);
       console.log("제출 성공:", result);
+      
+      // 성공 메시지 표시
+      if (result?.settlement?.released) {
+        console.log("정산 성공:", result.settlement);
+      }
     } catch (e: unknown) {
       console.error("제출 에러:", e);
       
