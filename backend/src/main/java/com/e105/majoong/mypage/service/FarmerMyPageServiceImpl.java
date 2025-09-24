@@ -63,4 +63,9 @@ public class FarmerMyPageServiceImpl implements FarmerMyPageService {
             farm.updatePhoneNumber(phoneNumber);
         }
     }
+
+    @Override
+    public boolean checkCreateFarm(String memberUuid) {
+        return farmRepository.existsByMemberUuid(memberUuid);
+    }
 }
