@@ -49,6 +49,8 @@ public enum BaseResponseStatus {
     FAILED_TO_SIGN_UP(HttpStatus.INTERNAL_SERVER_ERROR, false, 2013, "회원가입에 실패했습니다."),
     INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, false, 2015, "올바르지 않은 입력값입니다."),
     NO_EXIST_FARMER(HttpStatus.BAD_REQUEST, false, 2016, "존재하지 않는 목장주입니다."),
+    VAULT_FARMER_MISMATCH(HttpStatus.BAD_REQUEST, false, 2017, "금고의 목장주와 요청한 목장주가 일치하지 않습니다."),
+
      // Farm
     NO_EXIST_FARM(HttpStatus.NOT_FOUND, false, 2401, "존재하지 않는 농장입니다."),
     NO_EXIST_HORSE(HttpStatus.NOT_FOUND, false, 2402, "존재하지 않는 말입니다."),

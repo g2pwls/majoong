@@ -293,7 +293,7 @@ export default function SupportPage() {
     
     const bookmarkIds = new Set(
       farms
-        .filter(farm => farm.bookmark === true)
+        .filter(farm => farm.bookmarked === true)
         .map(farm => farm.id)
     );
     setBookmarkedFarms(bookmarkIds);

@@ -56,7 +56,7 @@ export interface Farm {
   month_total_amount?: number;
   purpose_total_amount?: number;
   member_uuid?: string; // 목장 소유자 UUID
-  bookmark?: boolean; // 즐겨찾기 상태
+  bookmarked?: boolean; // 즐겨찾기 상태
 }
 
 export interface Horse {
@@ -144,7 +144,7 @@ export async function getFarms(params: {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
-      bookmark: farm.bookmark || false, // 북마크 상태 매핑
+      bookmarked: farm.bookmark || false, // 북마크 상태 매핑
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;
@@ -209,7 +209,7 @@ export async function getFarm(farmUuid: string): Promise<Farm> {
       description: farm.description,
       month_total_amount: farm.monthTotalAmount,
       purpose_total_amount: farm.purposeTotalAmount,
-      bookmark: farm.bookmark || false, // 북마크 상태 추가
+      bookmarked: farm.bookmark || false, // 북마크 상태 추가
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;
