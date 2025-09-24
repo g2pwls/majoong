@@ -20,7 +20,7 @@ public final class TokenUnits {
   /** KRW → 정수 MARON 토큰 개수 (정책 검증 포함) */
   public static long krwToMaronTokensExact(long krw, long krwPerToken) {
     assertKrwIsValid(krw, krwPerToken);
-    return krw / krwPerToken;  // ex) 5000원, 100원/토큰 → 50
+    return krw / krwPerToken;  // ex) 5000원,100원/토큰 → 50
   }
 
   /** 정수 MARON 토큰 개수 → 최소단위(wei) */
