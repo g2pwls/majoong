@@ -103,7 +103,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         />
       </div>
 
-      <div className="flex flex-col items-end">
+      <div className="flex flex-col">
         {/* Countdown Text */}
         {deadlineText && (
           <div className="mb-2 text-sm text-gray-600">

@@ -461,7 +461,7 @@ export default function DonationProofUpload({
       }];
       
       const receiptAmount = Math.max(1, parseInt(usedAmount.replace(/,/g, ""))); // 최소 1
-      const categoryId = getCategoryId(selectedCategory);
+      const categoryId = Number(getCategoryId(selectedCategory)); // Long 타입으로 명시적 변환
       const approvalNumber = (certificationResult.paymentInfo?.approvalNumber || 
         `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).substring(0, 255); // 최대 255자
       
@@ -489,7 +489,7 @@ export default function DonationProofUpload({
       console.log("content:", payload.content, "길이:", payload.content?.length);
       console.log("items:", payload.items, "개수:", payload.items?.length);
       console.log("receiptAmount:", payload.receiptAmount, "타입:", typeof payload.receiptAmount);
-      console.log("categoryId:", payload.categoryId, "타입:", typeof payload.categoryId);
+      console.log("categoryId:", payload.categoryId, "타입:", typeof payload.categoryId, "값:", payload.categoryId);
       console.log("idempotencyKey:", payload.idempotencyKey, "길이:", payload.idempotencyKey?.length);
       console.log("approvalNumber:", payload.approvalNumber, "길이:", payload.approvalNumber?.length);
       
