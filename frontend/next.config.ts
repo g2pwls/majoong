@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Windows에서 심볼릭 링크 문제로 인해 standalone 제거
   // git에 올릴 때는 주석 해제, 로컬 개발 시 주석 처리
-  // output: "standalone",
+  output: "standalone",
   // 환경 변수 설정
   env: {
     HORSE_API_SERVICE_KEY: "d4e16bc9a7869e789fee7e1593044398075b8dbaf6d49e5687aba9231bb1c112",
