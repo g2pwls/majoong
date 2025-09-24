@@ -71,6 +71,7 @@ public enum BaseResponseStatus {
     INVALID_WALLET_ADDRESS(HttpStatus.BAD_REQUEST, false, 2605, "유효하지 않은 지갑 주소입니다."),
     INVALID_AMOUNT(HttpStatus.BAD_REQUEST, false, 2606, "유효하지 않은 금액입니다."),
     NO_ACTIVE_FARM_VAULT(HttpStatus.NOT_FOUND, false, 2607, "활성화된 목장 금고가 없습니다."),
+    WITHDRAW_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, false, 2608, "출금 요청에 실패했습니다."),
 
     //score
     INVALID_SCORE_CATEGORY(HttpStatus.BAD_REQUEST, false, 3001, "유효하지 않은 점수 카테고리입니다."),
