@@ -41,6 +41,13 @@ public class FarmerMyPageController {
         return new BaseResponse<>(dto);
     }
 
+    @GetMapping("/farm/existence")
+    @Operation(summary = "목장주 목장 생성 여부 조회")
+    public BaseResponse<Boolean> checkCreateFarm(
+            @AuthenticationPrincipal CustomUserDetails user) {
+        return new BaseResponse<>(farmerMyPageService.checkCreateFarm(user.getMemberUuid()));
+    }
+
     @GetMapping("/donations")
     @Operation(summary = "목장주 금고 기부 내역 조회(시작 날짜와 끝 날짜를 지정해서 조회 가능)")
     public BaseResponse<VaultResponseDto> getVaultHistory(@AuthenticationPrincipal CustomUserDetails user,
