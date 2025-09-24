@@ -10,7 +10,7 @@ public interface FarmerMyPageService {
     VaultResponseDto getVaultHistoryByPage(
             String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate);
 
-    void updateFarmers(String memberUuid, String farmName, String phoneNumber, MultipartFile image);
+    void updateFarmers(String memberUuid, String farmName, String phoneNumber, MultipartFile image, String description);
 
     boolean checkCreateFarm(String memberUuid);
 }
