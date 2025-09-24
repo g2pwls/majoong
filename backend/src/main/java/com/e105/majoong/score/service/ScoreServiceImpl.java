@@ -1,7 +1,7 @@
 package com.e105.majoong.score.service;
 
-import com.e105.majoong.common.model.myScore.MyScore;
 import com.e105.majoong.common.model.myScore.MyScoreRepository;
+import com.e105.majoong.common.model.myScore.MyScoreRepositoryCustom;
 import com.e105.majoong.farm.dto.out.ScoreHistoryAvgResponseDto;
 import com.e105.majoong.farm.dto.out.ScoreHistoryResponseDto;
 import com.e105.majoong.score.dto.in.CreateScoreDto;
@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class ScoreServiceImpl implements ScoreService {
     private final MyScoreRepository myScoreRepository;
+    private final MyScoreRepositoryCustom myScoreRepositoryCustom;
 
     @Override
     @Transactional
@@ -27,7 +28,7 @@ public class ScoreServiceImpl implements ScoreService {
     @Override
     public List<ScoreHistoryAvgResponseDto> getScoreHistory(String farmUuid, Integer year) {
         int targetYear = (year != null) ? year : LocalDate.now().getYear();
-        return myScoreRepository.findMonthlyScoreHistory(farmUuid, targetYear);
+        return myScoreRepositoryCustom.findMonthlyScoreHistory(farmUuid, targetYear);
     }
 
     @Override
@@ -35,6 +36,6 @@ public class ScoreServiceImpl implements ScoreService {
         LocalDate now = LocalDate.now();
         int targetYear = (year != null) ? year : now.getYear();
 
-        return myScoreRepository.findScoreHistory(farmUuid, targetYear, month);
+        return myScoreRepositoryCustom.findScoreHistory(farmUuid, targetYear, month);
     }
 }
