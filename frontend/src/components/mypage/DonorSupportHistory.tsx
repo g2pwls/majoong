@@ -38,7 +38,12 @@ export default function DonorSupportHistory() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDonationId, setSelectedDonationId] = useState<number | null>(null);
 
-  const fetchDonationHistory = useCallback(async (page: number = 0, isInitialLoad: boolean = false) => {
+  const fetchDonationHistory = useCallback(async (
+    page: number = 0, 
+    isInitialLoad: boolean = false, 
+    filterStartDate?: string, 
+    filterEndDate?: string
+  ) => {
     try {
       // 초기 로드는 전체 로딩, 그 외에는 리스트만 로딩
       if (isInitialLoad) {
@@ -53,8 +58,12 @@ export default function DonorSupportHistory() {
         size: pageSize,
       };
       
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+      // 필터 매개변수가 제공되면 사용, 아니면 상태값 사용
+      const useStartDate = filterStartDate !== undefined ? filterStartDate : startDate;
+      const useEndDate = filterEndDate !== undefined ? filterEndDate : endDate;
+      
+      if (useStartDate) params.startDate = useStartDate;
+      if (useEndDate) params.endDate = useEndDate;
       
       const response: DonationHistoryResponse = await getDonationHistory(params);
       
@@ -78,7 +87,7 @@ export default function DonorSupportHistory() {
         setIsListLoading(false);
       }
     }
-  }, [pageSize, startDate, endDate]);
+  }, [pageSize]);
 
   useEffect(() => {
     // 컴포넌트 마운트 시에만 초기 데이터 로드
@@ -86,16 +95,17 @@ export default function DonorSupportHistory() {
   }, [fetchDonationHistory]); // fetchDonationHistory를 의존성에 추가
 
   const handleDateFilter = () => {
-    fetchDonationHistory(0, false); // 리스트만 로딩
+    fetchDonationHistory(0, false, startDate, endDate); // 리스트만 로딩
   };
 
   const handlePageChange = (page: number) => {
-    fetchDonationHistory(page, false); // 리스트만 로딩
+    fetchDonationHistory(page, false, startDate, endDate); // 현재 날짜 필터로 페이지 변경
   };
 
   const clearDateFilter = () => {
     setStartDate('');
     setEndDate('');
+    fetchDonationHistory(0, false, '', ''); // 빈 날짜로 즉시 조회
   };
 
 
