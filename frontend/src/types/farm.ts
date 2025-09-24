@@ -79,7 +79,7 @@ export interface WeeklyReport {
 }
 
 export interface HorseDetailResult {
-  horseNumber: number;
+  horseNumber: string;
   horseName: string;
   farmName: string;
   birth: string;
