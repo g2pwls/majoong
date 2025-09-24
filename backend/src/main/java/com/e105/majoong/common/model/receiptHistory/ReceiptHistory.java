@@ -57,7 +57,7 @@ public class ReceiptHistory {
     private String idempotencyKey;
 
     @Column(nullable=false, unique=true)
-    private Long approvalNumber;
+    private String approvalNumber;
 
     public void updateCategoryId(Long categoryId){ this.categoryId = categoryId; }
     public void updateSummary(String aiSummary){ this.aiSummary = aiSummary; }

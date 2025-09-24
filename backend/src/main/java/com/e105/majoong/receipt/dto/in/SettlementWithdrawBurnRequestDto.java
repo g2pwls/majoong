@@ -45,8 +45,8 @@ public class SettlementWithdrawBurnRequestDto {
   private String idempotencyKey;
 
   /** 승인 번호 (필수) */
-  @NotNull
-  private Long approvalNumber;
+  @NotBlank
+  private String approvalNumber;
 
   // ---------- inner ----------
   @Getter
