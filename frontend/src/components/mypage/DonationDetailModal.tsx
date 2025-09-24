@@ -186,12 +186,17 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">거래 해시</label>
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
+                      <a
+                        href={`https://sepolia.etherscan.io/tx/${donationDetail.txHash}#eventlog`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                      >
                         {donationDetail.txHash}
-                      </p>
+                      </a>
                       <button
                         onClick={() => copyToClipboard(donationDetail.txHash)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-blue-600 hover:text-blue-800 flex-shrink-0"
                         title="복사"
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -199,6 +204,9 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                         </svg>
                       </button>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      클릭하면 Etherscan에서 블록체인 거래를 확인할 수 있습니다
+                    </p>
                   </div>
                 </div>
               </div>
