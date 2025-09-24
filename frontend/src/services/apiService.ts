@@ -492,8 +492,23 @@ export async function submitReceiptSettlement(
     }
 
     return response.data.result;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('정산 제출 실패:', error);
+    
+    // 상세한 에러 정보 로깅
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number; statusText: string; data: unknown } };
+      console.error('응답 에러:', {
+        status: axiosError.response.status,
+        statusText: axiosError.response.statusText,
+        data: axiosError.response.data
+      });
+    } else if (error && typeof error === 'object' && 'request' in error) {
+      console.error('요청 에러:', (error as { request: unknown }).request);
+    } else {
+      console.error('기타 에러:', error instanceof Error ? error.message : String(error));
+    }
+    
     throw error;
   } finally {
     isSubmitting = false;
