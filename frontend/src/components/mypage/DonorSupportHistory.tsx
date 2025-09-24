@@ -191,37 +191,39 @@ export default function DonorSupportHistory() {
 
       {/* 날짜 필터 */}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">시작일:</label>
+            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">시작일:</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm flex-1 min-w-0"
             />
           </div>
           <div className="flex items-center space-x-2">
-            <label className="text-sm font-medium text-gray-700">종료일:</label>
+            <label className="text-sm font-medium text-gray-700 whitespace-nowrap">종료일:</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm flex-1 min-w-0"
             />
           </div>
-          <button
-            onClick={handleDateFilter}
-            className="px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
-          >
-            조회
-          </button>
-          <button
-            onClick={clearDateFilter}
-            className="px-4 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition-colors"
-          >
-            초기화
-          </button>
+          <div className="flex gap-2 sm:flex-shrink-0">
+            <button
+              onClick={handleDateFilter}
+              className="px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors flex-1 sm:flex-initial"
+            >
+              조회
+            </button>
+            <button
+              onClick={clearDateFilter}
+              className="px-4 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition-colors flex-1 sm:flex-initial"
+            >
+              초기화
+            </button>
+          </div>
         </div>
       </div>
       

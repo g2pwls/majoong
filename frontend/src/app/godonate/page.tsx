@@ -22,6 +22,7 @@ export default function GoDonatePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
@@ -58,6 +59,7 @@ export default function GoDonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
+    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -91,6 +93,7 @@ export default function GoDonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
+    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {
