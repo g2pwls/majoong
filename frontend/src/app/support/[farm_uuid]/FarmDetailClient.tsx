@@ -43,9 +43,9 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         console.log('농장 상세 데이터:', data);
         if (mounted) setFarm(data);
         
-        // 즐겨찾기 상태 확인 (farm.bookmark 속성 사용)
+        // 즐겨찾기 상태 확인 (farm.bookmarked 속성 사용)
         if (isDonator()) {
-          if (mounted) setIsBookmarked(data.bookmark || false);
+          if (mounted) setIsBookmarked(data.bookmarked || false);
         }
       } catch (e) {
         console.error('농장 상세 조회 실패:', e);
