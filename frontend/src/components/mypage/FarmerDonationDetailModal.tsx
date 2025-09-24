@@ -123,7 +123,7 @@ export default function FarmerDonationDetailModal({ isOpen, onClose, donationDat
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">거래 유형</label>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                      {donationData.type === 'DONATION' ? '기부 받음' : donationData.type}
+                      {donationData.type === 'DONATION' ? '기부' : donationData.type}
                     </span>
                   </div>
                   
