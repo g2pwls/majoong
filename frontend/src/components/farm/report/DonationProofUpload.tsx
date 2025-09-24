@@ -442,9 +442,7 @@ export default function DonationProofUpload({
         }],
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
         categoryId: getCategoryId(selectedCategory),
-        approvalNumber: certificationResult.paymentInfo?.approvalNumber 
-          ? parseInt(certificationResult.paymentInfo.approvalNumber) 
-          : parseInt(crypto.randomUUID().replace(/-/g, '').substring(0, 8), 16), // 승인번호 (없으면 UUID 기반 고유값)
+        approvalNumber: parseInt(certificationResult.paymentInfo?.approvalNumber || "0") || 0, // 승인번호 (없으면 0)
         idempotencyKey: idempotencyKey
       };
 
