@@ -7,7 +7,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-test.majoon
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000, // 30초로 증가 (영수증 처리 시간 고려)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -479,6 +479,7 @@ export async function submitReceiptSettlement(
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      timeout: 60000, // 영수증 제출은 60초로 별도 설정 (이미지 처리 시간 고려)
     });
 
     console.log("=== submitReceiptSettlement 응답 받음 ===", { 
@@ -507,6 +508,11 @@ export async function submitReceiptSettlement(
       console.error('요청 에러:', (error as { request: unknown }).request);
     } else {
       console.error('기타 에러:', error instanceof Error ? error.message : String(error));
+    }
+    
+    // 타임아웃 에러에 대한 특별 처리
+    if (error instanceof Error && error.message.includes('timeout')) {
+      throw new Error('요청 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
     }
     
     throw error;
