@@ -16,6 +16,7 @@ import com.e105.majoong.finance.service.FinApiServiceImpl;
 import com.e105.majoong.common.model.donator.DonatorRepository;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
 import com.e105.majoong.common.model.oAuthMember.OauthMemberRepository;
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -132,10 +133,20 @@ public class AuthService {
       var keccakKey = toUint256FromMemberUuid(memberUuid);
 
       // 3) Vault 생성(관리자 서명) + DB 저장(farm_vaults)
-      var fv = vaultService.createVaultAndPersist(keccakKey, created.address(), memberUuid);
+      var fv = vaultService.createVaultAndPersist(keccakKey, farmer.getWalletAddress(), memberUuid);
       log.info("Vault created & persisted: memberUuid={}, farmId={}, vault={}, tx={}",
           memberUuid, keccakKey, fv.getVaultAddress(), fv.getDeployTxHash());
 
+      //검증
+      String onchainFarmer = null;
+      try {
+        onchainFarmer = vaultService.getOnchainFarmer(fv.getVaultAddress());
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      if (!onchainFarmer.equalsIgnoreCase(farmer.getWalletAddress())) {
+        throw new BaseException(BaseResponseStatus.VAULT_FARMER_MISMATCH);
+      }
     } else if ("donator".equalsIgnoreCase(req.getRole().name())) {
       // 1) 기본 정보 저장
       Donator donator = donatorRepository.save(req.toDonator(memberUuid));
@@ -188,12 +199,12 @@ public class AuthService {
     return AuthSignInResponseDto.ofRefresh(memberUuid, newAccess, newRefresh, Role.valueOf(role.toUpperCase()));
   }
 
-  /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */
-  private static java.math.BigInteger toUint256FromMemberUuid(String memberUuid) {
+  private static BigInteger toUint256FromMemberUuid(String memberUuid) {
     if (memberUuid == null || memberUuid.isBlank()) {
       throw new IllegalArgumentException("memberUuid is required for farmer");
     }
     String hex = Numeric.cleanHexPrefix(Hash.sha3String(memberUuid));
-    return new java.math.BigInteger(hex, 16);
+    byte[] bytes = Numeric.hexStringToByteArray(hex);
+    return new BigInteger(1, bytes); // 1 → 양수로 간주
   }
 }
