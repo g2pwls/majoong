@@ -1,4 +1,4 @@
-package com.e105.majoong.withdraw.dto.out;
+package com.e105.majoong.receipt.dto.out;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -26,4 +26,15 @@ public class OpenAIWebClientConfig {
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
+
+    @Bean(name = "openAiImageWebClient")
+    public WebClient openAiImageWebClient(WebClient.Builder builder) {
+        return builder
+                .baseUrl("") // imageBaseUrl을 직접 넣지 않고 호출에서 사용
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .codecs(configurer ->
+                        configurer.defaultCodecs().maxInMemorySize(16 * 1024 * 1024)) // 16MB
+                .build();
+    }
+
 }

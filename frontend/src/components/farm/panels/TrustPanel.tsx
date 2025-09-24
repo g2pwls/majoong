@@ -110,16 +110,6 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
   };
 
 
-  // 카테고리별 점수 매핑
-  const getCategoryScore = (category: string) => {
-    const categoryScores: { [key: string]: number } = {
-      'farm_photo': 1,
-      'horse_photo': 5,
-      'receipt': 1,
-      'not_uploaded': -5
-    };
-    return categoryScores[category] || 0;
-  };
 
   // 정렬된 신뢰도 상세 내역 (최신순)
   const getSortedScoreHistoryList = () => {
@@ -256,7 +246,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
                       <div className="text-right flex flex-row items-center gap-4">
                         <div className="text-right">
                           <p className="text-xs text-gray-500">
-                            {getCategoryScore(item.category) > 0 ? '+' : ''}{getCategoryScore(item.category)}점
+                            {item.delta > 0 ? '+' : ''}{item.delta}점
                           </p>
                         </div>
                         <div className="text-right flex flex-row items-center">

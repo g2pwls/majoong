@@ -16,8 +16,8 @@ public class DonationRequestDto {
   @NotBlank
   private String farmUuid;   // 목장주 farm_uuid (farm.farm_uuid)
 
-  @Min(1000)
-  private long amountKrw;          // 원화 금액 (정책: 예) 1000원 = 1 토큰)
+  @Min(100)
+  private long amountKrw;          // 원화 금액 (정책: 예) 100원 = 1 토큰)
 
   public DonationHistory toEntity(
       String farmUuid,

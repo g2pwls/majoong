@@ -159,7 +159,7 @@ export class FarmService {
   // 말 정보 등록
   static async registerHorse(horseData: {
     farmUuid: string;
-    horseNumber: number;
+    horseNumber: string;
     horseName: string;
     birth: string;
     gender: string;
@@ -262,7 +262,7 @@ export class FarmService {
   }
 
   // 말 상세 정보 조회
-  static async getHorseDetail(farmUuid: string, horseNumber: number, year: number, month: number): Promise<HorseDetailResponse> {
+  static async getHorseDetail(farmUuid: string, horseNumber: string, year: number, month: number): Promise<HorseDetailResponse> {
     try {
       const response = await apiClient.get(`/api/v1/farms/${farmUuid}/horses/${horseNumber}`, {
         params: { year, month },
@@ -563,7 +563,7 @@ export class FarmService {
   // 말 관리 상태 업로드
   static async uploadHorseManagementStatus(
     farmUuid: string,
-    horseNumber: number,
+    horseNumber: string,
     data: {
       frontImage?: File;
       leftSideImage?: File;
@@ -661,7 +661,7 @@ export class FarmService {
   // 주간 보고서 조회 (말 상세 페이지용)
   static async getHorseWeeklyReports(
     farmUuid: string, 
-    horseNumber: number, 
+    horseNumber: string, 
     year?: number, 
     month?: number
   ): Promise<HorseDetailResponse> {
@@ -727,7 +727,7 @@ export class FarmService {
   }
 
   // 말 삭제
-  static async deleteHorse(farmUuid: string, horseNumber: number): Promise<void> {
+  static async deleteHorse(farmUuid: string, horseNumber: string): Promise<void> {
     try {
       console.log('말 삭제 API 요청:', {
         farmUuid,

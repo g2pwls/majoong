@@ -335,7 +335,7 @@ export default function HorseImageUpload({
     try {
       console.log('말 관리 상태 제출 시작:', {
         farmUuid,
-        horseNumber: parseInt(horseNo),
+        horseNumber: horseNo,
         specialRemarks
       });
 
@@ -344,7 +344,7 @@ export default function HorseImageUpload({
       
       await FarmService.uploadHorseManagementStatus(
         farmUuid,
-        parseInt(horseNo),
+        horseNo,
         {
           frontImage: horseFiles['front'],
           leftSideImage: horseFiles['side'],

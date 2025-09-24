@@ -1,15 +1,17 @@
-package com.e105.majoong.report.batch;
+package com.e105.majoong.batch.report;
 
+import com.e105.majoong.ai.OpenAIService;
 import com.e105.majoong.common.model.farm.Farm;
-import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.model.horse.QHorse;
 import com.e105.majoong.common.model.horseState.HorseState;
 import com.e105.majoong.common.model.horseState.QHorseState;
 import com.e105.majoong.common.model.monthlyReport.MonthlyReport;
 import com.e105.majoong.common.model.receiptHistory.QReceiptHistory;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,14 +22,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
+@Slf4j
 public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport> {
 
-    private final OpenAiService openAiService;
+    private final OpenAIService openAiService;
     private final JPAQueryFactory queryFactory;
 
-    private static final String DEFAULT_THUMBNAIL = "default_thumbnail_url";
-
-    public MonthlyReportProcessor(OpenAiService openAiService, JPAQueryFactory queryFactory) {
+    public MonthlyReportProcessor(OpenAIService openAiService, JPAQueryFactory queryFactory) {
         this.openAiService = openAiService;
         this.queryFactory = queryFactory;
     }
@@ -89,7 +90,7 @@ public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport
                 .map(summary -> "기부금 사용 내용: " + summary)
                 .collect(Collectors.joining("\n---\n"));
 
-        // 두 종류의 데이터 합치기
+
         String combinedContent = Stream.of(horseStateContent, receiptHistoryContent)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.joining("\n\n<<<<분석 데이터 구분선>>>>\n\n"));
@@ -98,25 +99,15 @@ public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport
             return null;
         }
 
-        // AI 분석
-        String finalReportContent = openAiService.analyzeReport(
-                farm.getFarmName(),
-                lastMonth.getYear(),
-                lastMonth.getMonthValue(),
-                combinedContent
-        );
-
-        String thumbnailUrl = horseStates.stream()
-                .map(HorseState::getFrontImage)
-                .filter(img -> img != null && !img.isBlank())
-                .findFirst()
-                .orElse(DEFAULT_THUMBNAIL);
-
-        return MonthlyReport.builder()
+        return Mono.zip(
+                openAiService.analyzeReport(farm.getFarmName(), lastMonth.getYear(), lastMonth.getMonthValue(), combinedContent),
+                openAiService.generateThumbnail(combinedContent)
+        ).map(tuple -> MonthlyReport.builder()
                 .farmUuid(farm.getFarmUuid())
                 .memberUuid(farm.getMemberUuid())
-                .content(finalReportContent)
-                .thumbnail(thumbnailUrl)
-                .build();
+                .content(tuple.getT1())
+                .thumbnail(tuple.getT2())
+                .build()
+        ).block(); // 배치니까 최종 block
     }
 }

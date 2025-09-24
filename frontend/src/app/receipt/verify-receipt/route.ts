@@ -1,93 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 백엔드 정산 요청 함수
-async function submitToBackendSettlement(
-  verificationResult: {
-    result: string;
-    reason: string;
-    matchedItems?: string[];
-    receiptAmount?: string;
-    amountMatch?: boolean;
-    storeInfo?: {
-      name?: string;
-      address?: string;
-      phone?: string;
-    };
-    items?: Array<{
-      name: string;
-      quantity: string;
-      unitPrice: string;
-      totalPrice: string;
-    }>;
-    paymentInfo?: {
-      totalAmount?: string;
-      paymentMethod?: string;
-      paymentDate?: string;
-      receiptNumber?: string;
-    };
-  }, 
-  usedAmount: number, 
-  category: string, 
-  certificationImage: string,
-  specialNote: string
-) {
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
-  
-  // 사용자 제공 JSON 구조에 맞게 데이터 변환
-  const settlementData = {
-    reason: verificationResult.reason || "기부금 증빙 정산",
-    storeInfo: {
-      name: verificationResult.storeInfo?.name || "가게명",
-      address: verificationResult.storeInfo?.address || "주소",
-      phone: verificationResult.storeInfo?.phone || "전화번호"
-    },
-    content: specialNote || `카테고리: ${category}, 사용금액: ${usedAmount}원`,
-    items: verificationResult.items || [{
-      name: verificationResult.matchedItems?.[0] || "상품명",
-      quantity: 1,
-      unitPrice: usedAmount,
-      totalPrice: usedAmount
-    }],
-    receiptAmount: parseInt(verificationResult.receiptAmount?.replace(/[^\d]/g, '') || usedAmount.toString()),
-    photoUrl: certificationImage || "",
-    categoryId: getCategoryId(category),
-    idempotencyKey: generateIdempotencyKey()
-  };
-
-  console.log("백엔드 정산 요청 데이터:", settlementData);
-
-  // FormData 생성 (사진과 JSON을 함께 전송)
-  const formData = new FormData();
-  formData.append('payload', JSON.stringify(settlementData));
-  
-  // 사진이 있으면 FormData에 추가
-  if (certificationImage) {
-    try {
-      // Base64 이미지를 Blob으로 변환
-      const response = await fetch(certificationImage);
-      const blob = await response.blob();
-      formData.append('photo', blob, 'certification.jpg');
-    } catch (error) {
-      console.warn("사진 변환 실패:", error);
-    }
-  }
-
-  const response = await fetch(`${backendUrl}/api/v1/receipt/settlement`, {
-    method: 'POST',
-    headers: {
-      // Authorization 헤더는 프론트엔드에서 처리해야 함
-      // 'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`백엔드 정산 요청 실패: ${response.status} - ${errorText}`);
-  }
-
-  return await response.json();
-}
+// submitToBackendSettlement 함수는 DonationProofUpload.tsx에서 직접 백엔드 호출하므로 제거
 
 // 카테고리 ID 매핑 함수
 function getCategoryId(category: string): number {
@@ -104,12 +17,21 @@ function getCategoryId(category: string): number {
 
 // 중복 방지 키 생성 함수
 function generateIdempotencyKey(): string {
-  return `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  // 더 고유한 키 생성을 위해 crypto.randomUUID() 사용
+  const uuid = crypto.randomUUID().replace(/-/g, ''); // 하이픈 제거
+  const timestamp = Date.now().toString(36);
+  const key = `receipt_${timestamp}_${uuid.substring(0, 8)}`;
+  
+  // 36자 제한 확인
+  if (key.length > 36) {
+    return `receipt_${timestamp}_${uuid.substring(0, 36 - `receipt_${timestamp}_`.length)}`;
+  }
+  return key;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { category, extractedText, usedAmount, certificationImage, submitToBackend = false, specialNote = "" } = await request.json();
+    const { category, extractedText, usedAmount, certificationImage, specialNote = "" } = await request.json();
 
     console.log("API 요청 데이터:", { 
       category, 
@@ -157,13 +79,15 @@ export async function POST(request: NextRequest) {
 
 선택된 카테고리와 영수증에서 추출된 상품 목록의 연관성, 사용자가 입력한 금액과 영수증의 총 금액 일치성, 그리고 인증 사진의 적절성을 종합적으로 판단해야 합니다.
 
-카테고리별 연관 상품 예시:
-- 사료/영양: 사료, 비타민, 영양제, 곡물, 건초, 보조사료, 미네랄, 칼슘제 등
-- 발굽 관리: 발굽 관리 도구, 발굽약, 발굽 연마기, 발굽 보호제, 발굽 치료제 등
-- 의료/건강: 의료용품, 약품, 주사기, 소독제, 체온계, 청진기, 붕대, 연고 등
-- 시설: 울타리, 마구간, 창고, 급수기, 사료통, 도구, 건축자재, 전기용품 등
-- 운동/재활: 운동기구, 재활용품, 마사지 도구, 물리치료 용품, 안장, 고삐 등
-- 수송: 연료, 차량 부품, 타이어, 정비용품, 운송비, 주차비 등
+카테고리별 연관 상품 예시(확장 사전):
+- 사료/영양: 사료, 배합사료, 배합곡, 티모시, 알팔파, 건초, 곡물, 보리, 옥수수, 귀리, 비타민, 영양제, 미네랄, 칼슘제, 보조사료, 젖소사료, 맥강, 단백질 보충제, 보충사료, 혼합사료
+- 발굽 관리: 발굽 관리 도구, 발굽약, 발굽 연마기, 발굽 보호제, 발굽 치료제, 편자, 편자못, 제화도구, 발굽칼, 발굽집게, 발굽정, 라스프, 발굽용 접착제, 발굽 패드
+- 의료/건강: 의료용품, 약품, 소염제, 항생제, 해열제, 진통제, 주사기, 소독제, 소독약, 체온계, 청진기, 붕대, 거즈, 연고, 파스, 의료테이프, 멸균거즈, 알코올솜, 링거, 수액세트, 진단키트, 마취제, 수의사
+- 시설: 울타리, 마구간, 창고, 급수기, 사료통, 수조, 방수포, 지붕자재, 목재, 철근, 시멘트, 건축자재, 공구, 망치, 드릴, 전선, 전기자재, 펌프, 배수관, 지게차, 바퀴, 용접기
+- 운동/재활: 운동기구, 재활용품, 마사지 도구, 물리치료 용품, 안장, 고삐, 비트, 굴레, 보호대, 방한부츠, 훈련 도구, 보행 보조기, 밴드, 승마 장비, 안장 패드, 마방 도구, 채찍, 재활 매트
+- 수송: 연료, 휘발유, 경유, 등유, 가솔린, 차량 부품, 타이어, 오일, 엔진오일, 브레이크액, 필터, 정비용품, 렌트비, 운송비, 주차비, 통행료, 톨비, 트레일러, 마차부품, 견인비
+
+※ 위 연관 상품 사전에 포함되지 않는 품목만 있는 경우, 반드시 "부적격"으로 판단해야 합니다.
 
 영수증에서 추출해야 할 정보:
 1. 가게 정보: 상호명, 주소, 전화번호
@@ -174,14 +98,16 @@ export async function POST(request: NextRequest) {
 판단 기준:
 1. 추출된 텍스트에서 상품명, 브랜드명, 품목명 등을 찾아보세요
 2. 선택된 카테고리와 연관성이 있는 상품이 포함되어 있는지 확인하세요
+   - 반드시 카테고리 사전에 등록된 품목 중 하나 이상이 영수증에 있어야 적격
+   - 하나도 매칭되지 않으면 무조건 "부적격"
 3. 영수증에서 총 금액, 합계, 총액 등의 숫자를 찾아보세요
-4. 사용자가 입력한 금액과 영수증의 총 금액이 일치하는지 확인하세요 (소액 차이는 허용)
+4. 사용자가 입력한 금액과 영수증의 총 금액이 일치하는지 확인하세요 (허용 오차: ±1% 또는 최소 100원)
 5. 인증 사진 검증 (매우 중요):
    - 인증 사진이 영수증에 명시된 상품들과 직접적으로 관련이 있는지 확인
    - 사진에서 영수증의 상품들이 실제로 사용되는 모습이 보이는지 확인
    - 사진이 영수증의 구매 목적과 일치하는지 확인 (예: 사료 구매 → 말이 사료를 먹는 모습)
    - 사진이 단순히 영수증을 찍은 것이 아니라 실제 사용 증빙인지 확인
-   - 인증 사진이 영수증과 전혀 관련이 없거나 일반적인 사진이면 부적격으로 판단
+   - 인증 사진이 영수증과 전혀 관련이 없거나 일반적인 사진이면 반드시 "부적격"
 6. 다음 3가지 조건을 모두 만족해야 "적격":
    - 카테고리 연관성: 선택된 카테고리와 영수증 상품의 연관성
    - 금액 일치성: 입력한 금액과 영수증 총 금액의 일치성
@@ -214,7 +140,8 @@ export async function POST(request: NextRequest) {
     "totalAmount": "총 금액",
     "paymentMethod": "결제 방법",
     "paymentDate": "결제일시",
-    "receiptNumber": "영수증 번호"
+    "receiptNumber": "영수증 번호",
+    "approvalNumber": "승인번호"
   }
 }`
           },
@@ -294,19 +221,8 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       if (parsedResult.result && parsedResult.reason) {
         console.log("JSON 파싱 성공, 정상 응답 반환");
         
-        // 검증이 적격이고 백엔드 제출이 요청된 경우
-        if (parsedResult.result === "적격" && submitToBackend) {
-          try {
-            await submitToBackendSettlement(parsedResult, usedAmount, category, certificationImage, specialNote);
-            console.log("백엔드 정산 요청 성공");
-          } catch (backendError) {
-            console.error("백엔드 정산 요청 실패:", backendError);
-            return NextResponse.json({
-              ...parsedResult,
-              backendError: "정산 요청 중 오류가 발생했습니다."
-            });
-          }
-        }
+        // 백엔드 제출은 DonationProofUpload.tsx에서 직접 처리하므로 여기서는 제거
+        // (중복 호출 방지)
         
         return NextResponse.json(parsedResult);
       } else {
@@ -402,6 +318,24 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       const paymentDateMatch = content.match(/(?:결제일|구매일|영수증일)[:\s]*([0-9-/\s:]+)/i);
       const receiptNumberMatch = content.match(/(?:영수증번호|거래번호)[:\s]*([0-9-]+)/i);
       
+      // 승인번호 추출 시도 (다양한 패턴 지원)
+      const approvalNumberPatterns = [
+        /(?:승인번호|승인)[:\s]*([0-9]{6,12})/i,
+        /(?:Approval|APPROVAL)[:\s]*([0-9]{6,12})/i,
+        /(?:승인)[:\s]*([0-9]{6,12})/i,
+        /(?:카드승인)[:\s]*([0-9]{6,12})/i,
+        /(?:승인코드)[:\s]*([0-9]{6,12})/i
+      ];
+      
+      let approvalNumber = null;
+      for (const pattern of approvalNumberPatterns) {
+        const match = content.match(pattern);
+        if (match) {
+          approvalNumber = match[1];
+          break;
+        }
+      }
+      
       console.log("추출된 정보:", { 
         result, 
         receiptAmount, 
@@ -417,7 +351,8 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
           totalAmount: receiptAmount,
           paymentMethod: paymentMethodMatch?.[1]?.trim(),
           paymentDate: paymentDateMatch?.[1]?.trim(),
-          receiptNumber: receiptNumberMatch?.[1]?.trim()
+          receiptNumber: receiptNumberMatch?.[1]?.trim(),
+          approvalNumber: approvalNumber
         }
       });
       
@@ -437,23 +372,13 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
           totalAmount: receiptAmount,
           paymentMethod: paymentMethodMatch?.[1]?.trim() || null,
           paymentDate: paymentDateMatch?.[1]?.trim() || null,
-          receiptNumber: receiptNumberMatch?.[1]?.trim() || null
+          receiptNumber: receiptNumberMatch?.[1]?.trim() || null,
+          approvalNumber: approvalNumber || null
         }
       };
       
-      // 검증이 적격이고 백엔드 제출이 요청된 경우
-      if (result === "적격" && submitToBackend) {
-        try {
-          await submitToBackendSettlement(responseData, usedAmount, category, certificationImage, specialNote);
-          console.log("백엔드 정산 요청 성공");
-        } catch (backendError) {
-          console.error("백엔드 정산 요청 실패:", backendError);
-          return NextResponse.json({
-            ...responseData,
-            backendError: "정산 요청 중 오류가 발생했습니다."
-          });
-        }
-      }
+      // 백엔드 제출은 DonationProofUpload.tsx에서 직접 처리하므로 여기서는 제거
+      // (중복 호출 방지)
       
       return NextResponse.json(responseData);
     }

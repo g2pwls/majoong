@@ -47,9 +47,12 @@ public class FarmController {
     @GetMapping("/{farmUuid}")
     @Operation(summary = "목장 상세의 목장 소개 조회")
     public BaseResponse<FarmDetailResponseDto> getFarmDetail(
-            @PathVariable String farmUuid
+            @PathVariable String farmUuid,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return new BaseResponse<>(farmService.getFarmDetail(farmUuid));
+        String memberUuid = (user != null) ? user.getMemberUuid() : null;
+
+        return new BaseResponse<>(farmService.getFarmDetail(farmUuid, memberUuid));
     }
 
     @GetMapping("/{farmUuid}/monthly-reports/{reportId}")

@@ -1,7 +1,7 @@
 // src/components/farm/report/DonationProofUpload.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { submitReceiptSettlement } from "../../../services/apiService";
 
 type DonationProofUploadProps = {
@@ -61,6 +61,7 @@ export default function DonationProofUpload({
       paymentMethod?: string;
       paymentDate?: string;
       receiptNumber?: string;
+      approvalNumber?: string;
     };
   } | null>(null);
   const [certificationError, setCertificationError] = useState<string | null>(null);
@@ -72,6 +73,15 @@ export default function DonationProofUpload({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // 컴포넌트 렌더링 추적
+  useEffect(() => {
+    console.log("=== DonationProofUpload 컴포넌트 렌더링됨 ===", { 
+      farmUuid, 
+      submitting,
+      timestamp: new Date().toISOString()
+    });
+  });
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     if (donationData[farmUuid]?.[type]) {
@@ -314,7 +324,16 @@ export default function DonationProofUpload({
 
   // ---- 제출 처리 ----
   const handleSubmit = async () => {
+    console.log("=== handleSubmit 호출됨 ===", { submitting, timestamp: new Date().toISOString() });
+    
+    // 중복 실행 방지
+    if (submitting) {
+      console.log("이미 제출 중입니다. 중복 요청을 무시합니다.");
+      return;
+    }
+
     try {
+      console.log("setSubmitting(true) 호출");
       setSubmitting(true);
       setSubmitError(null);
       setSubmitSuccess(false);
@@ -385,13 +404,14 @@ export default function DonationProofUpload({
 
       // 중복 방지 키 생성 (백엔드 제한: 최대 36자)
       const generateIdempotencyKey = (): string => {
-        const timestamp = Date.now().toString(36); // 36진수로 변환하여 길이 단축
-        const random = Math.random().toString(36).substr(2, 8); // 8자리 랜덤
-        const key = `receipt_${timestamp}_${random}`;
+        // 더 고유한 키 생성을 위해 crypto.randomUUID() 사용
+        const uuid = crypto.randomUUID().replace(/-/g, ''); // 하이픈 제거
+        const timestamp = Date.now().toString(36);
+        const key = `receipt_${timestamp}_${uuid.substring(0, 8)}`;
         
         // 36자 제한 확인
         if (key.length > 36) {
-          return `receipt_${timestamp}_${random.substr(0, 8 - (key.length - 36))}`;
+          return `receipt_${timestamp}_${uuid.substring(0, 36 - `receipt_${timestamp}_`.length)}`;
         }
         return key;
       };
@@ -400,7 +420,7 @@ export default function DonationProofUpload({
       const idempotencyKey = generateIdempotencyKey();
       console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
 
-      // 백엔드 API 요구사항에 맞는 데이터 구성
+      // 백엔드 API 요구사항에 맞는 데이터 구성 (단순화)
       const payload = {
         reason: certificationResult.reason || "기부금 증빙 정산",
         storeInfo: {
@@ -421,27 +441,101 @@ export default function DonationProofUpload({
           totalPrice: parseInt(usedAmount.replace(/,/g, ""))
         }],
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
-        photoUrl: "", // S3 업로드 후 URL로 설정됨
         categoryId: getCategoryId(selectedCategory),
+        approvalNumber: parseInt(certificationResult.paymentInfo?.approvalNumber || "0") || 0, // 승인번호 (없으면 0)
         idempotencyKey: idempotencyKey
       };
 
       console.log("API 요청 payload:", payload);
+      
+      // 백엔드로 보낼 JSON 데이터를 콘솔에 출력
+      console.log("=== 백엔드로 보낼 JSON 데이터 ===");
+      console.log(JSON.stringify(payload, null, 2));
+      console.log("=== FormData 구성 ===");
+      console.log("payload:", JSON.stringify(payload));
+      console.log("photo: File 객체 (certification 이미지)");
+      console.log("================================");
+      
+      console.log("=== API 호출 시작 ===", { timestamp: new Date().toISOString() });
 
-      // 영수증 사진을 File 객체로 변환
+      // 인증사진을 File 객체로 변환
       let photoFile: File;
       try {
-        const response = await fetch(donationData[farmUuid].receipt);
+        const certificationImage = donationData[farmUuid].certification;
+        if (!certificationImage) {
+          throw new Error("인증사진이 없습니다.");
+        }
+        const response = await fetch(certificationImage);
         const blob = await response.blob();
-        photoFile = new File([blob], 'receipt.jpg', { type: blob.type });
+        
+        // MIME 타입에 따라 적절한 확장자 결정
+        let extension = 'jpg'; // 기본값
+        if (blob.type === 'image/png') {
+          extension = 'png';
+        } else if (blob.type === 'image/jpeg' || blob.type === 'image/jpg') {
+          extension = 'jpg';
+        } else if (blob.type === 'image/webp') {
+          extension = 'webp';
+        } else if (blob.type === 'image/gif') {
+          extension = 'gif';
+        }
+        
+        // 이미지 압축 (최대 1MB로 제한)
+        let compressedBlob = blob;
+        if (blob.size > 1024 * 1024) { // 1MB 초과시 압축
+          console.log(`이미지 크기: ${(blob.size / 1024).toFixed(2)}KB, 압축 중...`);
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          
+          await new Promise((resolve) => {
+            img.onload = () => {
+              // 최대 크기를 1024px로 제한
+              const maxSize = 1024;
+              let { width, height } = img;
+              
+              if (width > height) {
+                if (width > maxSize) {
+                  height = (height * maxSize) / width;
+                  width = maxSize;
+                }
+              } else {
+                if (height > maxSize) {
+                  width = (width * maxSize) / height;
+                  height = maxSize;
+                }
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              ctx?.drawImage(img, 0, 0, width, height);
+              
+              canvas.toBlob((compressed) => {
+                if (compressed) {
+                  compressedBlob = compressed;
+                  console.log(`압축 완료: ${(compressed.size / 1024).toFixed(2)}KB`);
+                }
+                resolve(void 0);
+              }, 'image/jpeg', 0.8); // JPEG 품질 80%
+            };
+            img.src = URL.createObjectURL(blob);
+          });
+        }
+        
+        photoFile = new File([compressedBlob], `certification.${extension}`, { type: compressedBlob.type });
+        console.log(`인증사진 파일 생성: certification.${extension}, MIME 타입: ${compressedBlob.type}, 크기: ${(compressedBlob.size / 1024).toFixed(2)}KB`);
       } catch (error) {
-        console.warn("영수증 사진 변환 실패:", error);
-        throw new Error("영수증 사진을 처리할 수 없습니다.");
+        console.warn("인증사진 변환 실패:", error);
+        throw new Error("인증사진을 처리할 수 없습니다.");
       }
 
-      // apiService를 사용하여 정산 제출
-      const result = await submitReceiptSettlement(payload as Parameters<typeof submitReceiptSettlement>[0], photoFile);
-
+      // apiService를 통한 정산 제출
+      console.log("=== apiService를 통한 정산 제출 시작 ===", { 
+        timestamp: new Date().toISOString()
+      });
+      
+      const result = await submitReceiptSettlement(payload, photoFile);
+      
       setSubmitSuccess(true);
       console.log("제출 성공:", result);
     } catch (e: unknown) {
@@ -820,6 +914,12 @@ export default function DonationProofUpload({
                               <span className="ml-2 font-medium">{certificationResult.paymentInfo.receiptNumber}</span>
                             </div>
                           )}
+                          {certificationResult.paymentInfo.approvalNumber && (
+                            <div>
+                              <span className="text-gray-600">승인번호:</span>
+                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.approvalNumber}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -844,7 +944,17 @@ export default function DonationProofUpload({
       <div className="flex justify-end">
         <button 
           className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
-          onClick={handleSubmit}
+          onClick={(e) => {
+            console.log("=== 제출 버튼 클릭됨 ===", { 
+              submitting, 
+              timestamp: new Date().toISOString(),
+              eventType: e.type,
+              target: e.target
+            });
+            e.preventDefault();
+            e.stopPropagation();
+            handleSubmit();
+          }}
           disabled={submitting || !selectedCategory || !donationData[farmUuid]?.receipt || !donationData[farmUuid]?.certification || !usedAmount || !extractedText || !certificationResult || certificationResult.result !== "적격"}
         >
           {submitting ? "제출 중..." : "제출"}

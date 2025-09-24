@@ -41,7 +41,7 @@ public class DonateService {
     long unit = chainProps.getKrwPerToken();
     long krw  = req.getAmountKrw();
 
-    // 1000원 단위 정책(정수 토큰)
+    // 100원 단위 정책(정수 토큰)
     long tokenCount = TokenUnits.krwToMaronTokensExact(krw, unit);
     BigInteger amountWei = TokenUnits.maronTokensToWei(tokenCount);
 

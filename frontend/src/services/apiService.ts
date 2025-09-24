@@ -127,7 +127,7 @@ export async function getFarms(params: {
       description: string;
       bookmark?: boolean; // 북마크 상태 추가
       horses?: Array<{
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -148,7 +148,7 @@ export async function getFarms(params: {
       description: farm.description,
       bookmark: farm.bookmark || false, // 북마크 상태 매핑
       horses: (farm.horses || []).map((horse: {
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -213,7 +213,7 @@ export async function getFarm(farmUuid: string): Promise<Farm> {
       purpose_total_amount: farm.purposeTotalAmount,
       bookmark: farm.bookmark || false, // 북마크 상태 추가
       horses: (farm.horses || []).map((horse: {
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -265,7 +265,7 @@ export async function getMyFarm(): Promise<Farm> {
       purpose_total_amount: farm.purposeTotalAmount,
       member_uuid: getCurrentUserMemberUuid() || undefined, // 현재 사용자의 memberUuid 추가
       horses: (farm.horses || []).map((horse: {
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -368,7 +368,7 @@ interface BookmarkFarmResponse {
 }
 
 interface BookmarkHorseResponse {
-  horseNumber: number;
+  horseNumber: string;
   horseName: string;
   profileImage: string;
 }
@@ -423,7 +423,7 @@ export async function isFarmBookmarked(farmUuid: string): Promise<boolean> {
   }
 }
 
-// 영수증 정산 제출 타입 정의
+// 영수증 정산 제출 타입 정의 (백엔드 요구사항에 맞게 단순화)
 interface ReceiptSettlementPayload {
   reason: string;
   storeInfo: {
@@ -439,8 +439,8 @@ interface ReceiptSettlementPayload {
     totalPrice: number;
   }>;
   receiptAmount: number;
-  photoUrl: string;
   categoryId: number;
+  approvalNumber: number;
   idempotencyKey: string;
 }
 
@@ -450,20 +450,41 @@ interface ReceiptSettlementResponse {
   message: string;
 }
 
+// 중복 요청 방지를 위한 요청 추적 (멱등성 키별로 관리)
+const submittingKeys = new Set<string>();
+
 // 영수증 정산 제출
 export async function submitReceiptSettlement(
   payload: ReceiptSettlementPayload,
   photoFile: File
 ): Promise<ReceiptSettlementResponse> {
+  // 중복 실행 방지 (멱등성 키별로 관리)
+  if (submittingKeys.has(payload.idempotencyKey)) {
+    console.log("이미 제출 중인 멱등성 키입니다. 중복 요청을 무시합니다.", payload.idempotencyKey);
+    throw new Error("이미 제출 중입니다. 잠시 후 다시 시도해주세요.");
+  }
+
   try {
+    submittingKeys.add(payload.idempotencyKey);
+    console.log("=== submitReceiptSettlement 시작 ===", { 
+      idempotencyKey: payload.idempotencyKey,
+      timestamp: new Date().toISOString()
+    });
+
     const formData = new FormData();
     formData.append('payload', JSON.stringify(payload));
     formData.append('photo', photoFile);
 
-    const response = await apiClient.post('/api/v1/receipt/settlement', formData, {
+    const response = await apiClient.post('/api/v1/settlement-withdraw-burn', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+    });
+
+    console.log("=== submitReceiptSettlement 응답 받음 ===", { 
+      status: response.status,
+      isSuccess: response.data?.isSuccess,
+      timestamp: new Date().toISOString()
     });
 
     if (!response.data.isSuccess) {
@@ -471,8 +492,25 @@ export async function submitReceiptSettlement(
     }
 
     return response.data.result;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('정산 제출 실패:', error);
+    
+    // 상세한 에러 정보 로깅
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number; statusText: string; data: unknown } };
+      console.error('응답 에러:', {
+        status: axiosError.response.status,
+        statusText: axiosError.response.statusText,
+        data: axiosError.response.data
+      });
+    } else if (error && typeof error === 'object' && 'request' in error) {
+      console.error('요청 에러:', (error as { request: unknown }).request);
+    } else {
+      console.error('기타 에러:', error instanceof Error ? error.message : String(error));
+    }
+    
     throw error;
+  } finally {
+    submittingKeys.delete(payload.idempotencyKey);
   }
 }

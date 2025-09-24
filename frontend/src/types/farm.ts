@@ -79,7 +79,7 @@ export interface WeeklyReport {
 }
 
 export interface HorseDetailResult {
-  horseNumber: number;
+  horseNumber: string;
   horseName: string;
   farmName: string;
   birth: string;
@@ -210,6 +210,9 @@ export interface ScoreHistoryItem {
   createdAt: string;
   category: string;
   score: number;
+  year: number;
+  month: number;
+  delta: number;
   sourceId: string;
 }
 

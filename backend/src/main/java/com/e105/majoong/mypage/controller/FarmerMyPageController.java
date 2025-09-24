@@ -12,11 +12,15 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -37,6 +41,13 @@ public class FarmerMyPageController {
         return new BaseResponse<>(dto);
     }
 
+    @GetMapping("/farm/existence")
+    @Operation(summary = "목장주 목장 생성 여부 조회")
+    public BaseResponse<Boolean> checkCreateFarm(
+            @AuthenticationPrincipal CustomUserDetails user) {
+        return new BaseResponse<>(farmerMyPageService.checkCreateFarm(user.getMemberUuid()));
+    }
+
     @GetMapping("/donations")
     @Operation(summary = "목장주 금고 기부 내역 조회(시작 날짜와 끝 날짜를 지정해서 조회 가능)")
     public BaseResponse<VaultResponseDto> getVaultHistory(@AuthenticationPrincipal CustomUserDetails user,
@@ -48,4 +59,14 @@ public class FarmerMyPageController {
                 user.getMemberUuid(), page, size, startDate, endDate));
     }
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "목장주 회원 정보 변경")
+    public BaseResponse<Void> updateFarmers(@AuthenticationPrincipal CustomUserDetails user,
+                                            @RequestPart(required = false) String farmName,
+                                            @RequestPart(required = false) String phoneNumber,
+                                            @RequestPart(required = false) MultipartFile image,
+                                            @RequestPart(required = false) String description) {
+        farmerMyPageService.updateFarmers(user.getMemberUuid(), farmName, phoneNumber, image, description);
+        return new BaseResponse<>();
+    }
 }

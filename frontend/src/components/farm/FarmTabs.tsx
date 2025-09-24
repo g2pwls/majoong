@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { isDonator } from "@/services/authService";
+import { isDonator, isFarmer } from "@/services/authService";
 import { isMyFarm } from "@/services/apiService";
 export type FarmTabValue = "intro" | "newsletter" | "donations" | "trust";
 
@@ -112,14 +112,14 @@ export default function FarmTabs({
               >
                 목장 운영 보고하기
               </Link>
-            ) : isDonator() ? (
+            ) : !isFarmer() && (
               <Link 
-                href={farmUuid ? `/support/${farmUuid}/donate` : "/donate"}
+                href={isDonator() ? (farmUuid ? `/support/${farmUuid}/donate` : "/donate") : "/login"}
                 className="ml-4 bg-green-500 text-white py-1.5 px-4 rounded-md hover:bg-green-600 transition-colors"
               >
                 기부하기
               </Link>
-            ) : null}
+            )}
           </div>
         )}
       </nav>

@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 public interface FarmRepository extends JpaRepository<Farm, Long> {
     Optional<Farm> findByMemberUuid(String memberUuid);
 
+    boolean existsByMemberUuid(String memberUuid);
+
     Optional<Farm> findByFarmUuid(String farmUuid);
 
     Page<Farm> findByFarmNameContaining(String farmName, Pageable pageable);
