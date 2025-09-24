@@ -15,6 +15,7 @@ export interface Farm {
   month_total_amount?: number; // 이번 달 모금액
   purpose_total_amount?: number; // 목표 모금액
   member_uuid?: string; // 목장 소유자 UUID
+  bookmark?: boolean; // 즐겨찾기 상태
 }
 
 export interface FarmUpdateRequest {
