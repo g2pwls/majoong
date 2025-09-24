@@ -230,3 +230,19 @@ export interface AccountHistoryResponse {
     transactions: unknown[]; // 거래 내역 (현재는 빈 배열)
   };
 }
+
+// 목장 정보 수정 관련 타입
+export interface FarmUpdateRequest {
+  farmName: string;
+  phoneNumber: string;
+  image: File | null;
+  description: string;
+}
+
+export interface FarmUpdateResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: null;
+}

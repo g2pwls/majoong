@@ -20,14 +20,11 @@ interface FarmerProfileProps {
 export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProfileProps) {
   const [farmerInfo, setFarmerInfo] = useState<FarmerInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditingFarmName, setIsEditingFarmName] = useState(false);
-  const [editedFarmName, setEditedFarmName] = useState('');
 
   useEffect(() => {
     if (propFarmerInfo) {
       // props로 받은 데이터 사용
       setFarmerInfo(propFarmerInfo);
-      setEditedFarmName(propFarmerInfo.farmName);
       setIsLoading(false);
     } else {
       // 기존 로직 (임시 데이터)
@@ -43,21 +40,10 @@ export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProf
       };
       
       setFarmerInfo(mockData);
-      setEditedFarmName(mockData.farmName);
       setIsLoading(false);
     }
   }, [propFarmerInfo]);
 
-  const handleSaveFarmName = () => {
-    // TODO: 실제 API 호출
-    setFarmerInfo(prev => prev ? { ...prev, farmName: editedFarmName } : null);
-    setIsEditingFarmName(false);
-  };
-
-  const handleCancelEdit = () => {
-    setEditedFarmName(farmerInfo?.farmName || '');
-    setIsEditingFarmName(false);
-  };
 
   if (isLoading) {
     return (
@@ -124,50 +110,6 @@ export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProf
           </p>
         </div>
 
-        {/* 목장명 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            목장명
-          </label>
-          {isEditingFarmName ? (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={editedFarmName}
-                onChange={(e) => setEditedFarmName(e.target.value)}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="목장명을 입력하세요"
-              />
-              <button
-                onClick={handleSaveFarmName}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                저장
-              </button>
-              <button
-                onClick={handleCancelEdit}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-              >
-                취소
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                {farmerInfo?.farmName}
-              </div>
-              <button
-                onClick={() => setIsEditingFarmName(true)}
-                className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 transition-colors"
-              >
-                수정
-              </button>
-            </div>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            목장명은 수정할 수 있습니다.
-          </p>
-        </div>
       </div>
 
       <div className="mt-8 p-4 bg-blue-50 rounded-lg">
@@ -182,7 +124,7 @@ export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProf
               정보 수정 안내
             </h3>
             <div className="mt-2 text-sm text-blue-700">
-              <p>목장명을 제외한 모든 정보는 수정할 수 없습니다. 정보 변경이 필요한 경우 고객센터로 문의해주세요.</p>
+              <p>회원 정보는 수정할 수 없습니다. 정보 변경이 필요한 경우 고객센터로 문의해주세요.</p>
             </div>
           </div>
         </div>
