@@ -5,6 +5,7 @@ import { getFarmerDonationHistory } from '@/services/userService';
 import type { FarmerDonationHistoryRequest, FarmerDonationHistoryResponse, VaultHistoryDto } from '@/types/user';
 import FarmerDonationDetailModal from './FarmerDonationDetailModal';
 import AccountHistoryModal from './AccountHistoryModal';
+import ReceiptDetailModal from './ReceiptDetailModal';
 
 export default function FarmerSupportHistory() {
   const [donationHistory, setDonationHistory] = useState<VaultHistoryDto[]>([]);
@@ -31,6 +32,10 @@ export default function FarmerSupportHistory() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState<VaultHistoryDto | null>(null);
   const [isAccountHistoryModalOpen, setIsAccountHistoryModalOpen] = useState(false);
+  
+  // 영수증 증빙 모달 관련 상태
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [selectedReceiptData, setSelectedReceiptData] = useState<VaultHistoryDto | null>(null);
 
   const fetchDonationHistory = useCallback(async (
     page: number = 0, 
@@ -109,8 +114,11 @@ export default function FarmerSupportHistory() {
   };
 
   const handleDonationClick = (donation: VaultHistoryDto) => {
-    // DONATION 타입인 경우에만 모달 열기
-    if (donation.type === 'DONATION') {
+    if (donation.type === 'SETTLEMENT') {
+      // 영수증 증빙인 경우 영수증 모달 열기
+      handleOpenReceiptModal(donation);
+    } else if (donation.type === 'DONATION') {
+      // 기부 내역인 경우 기부 상세 모달 열기
       setSelectedDonation(donation);
       setIsModalOpen(true);
     }
@@ -127,6 +135,17 @@ export default function FarmerSupportHistory() {
 
   const handleCloseAccountHistory = () => {
     setIsAccountHistoryModalOpen(false);
+  };
+
+  // 영수증 증빙 모달 핸들러
+  const handleOpenReceiptModal = (receiptData: VaultHistoryDto) => {
+    setSelectedReceiptData(receiptData);
+    setIsReceiptModalOpen(true);
+  };
+
+  const handleCloseReceiptModal = () => {
+    setIsReceiptModalOpen(false);
+    setSelectedReceiptData(null);
   };
 
   const formatAmount = (donationToken: number) => {
@@ -161,7 +180,9 @@ export default function FarmerSupportHistory() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case 'DONATION':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">기부 받음</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">기부</span>;
+      case 'SETTLEMENT':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">정산</span>;
       case 'WITHDRAWAL':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">출금</span>;
       default:
@@ -304,7 +325,7 @@ export default function FarmerSupportHistory() {
               <div 
                 key={`${record.receiptHistoryId}-${index}`} 
                 className={`border-b border-gray-200 last:border-b-0 p-4 hover:bg-gray-50 ${
-                  record.type === 'DONATION' ? 'cursor-pointer transition-colors' : ''
+                  record.type === 'DONATION' || record.type === 'SETTLEMENT' ? 'cursor-pointer transition-colors' : ''
                 }`}
                 onClick={() => handleDonationClick(record)}
               >
@@ -312,7 +333,10 @@ export default function FarmerSupportHistory() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-base font-medium text-gray-900">
-                        {record.donatorName || '익명의 후원자'}님
+                        {record.type === 'SETTLEMENT' 
+                          ? (record.donatorName || '영수증 증빙')
+                          : `${record.donatorName || '익명의 후원자'}님`
+                        }
                       </h3>
                       {getTypeBadge(record.type)}
                   </div>
@@ -328,9 +352,11 @@ export default function FarmerSupportHistory() {
                     <div className="flex items-center justify-end space-x-2">
                       <div>
                         <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
-                        <p className="text-xs text-green-600 mt-1">✓ 금고에 입금됨</p>
+                        <p className={`text-xs mt-1 ${record.type === 'SETTLEMENT' ? 'text-red-600' : 'text-green-600'}`}>
+                          {record.type === 'SETTLEMENT' ? '✓ 계좌 출금' : '✓ 금고에 입금됨'}
+                        </p>
                       </div>
-                      {record.type === 'DONATION' && (
+                      {(record.type === 'DONATION' || record.type === 'SETTLEMENT') && (
                         <div className="text-blue-500 opacity-70">
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -447,6 +473,14 @@ export default function FarmerSupportHistory() {
       <AccountHistoryModal
         isOpen={isAccountHistoryModalOpen}
         onClose={handleCloseAccountHistory}
+      />
+
+      {/* 영수증 증빙 상세 모달 */}
+      <ReceiptDetailModal
+        isOpen={isReceiptModalOpen}
+        onClose={handleCloseReceiptModal}
+        receiptHistoryId={selectedReceiptData?.receiptHistoryId || 0}
+        receiptData={selectedReceiptData}
       />
     </div>
   );

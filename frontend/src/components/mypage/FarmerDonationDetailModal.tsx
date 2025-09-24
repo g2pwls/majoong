@@ -135,9 +135,14 @@ export default function FarmerDonationDetailModal({ isOpen, onClose, donationDat
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">거래 해시</label>
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
+                      <a
+                        href={`https://sepolia.etherscan.io/tx/${donationData.txHash}#eventlog`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                      >
                         {donationData.txHash}
-                      </p>
+                      </a>
                       <button
                         onClick={() => copyToClipboard(donationData.txHash)}
                         className="text-blue-600 hover:text-blue-800 flex-shrink-0"
@@ -148,6 +153,9 @@ export default function FarmerDonationDetailModal({ isOpen, onClose, donationDat
                         </svg>
                       </button>
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      클릭하면 Etherscan에서 블록체인 거래를 확인할 수 있습니다
+                    </p>
                   </div>
                 </div>
               </div>

@@ -157,7 +157,7 @@ export interface VaultHistoryDto {
   donationDate: string; // ISO 날짜 형식
   txHash: string;
   balance: number;
-  type: 'DONATION' | 'WITHDRAWAL' | 'OTHER';
+  type: 'DONATION' | 'WITHDRAWAL' | 'OTHER' | 'SETTLEMENT';
   receiptHistoryId: number;
 }
 
@@ -219,6 +219,14 @@ export interface FarmRegistrationResponse {
   result: string; // 농장 UUID (예: "FARM-2F40B1")
 }
 
+// 계좌 거래 내역 타입
+export interface AccountTransaction {
+  date: string; // YYYYMMDD 형식
+  time: string; // HHMMSS 형식
+  amount: string; // 거래 금액
+  afterBalance: string; // 거래 후 잔액
+}
+
 // 계좌 내역 조회 응답 타입
 export interface AccountHistoryResponse {
   httpStatus: string;
@@ -227,7 +235,7 @@ export interface AccountHistoryResponse {
   code: number;
   result: {
     balance: string; // 잔액
-    transactions: unknown[]; // 거래 내역 (현재는 빈 배열)
+    transactions: AccountTransaction[]; // 거래 내역
   };
 }
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAccountHistory } from '@/services/userService';
-import type { AccountHistoryResponse } from '@/types/user';
+import type { AccountHistoryResponse, AccountTransaction } from '@/types/user';
 
 interface AccountHistoryModalProps {
   isOpen: boolean;
@@ -13,6 +13,46 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
   const [accountHistory, setAccountHistory] = useState<AccountHistoryResponse['result'] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 날짜 포맷팅 함수
+  const formatDate = (dateStr: string) => {
+    const year = dateStr.substring(0, 4);
+    const month = dateStr.substring(4, 6);
+    const day = dateStr.substring(6, 8);
+    return `${year}.${month}.${day}`;
+  };
+
+  // 시간 포맷팅 함수
+  const formatTime = (timeStr: string) => {
+    const hour = timeStr.substring(0, 2);
+    const minute = timeStr.substring(2, 4);
+    const second = timeStr.substring(4, 6);
+    return `${hour}:${minute}:${second}`;
+  };
+
+  // 금액 포맷팅 함수
+  const formatAmount = (amount: string) => {
+    return parseInt(amount).toLocaleString('ko-KR') + '원';
+  };
+
+  // 거래 타입 판별 함수
+  const getTransactionType = (transaction: AccountTransaction, index: number, transactions: AccountTransaction[]) => {
+    // 첫 번째 거래이거나 이전 거래와 날짜가 다르면 입금으로 판단
+    if (index === 0) {
+      return '입금';
+    }
+    
+    const prevTransaction = transactions[index - 1];
+    const currentAmount = parseInt(transaction.amount);
+    const prevBalance = parseInt(prevTransaction.afterBalance);
+    
+    // 현재 잔액이 이전 잔액보다 크면 입금, 작으면 출금
+    if (parseInt(transaction.afterBalance) > prevBalance) {
+      return '입금';
+    } else {
+      return '출금';
+    }
+  };
 
   // 계좌 내역 조회
   const fetchAccountHistory = async () => {
@@ -63,12 +103,6 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
     };
   }, [isOpen, onClose]);
 
-  // 금액 포맷팅
-  const formatAmount = (amount: string | number) => {
-    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(numAmount)) return '0원';
-    return new Intl.NumberFormat('ko-KR').format(numAmount) + '원';
-  };
 
   if (!isOpen) return null;
 
@@ -147,23 +181,48 @@ export default function AccountHistoryModal({ isOpen, onClose }: AccountHistoryM
                               거래유형
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              금액
+                              거래금액
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              잔액
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              상세내용
+                              거래후잔액
                             </th>
                           </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                          {/* 실제 거래 내역이 있을 때 표시할 예정 */}
-                          <tr>
-                            <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
-                              거래 내역이 없습니다.
-                            </td>
-                          </tr>
+                          {accountHistory.transactions.map((transaction, index) => {
+                            const transactionType = getTransactionType(transaction, index, accountHistory.transactions);
+                            const isDeposit = transactionType === '입금';
+                            
+                            return (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  <div>
+                                    <div className="font-medium">{formatDate(transaction.date)}</div>
+                                    <div className="text-gray-500">{formatTime(transaction.time)}</div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                    isDeposit 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}>
+                                    {transactionType}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                  <span className={`font-medium ${
+                                    isDeposit ? 'text-green-600' : 'text-red-600'
+                                  }`}>
+                                    {isDeposit ? '+' : '-'}{formatAmount(transaction.amount)}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {formatAmount(transaction.afterBalance)}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
