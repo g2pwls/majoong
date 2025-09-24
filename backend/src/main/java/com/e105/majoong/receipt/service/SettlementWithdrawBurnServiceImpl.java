@@ -154,7 +154,7 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
     // ── (4) 체인 출금(vault.release) ────────────────────────────────
     String releaseTxHash;
     try {
-      releaseTxHash = vaultService.release(vaultAddress, farmerWallet, tokenWei);
+      releaseTxHash = vaultService.release(vaultAddress, tokenWei);
     } catch (Exception e) {
       log.error("Settlement release failed (vault={}, to={}, wei={})",
           vaultAddress, farmerWallet, tokenWei, e);
