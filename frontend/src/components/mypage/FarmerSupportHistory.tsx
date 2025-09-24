@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { getFarmerDonationHistory } from '@/services/userService';
 import type { FarmerDonationHistoryRequest, FarmerDonationHistoryResponse, VaultHistoryDto } from '@/types/user';
 import FarmerDonationDetailModal from './FarmerDonationDetailModal';
+import AccountHistoryModal from './AccountHistoryModal';
 
 export default function FarmerSupportHistory() {
   const [donationHistory, setDonationHistory] = useState<VaultHistoryDto[]>([]);
@@ -29,6 +30,7 @@ export default function FarmerSupportHistory() {
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState<VaultHistoryDto | null>(null);
+  const [isAccountHistoryModalOpen, setIsAccountHistoryModalOpen] = useState(false);
 
   const fetchDonationHistory = useCallback(async (
     page: number = 0, 
@@ -119,6 +121,14 @@ export default function FarmerSupportHistory() {
     setSelectedDonation(null);
   };
 
+  const handleOpenAccountHistory = () => {
+    setIsAccountHistoryModalOpen(true);
+  };
+
+  const handleCloseAccountHistory = () => {
+    setIsAccountHistoryModalOpen(false);
+  };
+
   const formatAmount = (donationToken: number) => {
     const amountKrw = donationToken * 1000; // 1 MARON = 1000 KRW
     return new Intl.NumberFormat('ko-KR').format(amountKrw) + '원';
@@ -181,7 +191,18 @@ export default function FarmerSupportHistory() {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">후원 내역</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">후원 내역</h2>
+        <button
+          onClick={handleOpenAccountHistory}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span>계좌 내역 조회</span>
+        </button>
+      </div>
       
       {/* 요약 정보 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -420,6 +441,12 @@ export default function FarmerSupportHistory() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         donationData={selectedDonation}
+      />
+
+      {/* 계좌 내역 조회 모달 */}
+      <AccountHistoryModal
+        isOpen={isAccountHistoryModalOpen}
+        onClose={handleCloseAccountHistory}
       />
     </div>
   );

@@ -115,6 +115,7 @@ export interface DonationDetailResponse {
     farmWalletAddress: string;
     txHash: string;
     receiptId: string;
+    imageUrl?: string; // 선택적 필드로 추가
   };
 }
 
@@ -216,4 +217,16 @@ export interface FarmRegistrationResponse {
   message: string;
   code: number;
   result: string; // 농장 UUID (예: "FARM-2F40B1")
+}
+
+// 계좌 내역 조회 응답 타입
+export interface AccountHistoryResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    balance: string; // 잔액
+    transactions: unknown[]; // 거래 내역 (현재는 빈 배열)
+  };
 }

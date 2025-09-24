@@ -12,7 +12,8 @@ import type {
   FarmerDonationHistoryRequest,
   FarmerDonationHistoryResponse,
   FarmRegistrationRequest,
-  FarmRegistrationResponse
+  FarmRegistrationResponse,
+  AccountHistoryResponse
 } from '@/types/user';
 
 // 목장주 정보 조회 API
@@ -244,6 +245,27 @@ export const registerFarm = async (farmData: FarmRegistrationRequest): Promise<F
     return response.data;
   } catch (error: unknown) {
     console.error('목장 등록 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
+// 계좌 내역 조회 API
+export const getAccountHistory = async (): Promise<AccountHistoryResponse> => {
+  try {
+    console.log('계좌 내역 조회 API 호출 시작');
+    
+    const response = await authApi.get<AccountHistoryResponse>('/api/v1/members/farmers/accountHistory');
+    
+    console.log('계좌 내역 조회 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('계좌 내역 조회 API 오류:', error);
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
       console.error('에러 응답:', axiosError.response?.data);
