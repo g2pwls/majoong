@@ -64,8 +64,9 @@ public class FarmerMyPageController {
     public BaseResponse<Void> updateFarmers(@AuthenticationPrincipal CustomUserDetails user,
                                             @RequestPart(required = false) String farmName,
                                             @RequestPart(required = false) String phoneNumber,
-                                            @RequestPart(required = false) MultipartFile image) {
-        farmerMyPageService.updateFarmers(user.getMemberUuid(), farmName, phoneNumber, image);
+                                            @RequestPart(required = false) MultipartFile image,
+                                            @RequestPart(required = false) String description) {
+        farmerMyPageService.updateFarmers(user.getMemberUuid(), farmName, phoneNumber, image, description);
         return new BaseResponse<>();
     }
 }

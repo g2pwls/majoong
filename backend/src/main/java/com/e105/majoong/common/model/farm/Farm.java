@@ -86,4 +86,8 @@ public class Farm extends BaseEntity {
     public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
     }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
 }

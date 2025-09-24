@@ -42,7 +42,8 @@ public class FarmerMyPageServiceImpl implements FarmerMyPageService {
 
     @Override
     @Transactional
-    public void updateFarmers(String memberUuid,  String farmName, String phoneNumber, MultipartFile image) {
+    public void updateFarmers(String memberUuid, String farmName, String phoneNumber, MultipartFile image,
+                              String description) {
         Farmer farmer = farmerRepository.findByMemberUuid(memberUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARMER));
         Farm farm = farmRepository.findByMemberUuid(memberUuid).orElseThrow(
@@ -61,6 +62,9 @@ public class FarmerMyPageServiceImpl implements FarmerMyPageService {
         }
         if (phoneNumber != null) {
             farm.updatePhoneNumber(phoneNumber);
+        }
+        if (description != null) {
+            farm.updateDescription(description);
         }
     }
 

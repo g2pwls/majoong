@@ -126,6 +126,8 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
         .aiSummary(req.getReason())
         .content(content)
         .categoryId(req.getCategoryId())
+        .idempotencyKey(req.getIdempotencyKey())
+        .approvalNumber(req.getApprovalNumber())
         .build();
 
     ReceiptHistory receiptHistory = receiptHistoryRepository.save(receipt);
