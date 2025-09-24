@@ -421,22 +421,39 @@ export default function DonationProofUpload({
           totalPrice: parseInt(usedAmount.replace(/,/g, ""))
         }],
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
-        photoUrl: "", // S3 업로드 후 URL로 설정됨
         categoryId: getCategoryId(selectedCategory),
         idempotencyKey: idempotencyKey
       };
 
       console.log("API 요청 payload:", payload);
 
-      // 영수증 사진을 File 객체로 변환
+      // 인증사진을 File 객체로 변환
       let photoFile: File;
       try {
-        const response = await fetch(donationData[farmUuid].receipt);
+        const certificationImage = donationData[farmUuid].certification;
+        if (!certificationImage) {
+          throw new Error("인증사진이 없습니다.");
+        }
+        const response = await fetch(certificationImage);
         const blob = await response.blob();
-        photoFile = new File([blob], 'receipt.jpg', { type: blob.type });
+        
+        // MIME 타입에 따라 적절한 확장자 결정
+        let extension = 'jpg'; // 기본값
+        if (blob.type === 'image/png') {
+          extension = 'png';
+        } else if (blob.type === 'image/jpeg' || blob.type === 'image/jpg') {
+          extension = 'jpg';
+        } else if (blob.type === 'image/webp') {
+          extension = 'webp';
+        } else if (blob.type === 'image/gif') {
+          extension = 'gif';
+        }
+        
+        photoFile = new File([blob], `certification.${extension}`, { type: blob.type });
+        console.log(`인증사진 파일 생성: certification.${extension}, MIME 타입: ${blob.type}`);
       } catch (error) {
-        console.warn("영수증 사진 변환 실패:", error);
-        throw new Error("영수증 사진을 처리할 수 없습니다.");
+        console.warn("인증사진 변환 실패:", error);
+        throw new Error("인증사진을 처리할 수 없습니다.");
       }
 
       // apiService를 사용하여 정산 제출
