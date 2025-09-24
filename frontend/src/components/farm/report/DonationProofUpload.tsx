@@ -419,7 +419,7 @@ export default function DonationProofUpload({
       const idempotencyKey = generateIdempotencyKey();
       console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
 
-      // 백엔드 API 요구사항에 맞는 데이터 구성
+      // 백엔드 API 요구사항에 맞는 데이터 구성 (단순화)
       const payload = {
         reason: certificationResult.reason || "기부금 증빙 정산",
         storeInfo: {
@@ -441,14 +441,8 @@ export default function DonationProofUpload({
         }],
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
         categoryId: getCategoryId(selectedCategory),
-        idempotencyKey: idempotencyKey,
-        paymentInfo: {
-          totalAmount: certificationResult.paymentInfo?.totalAmount || usedAmount.replace(/,/g, ""),
-          paymentMethod: certificationResult.paymentInfo?.paymentMethod || "카드",
-          paymentDate: certificationResult.paymentInfo?.paymentDate || new Date().toISOString(),
-          receiptNumber: certificationResult.paymentInfo?.receiptNumber || null,
-          approvalNumber: certificationResult.paymentInfo?.approvalNumber || null
-        }
+        approvalNumber: parseInt(certificationResult.paymentInfo?.approvalNumber || "0") || 0, // 승인번호 (없으면 0)
+        idempotencyKey: idempotencyKey
       };
 
       console.log("API 요청 payload:", payload);

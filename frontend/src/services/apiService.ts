@@ -423,7 +423,7 @@ export async function isFarmBookmarked(farmUuid: string): Promise<boolean> {
   }
 }
 
-// 영수증 정산 제출 타입 정의
+// 영수증 정산 제출 타입 정의 (백엔드 요구사항에 맞게 단순화)
 interface ReceiptSettlementPayload {
   reason: string;
   storeInfo: {
@@ -440,14 +440,8 @@ interface ReceiptSettlementPayload {
   }>;
   receiptAmount: number;
   categoryId: number;
+  approvalNumber: number;
   idempotencyKey: string;
-  paymentInfo: {
-    totalAmount: string;
-    paymentMethod: string;
-    paymentDate: string;
-    receiptNumber: string | null;
-    approvalNumber: string | null;
-  };
 }
 
 interface ReceiptSettlementResponse {
