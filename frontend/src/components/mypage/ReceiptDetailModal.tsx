@@ -6,14 +6,12 @@ import type { VaultHistoryDto } from '@/types/user';
 interface ReceiptDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
-  receiptHistoryId: number;
   receiptData: VaultHistoryDto | null;
 }
 
 export default function ReceiptDetailModal({ 
   isOpen, 
   onClose, 
-  receiptHistoryId,
   receiptData 
 }: ReceiptDetailModalProps) {
 

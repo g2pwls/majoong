@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getAccountHistory } from '@/services/userService';
-import type { AccountHistoryResponse, AccountTransaction } from '@/types/user';
+import type { AccountHistoryResponse } from '@/types/user';
 
 interface AccountHistoryModalProps {
   isOpen: boolean;

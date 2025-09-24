@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFarmerDonationHistory } from '@/services/userService';
-import type { FarmerDonationHistoryRequest, FarmerDonationHistoryResponse, VaultHistoryDto } from '@/types/user';
+import type { FarmerDonationHistoryRequest, VaultHistoryDto } from '@/types/user';
 import FarmerDonationDetailModal from './FarmerDonationDetailModal';
 import AccountHistoryModal from './AccountHistoryModal';
 import ReceiptDetailModal from './ReceiptDetailModal';
@@ -169,16 +169,6 @@ export default function FarmerSupportHistory() {
     }).format(date);
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'DONATION':
-        return '기부 받음';
-      case 'WITHDRAWAL':
-        return '출금';
-      default:
-        return type;
-    }
-  };
 
   const getTypeBadge = (type: string) => {
     switch (type) {
@@ -482,7 +472,6 @@ export default function FarmerSupportHistory() {
       <ReceiptDetailModal
         isOpen={isReceiptModalOpen}
         onClose={handleCloseReceiptModal}
-        receiptHistoryId={selectedReceiptData?.receiptHistoryId || 0}
         receiptData={selectedReceiptData}
       />
     </div>

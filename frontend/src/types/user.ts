@@ -5,11 +5,12 @@ export interface DonatorInfoResponse {
   message: string;
   code: number;
   result: {
-    name: string;
+    role: string;
+    nameString: string;
     email: string;
     walletAddress: string;
+    // coin 필드는 실제 API 응답에 없음
     profileImage?: string;
-    coin: number;
   };
 }
 
@@ -20,14 +21,16 @@ export interface FarmerInfoResponse {
   message: string;
   code: number;
   result: {
-    name: string;
+    role: string;
+    nameString: string;
     email: string;
     walletAddress: string;
-    profileImage?: string;
-    phoneNumber: string;
-    farmName: string;
     businessNum: string;
-    openingAt: string; // 개업일자
+    farmName: string;
+    // 기존 타입 정의와 실제 API 응답이 다름
+    profileImage?: string;
+    phoneNumber?: string;
+    openingAt?: string;
   };
 }
 
@@ -64,39 +67,41 @@ export interface DonationHistoryResponse {
   result: {
     totalAmount: number;
     totalCoin: number;
-    content: {
-      donationHistoryId: number;
-      farmUuid: string;
-      farmName: string;
-      donationToken: number;
-      donationDate: string;
-      profileImage: string;
-    }[];
-    pageable: {
-      pageNumber: number;
-      pageSize: number;
+    donationHistory: {
+      content: {
+        donationHistoryId: number;
+        farmUuid: string;
+        farmName: string;
+        donationToken: number;
+        donationDate: string;
+        profileImage?: string;
+      }[];
+      pageable: {
+        pageNumber: number;
+        pageSize: number;
+        sort: {
+          empty: boolean;
+          unsorted: boolean;
+          sorted: boolean;
+        };
+        offset: number;
+        paged: boolean;
+        unpaged: boolean;
+      };
+      totalElements: number;
+      totalPages: number;
+      last: boolean;
+      size: number;
+      number: number;
       sort: {
         empty: boolean;
         unsorted: boolean;
         sorted: boolean;
       };
-      offset: number;
-      paged: boolean;
-      unpaged: boolean;
-    };
-    totalElements: number;
-    totalPages: number;
-    last: boolean;
-    size: number;
-    number: number;
-    sort: {
+      numberOfElements: number;
+      first: boolean;
       empty: boolean;
-      unsorted: boolean;
-      sorted: boolean;
     };
-    numberOfElements: number;
-    first: boolean;
-    empty: boolean;
   };
 }
 
