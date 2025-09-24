@@ -50,7 +50,9 @@ public class FarmController {
             @PathVariable String farmUuid,
             @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return new BaseResponse<>(farmService.getFarmDetail(farmUuid, user.getMemberUuid()));
+        String memberUuid = (user != null) ? user.getMemberUuid() : null;
+
+        return new BaseResponse<>(farmService.getFarmDetail(farmUuid, memberUuid));
     }
 
     @GetMapping("/{farmUuid}/monthly-reports/{reportId}")
