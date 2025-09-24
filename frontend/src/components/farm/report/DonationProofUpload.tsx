@@ -442,8 +442,8 @@ export default function DonationProofUpload({
         }],
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
         categoryId: getCategoryId(selectedCategory),
-        approvalNumber: parseInt(certificationResult.paymentInfo?.approvalNumber || "0") || 0, // 승인번호 (없으면 0)
-        idempotencyKey: idempotencyKey
+        idempotencyKey: idempotencyKey,
+        approvalNumber: certificationResult.paymentInfo?.approvalNumber || "0", // 승인번호 (없으면 "0")
       };
 
       console.log("API 요청 payload:", payload);
