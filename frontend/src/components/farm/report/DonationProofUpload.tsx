@@ -404,14 +404,15 @@ export default function DonationProofUpload({
 
       // 중복 방지 키 생성 (백엔드 제한: 최대 36자)
       const generateIdempotencyKey = (): string => {
-        // 더 고유한 키 생성을 위해 crypto.randomUUID() 사용
-        const uuid = crypto.randomUUID().replace(/-/g, ''); // 하이픈 제거
+        // 더 고유한 키 생성을 위해 타임스탬프 + 랜덤 + UUID 조합
         const timestamp = Date.now().toString(36);
-        const key = `receipt_${timestamp}_${uuid.substring(0, 8)}`;
+        const random = Math.random().toString(36).substr(2, 6);
+        const uuid = crypto.randomUUID().replace(/-/g, '').substr(0, 8);
+        const key = `receipt_${timestamp}_${random}_${uuid}`;
         
         // 36자 제한 확인
         if (key.length > 36) {
-          return `receipt_${timestamp}_${uuid.substring(0, 36 - `receipt_${timestamp}_`.length)}`;
+          return `receipt_${timestamp}_${random}_${uuid.substring(0, 36 - `receipt_${timestamp}_${random}_`.length)}`;
         }
         return key;
       };
@@ -443,7 +444,8 @@ export default function DonationProofUpload({
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
         categoryId: getCategoryId(selectedCategory),
         idempotencyKey: idempotencyKey,
-        approvalNumber: certificationResult.paymentInfo?.approvalNumber || "0", // 승인번호 (없으면 "0")
+        approvalNumber: certificationResult.paymentInfo?.approvalNumber || 
+          `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, // 승인번호 (없으면 고유한 값 생성)
       };
 
       console.log("API 요청 payload:", payload);
@@ -540,7 +542,35 @@ export default function DonationProofUpload({
       console.log("제출 성공:", result);
     } catch (e: unknown) {
       console.error("제출 에러:", e);
-      const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";
+      
+      let errorMessage = "제출 중 오류가 발생했어요.";
+      
+      // 409 Conflict 오류 처리
+      if (e && typeof e === 'object' && 'response' in e) {
+        const axiosError = e as { response?: { status: number; data: { message: string } } };
+        if (axiosError.response?.status === 409) {
+          const backendMessage = axiosError.response.data?.message || "";
+          
+          if (backendMessage.includes("이미 처리된 증빙")) {
+            errorMessage = "이미 처리된 영수증입니다. 다른 영수증을 사용해주세요.";
+          } else if (backendMessage.includes("이미 사용했던 영수증")) {
+            errorMessage = "이미 사용된 영수증입니다. 새로운 영수증을 업로드해주세요.";
+          } else {
+            errorMessage = "중복된 영수증입니다. 다른 영수증을 사용해주세요.";
+          }
+        } else if (axiosError.response?.status === 400) {
+          errorMessage = "입력 정보를 다시 확인해주세요.";
+        } else if (axiosError.response?.status === 401) {
+          errorMessage = "로그인이 필요합니다. 다시 로그인해주세요.";
+        } else if (axiosError.response?.status === 403) {
+          errorMessage = "접근 권한이 없습니다.";
+        } else if (axiosError.response?.status && axiosError.response.status >= 500) {
+          errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        }
+      } else if (e instanceof Error) {
+        errorMessage = e.message;
+      }
+      
       setSubmitError(errorMessage);
     } finally {
       setSubmitting(false);
