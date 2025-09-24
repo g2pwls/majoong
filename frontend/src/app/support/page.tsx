@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getFarms, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
-import { isDonator } from "@/services/authService";
+import { isDonator, isFarmer } from "@/services/authService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -117,8 +117,8 @@ const FarmCard: React.FC<{
 
           {/* 오른쪽: 갤러리 + 버튼 */}
           <div className="flex flex-col items-end gap-3">
-            {isDonator() && (
-              <Link href={`/support/${farm.id}/donate`}>
+            {!isFarmer() && (
+              <Link href={isDonator() ? `/support/${farm.id}/donate` : '/login'}>
                 <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
                   기부하기
                 </Button>
