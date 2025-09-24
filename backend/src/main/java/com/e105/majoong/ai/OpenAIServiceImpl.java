@@ -179,9 +179,16 @@ public class OpenAIServiceImpl implements OpenAIService {
     @Override
     public Mono<String> generateThumbnail(String content) {
         String[] variations = {
-                "Warm and friendly illustration of horses grazing peacefully...",
-                "Cozy farm illustration...",
-                "Friendly cartoon-like illustration...",
+                "Warm and friendly illustration of horses grazing peacefully on a meadow, with a stable in the background, soft pastel tones, 16:9 aspect ratio.",
+                "Cozy farm illustration of horses grazing under warm sunlight, with a barn in the distance, flat 2D style, 16:9 aspect ratio.",
+                "Friendly cartoon-like illustration of a horse farm, horses eating grass on a meadow, soft colors, 16:9 ratio.",
+                "Peaceful illustration of a horse ranch at sunset, horses standing near a wooden fence, soft warm lighting, 16:9 aspect ratio.",
+                "Bright and colorful flat illustration of horses playing in a green pasture, with a small barn and trees in the background, 16:9 aspect ratio.",
+                "Minimalist 2D illustration of a farm landscape with horses grazing, rolling hills, and a stable, warm muted tones, 16:9 aspect ratio.",
+                "Cartoon-style illustration of happy horses eating hay in front of a red barn, cheerful atmosphere, 16:9 ratio.",
+                "Illustration of horses relaxing under a tree in a sunny meadow, friendly and simple flat design, 16:9 aspect ratio.",
+                "Whimsical illustration of a horse ranch, soft watercolor-like tones, wide landscape with barn and stable, 16:9 aspect ratio.",
+                "Playful 2D farm illustration with horses grazing near a wooden fence, pastel palette, calm and warm mood, 16:9 aspect ratio."
         };
         String basePrompt = variations[new Random().nextInt(variations.length)];
         String prompt = String.format("%s\nReport context: %s", basePrompt, shortenContent(content, 300));
