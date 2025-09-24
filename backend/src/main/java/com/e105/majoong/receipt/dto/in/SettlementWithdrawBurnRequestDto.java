@@ -1,21 +1,20 @@
 package com.e105.majoong.receipt.dto.in;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReceiptSettlementRequestDto {
+public class SettlementWithdrawBurnRequestDto {
 
   /** receipt_history.ai_summary */
   @NotBlank @Size(max = 1000)
@@ -26,7 +25,7 @@ public class ReceiptSettlementRequestDto {
   private StoreInfo storeInfo;
 
   /** receipt_history.content */
-  @Size(max=1000)
+  @Schema(description = "특이 사항", nullable = true, example = "") @Size(max=1000)
   private String content;
 
   /** receipt_detail_history 로 저장 */
@@ -37,10 +36,6 @@ public class ReceiptSettlementRequestDto {
   @NotNull @Positive
   private Integer receiptAmount;
 
-  /** receipt_history.photo_url */
-  @Size(max = 255)
-  private String photoUrl;
-
   /** receipt_history.category_id = receipt_category.id */
   @NotNull
   private Long categoryId;
@@ -48,6 +43,10 @@ public class ReceiptSettlementRequestDto {
   /** 멱등키 (필수) */
   @NotBlank @Size(max = 36)
   private String idempotencyKey;
+
+  /** Multipart 사진 업로드 */
+  @NotNull
+  private MultipartFile photo;
 
   // ---------- inner ----------
   @Getter
