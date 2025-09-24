@@ -29,22 +29,17 @@ public class MonthlyDonationServiceImpl implements MonthlyDonationService {
         int targetYear = (year != null) ? year : now.getYear();
         int targetMonth = (month != null) ? month : now.getMonthValue();
 
-        List<Object[]> monthlyRaw = receiptHistoryCustom.findMonthlyDonationUsed(farmUuid);
-        List<MonthlyDonationUsedDto> monthlyDonationUsed = monthlyRaw.stream()
-                .map(MonthlyDonationUsedDto::from)
-                .collect(Collectors.toList());
+        List<MonthlyDonationUsedDto> monthlyDonationUsed = receiptHistoryCustom.findMonthlyDonationUsed(farmUuid);
 
         LocalDateTime start = LocalDateTime.of(targetYear, targetMonth, 1, 0, 0);
         LocalDateTime end = start.plusMonths(1);
 
-        List<ReceiptHistory> receipts = receiptHistoryRepository.findByFarmUuidAndCreatedAtBetween(farmUuid, start, end);
+        List<ReceiptHistory> receipts =
+                receiptHistoryRepository.findByFarmUuidAndCreatedAtBetween(farmUuid, start, end);
 
         List<ReceiptHistoryResponseDto> receiptHistory = receipts.stream()
-                .map(r -> {
-                    String categoryName = mapCategory(r.getCategoryId());
-                    return ReceiptHistoryResponseDto.from(r, categoryName);
-                })
-                .collect(Collectors.toList());
+                .map(r -> ReceiptHistoryResponseDto.from(r, mapCategory(r.getCategoryId())))
+                .toList();
 
         return new DonationUsageResponseDto(monthlyDonationUsed, receiptHistory);
     }
@@ -58,22 +53,18 @@ public class MonthlyDonationServiceImpl implements MonthlyDonationService {
         LocalDateTime start = firstDayOfLastMonth.atStartOfDay();
         LocalDateTime end = lastDayOfLastMonth.atTime(LocalTime.MAX);
 
-        Object[] total = (Object[]) receiptHistoryCustom.findTotalStatsLastMonth(farmUuid, start, end);
-
-        int totalCount = total[0] != null ? ((Number) total[0]).intValue() : 0;
-        long totalAmount = total[1] != null ? ((Number) total[1]).longValue() : 0L;
-
-        List<Object[]> categoryStats = receiptHistoryCustom.findCategoryStatsLastMonth(farmUuid, start, end);
+        TotalStatsDto totalStats = receiptHistoryCustom.findTotalStatsLastMonth(farmUuid, start, end);
+        List<CategoryStatsDto> categoryStats = receiptHistoryCustom.findCategoryStatsLastMonth(farmUuid, start, end);
 
         List<LastMonthUsageDetailDto> details = categoryStats.stream()
-                .map(obj -> new LastMonthUsageDetailDto(
-                        mapCategory(obj[0] != null ? ((Number) obj[0]).longValue() : -1L),
-                        obj[1] != null ? ((Number) obj[1]).intValue() : 0,
-                        obj[2] != null ? ((Number) obj[2]).longValue() : 0L
+                .map(dto -> new LastMonthUsageDetailDto(
+                        mapCategory(dto.getCategoryId()),
+                        dto.getCount().intValue(),
+                        dto.getTotalAmount()
                 ))
                 .toList();
 
-        return LastMonthUsageResponseDto.toDto(totalAmount, totalCount, details);
+        return LastMonthUsageResponseDto.toDto(totalStats.getTotalAmount(), totalStats.getTotalCount(), details);
     }
 
 

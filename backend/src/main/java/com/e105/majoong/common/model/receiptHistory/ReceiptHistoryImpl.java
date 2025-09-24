@@ -1,6 +1,9 @@
 package com.e105.majoong.common.model.receiptHistory;
 
 import com.e105.majoong.batch.score.receipt.dto.ReceiptCountDto;
+import com.e105.majoong.farm.dto.out.CategoryStatsDto;
+import com.e105.majoong.farm.dto.out.MonthlyDonationUsedDto;
+import com.e105.majoong.farm.dto.out.TotalStatsDto;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
@@ -31,7 +34,7 @@ public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
     }
 
     @Override
-    public List<Object[]> findMonthlyDonationUsed(String farmUuid) {
+    public List<MonthlyDonationUsedDto> findMonthlyDonationUsed(String farmUuid) {
         List<Tuple> results = queryFactory
                 .select(
                         Expressions.numberTemplate(Integer.class, "YEAR({0})", receiptHistory.createdAt),
@@ -47,16 +50,16 @@ public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
                 .fetch();
 
         return results.stream()
-                .map(tuple -> new Object[]{
-                        tuple.get(0, Integer.class),
-                        tuple.get(1, Integer.class),
-                        tuple.get(2, Long.class)
-                })
-                .collect(Collectors.toList());
+                .map(tuple -> MonthlyDonationUsedDto.builder()
+                        .year(tuple.get(0, Integer.class))
+                        .month(tuple.get(1, Integer.class))
+                        .amountSpent(tuple.get(2, Number.class) != null ? tuple.get(2, Number.class).longValue() : 0L)
+                        .build())
+                .toList();
     }
 
     @Override
-    public List<Object[]> findCategoryStatsLastMonth(String farmUuid, LocalDateTime start, LocalDateTime end) {
+    public List<CategoryStatsDto> findCategoryStatsLastMonth(String farmUuid, LocalDateTime start, LocalDateTime end) {
         List<Tuple> results = queryFactory
                 .select(
                         receiptHistory.categoryId,
@@ -72,16 +75,16 @@ public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
                 .fetch();
 
         return results.stream()
-                .map(tuple -> new Object[]{
-                        tuple.get(receiptHistory.categoryId),
-                        tuple.get(1, Long.class),
-                        tuple.get(2, Long.class)
-                })
-                .collect(Collectors.toList());
+                .map(tuple -> CategoryStatsDto.builder()
+                        .categoryId(tuple.get(receiptHistory.categoryId))
+                        .count(tuple.get(1, Number.class) != null ? tuple.get(1, Number.class).longValue() : 0L)
+                        .totalAmount(tuple.get(2, Number.class) != null ? tuple.get(2, Number.class).longValue() : 0L)
+                        .build())
+                .toList();
     }
 
     @Override
-    public Object findTotalStatsLastMonth(String farmUuid, LocalDateTime start, LocalDateTime end) {
+    public TotalStatsDto findTotalStatsLastMonth(String farmUuid, LocalDateTime start, LocalDateTime end) {
         Tuple result = queryFactory
                 .select(
                         receiptHistory.id.count(),
@@ -94,11 +97,9 @@ public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
                 )
                 .fetchOne();
 
-        if (result == null) return null;
-
-        return new Object[]{
-                result.get(0, Long.class),   // COUNT
-                result.get(1, Long.class)    // SUM
-        };
+        return TotalStatsDto.builder()
+                .totalCount(result != null ? result.get(0, Number.class).intValue() : 0)
+                .totalAmount(result != null ? result.get(1, Number.class).longValue() : 0L)
+                .build();
     }
 }
