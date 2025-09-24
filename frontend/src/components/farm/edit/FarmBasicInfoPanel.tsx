@@ -31,6 +31,27 @@ export default function FarmBasicInfoPanel({
   const [description, setDescription] = useState<string>("");
   const [openingDate, setOpeningDate] = useState<string>("");
 
+  // 전화번호 포맷팅 함수
+  const formatPhoneNumber = (value: string): string => {
+    // 숫자만 추출
+    const numbers = value.replace(/\D/g, '');
+    
+    // 길이에 따라 포맷팅
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  // 전화번호 입력 핸들러
+  const handlePhoneNumberChange = (value: string) => {
+    const formattedValue = formatPhoneNumber(value);
+    setfarm_phone(formattedValue);
+  };
+
   useEffect(() => {
     setfarm_name(farm?.name ?? "");
     setAddress(farm?.address ?? "");
@@ -173,8 +194,9 @@ export default function FarmBasicInfoPanel({
             <input
               className="w-[240px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
               value={farm_phone}
-              onChange={(e) => setfarm_phone(e.target.value)}
+              onChange={(e) => handlePhoneNumberChange(e.target.value)}
               placeholder="예: 010-0000-0000"
+              maxLength={13}
               required
             />
           </label>

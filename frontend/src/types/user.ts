@@ -1,119 +1,124 @@
-// 사용자 정보 관련 타입 정의
-
-// 목장주 정보 조회 API 응답 타입
-export interface FarmerInfoResponse {
-  httpStatus: string;
-  isSuccess: boolean;
-  message: string;
-  code: number;
-  result: {
-    role: string; // "farmer" (소문자)
-    nameString: string;
-    email: string;
-    walletAddress: string;
-    businessNum: string;
-    farmName: string;
-  };
-}
-
-// 기부자 정보 조회 API 응답 타입
+// 기부자 정보 조회 타입
 export interface DonatorInfoResponse {
   httpStatus: string;
   isSuccess: boolean;
   message: string;
   code: number;
   result: {
-    role: string; // "donator" (소문자)
-    nameString: string;
+    name: string;
     email: string;
     walletAddress: string;
+    profileImage?: string;
+    coin: number;
   };
 }
 
-// 즐겨찾기 농장 조회 API 응답 타입
+// 목장주 정보 조회 타입
+export interface FarmerInfoResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    name: string;
+    email: string;
+    walletAddress: string;
+    profileImage?: string;
+    phoneNumber: string;
+    farmName: string;
+    businessNum: string;
+    openingAt: string; // 개업일자
+  };
+}
+
+// 즐겨찾기 목록 조회 타입
 export interface FavoriteFarmsResponse {
   httpStatus: string;
   isSuccess: boolean;
   message: string;
   code: number;
-  result: Array<{
-    farmName: string;
+  result: {
     farmUuid: string;
-  }>;
+    farmName: string;
+    profileImage: string;
+    totalScore: number;
+    address: string;
+    description: string;
+  }[];
 }
 
-// 기부내역 조회 API 요청 타입
+// 기부내역 조회 요청 타입
 export interface DonationHistoryRequest {
   page?: number;
   size?: number;
   startDate?: string; // YYYY-MM-DD 형식
-  endDate?: string;   // YYYY-MM-DD 형식
+  endDate?: string; // YYYY-MM-DD 형식
 }
 
-// 기부내역 조회 API 응답 타입
+// 기부내역 조회 응답 타입
 export interface DonationHistoryResponse {
   httpStatus: string;
   isSuccess: boolean;
   message: string;
   code: number;
   result: {
-    totalCoin: number;
     totalAmount: number;
-    donationHistory: {
-      content: Array<{
-        donationHistoryId: number;
-        farmUuid: string;
-        donationDate: string;
-        farmName: string;
-        donationToken: number;
-      }>;
-      pageable: {
-        pageNumber: number;
-        pageSize: number;
-        sort: {
-          empty: boolean;
-          unsorted: boolean;
-          sorted: boolean;
-        };
-        offset: number;
-        unpaged: boolean;
-        paged: boolean;
-      };
-      totalElements: number;
-      totalPages: number;
-      last: boolean;
-      size: number;
-      number: number;
+    totalCoin: number;
+    content: {
+      donationHistoryId: number;
+      farmUuid: string;
+      farmName: string;
+      donationToken: number;
+      donationDate: string;
+      profileImage: string;
+    }[];
+    pageable: {
+      pageNumber: number;
+      pageSize: number;
       sort: {
         empty: boolean;
         unsorted: boolean;
         sorted: boolean;
       };
-      numberOfElements: number;
-      first: boolean;
-      empty: boolean;
+      offset: number;
+      paged: boolean;
+      unpaged: boolean;
     };
+    totalElements: number;
+    totalPages: number;
+    last: boolean;
+    size: number;
+    number: number;
+    sort: {
+      empty: boolean;
+      unsorted: boolean;
+      sorted: boolean;
+    };
+    numberOfElements: number;
+    first: boolean;
+    empty: boolean;
   };
 }
 
-// 기부 상세 조회 API 응답 타입
+// 기부 상세 조회 응답 타입
 export interface DonationDetailResponse {
   httpStatus: string;
   isSuccess: boolean;
   message: string;
   code: number;
   result: {
-    imageUrl: string;
+    donatorName: string;
+    farmName: string;
+    donationToken: number;
     donationDate: string;
     donatorWalletAddress: string;
     farmWalletAddress: string;
-    donationToken: number;
     txHash: string;
-    farmName: string;
+    receiptId: string;
   };
 }
 
-// 목장주 나의 목장 조회 응답
+// 나의 목장 조회 응답 타입
 export interface MyFarmResponse {
   httpStatus: string;
   isSuccess: boolean;
@@ -130,8 +135,8 @@ export interface MyFarmResponse {
     monthTotalAmount: number;
     area: number;
     description: string;
-    monthlyScores: unknown[]; // 향후 구체적인 타입 정의 필요
-    horses: unknown[]; // 향후 구체적인 타입 정의 필요
+    monthlyScores: unknown[]; // Changed from any[]
+    horses: unknown[]; // Changed from any[]
     ownerName: string;
   };
 }
@@ -193,4 +198,22 @@ export interface FarmerDonationHistoryResponse {
       empty: boolean;
     };
   };
+}
+
+// 목장 등록 관련 타입
+export interface FarmRegistrationRequest {
+  phoneNumber: string;
+  address: string;
+  openingDate: string; // YYYY-MM-DD 형식
+  area: number;
+  description: string;
+  profileImage: File | null;
+}
+
+export interface FarmRegistrationResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: string; // 농장 UUID (예: "FARM-2F40B1")
 }

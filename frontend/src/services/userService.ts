@@ -10,7 +10,9 @@ import type {
   DonationDetailResponse, 
   MyFarmResponse,
   FarmerDonationHistoryRequest,
-  FarmerDonationHistoryResponse
+  FarmerDonationHistoryResponse,
+  FarmRegistrationRequest,
+  FarmRegistrationResponse
 } from '@/types/user';
 
 // 목장주 정보 조회 API
@@ -195,6 +197,53 @@ export const getFarmerDonationHistory = async (
     return response.data;
   } catch (error: unknown) {
     console.error('목장주 거래내역 조회 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
+// 목장 등록 API
+export const registerFarm = async (farmData: FarmRegistrationRequest): Promise<FarmRegistrationResponse> => {
+  try {
+    console.log('목장 등록 API 호출 시작:', farmData);
+    
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('phoneNumber', farmData.phoneNumber);
+    formData.append('address', farmData.address);
+    formData.append('openingDate', farmData.openingDate);
+    formData.append('area', farmData.area.toString());
+    formData.append('description', farmData.description);
+    
+    if (farmData.profileImage) {
+      formData.append('profileImage', farmData.profileImage);
+    }
+    
+    // FormData 내용 로깅 (디버깅용)
+    console.log('FormData 내용:');
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}:`, value);
+    }
+    
+    const response = await authApi.post<FarmRegistrationResponse>(
+      '/api/v1/members/farmers/my-farm', 
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    
+    console.log('목장 등록 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('목장 등록 API 오류:', error);
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
       console.error('에러 응답:', axiosError.response?.data);
