@@ -31,7 +31,7 @@ async function submitToBackendSettlement(
   certificationImage: string,
   specialNote: string
 ) {
-  const backendUrl = process.env.BACKEND_URL || 'http://localhost:8080';
+  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
   
   // 사용자 제공 JSON 구조에 맞게 데이터 변환
   const settlementData = {
@@ -49,7 +49,6 @@ async function submitToBackendSettlement(
       totalPrice: usedAmount
     }],
     receiptAmount: parseInt(verificationResult.receiptAmount?.replace(/[^\d]/g, '') || usedAmount.toString()),
-    photoUrl: certificationImage || "",
     categoryId: getCategoryId(category),
     idempotencyKey: generateIdempotencyKey()
   };
@@ -66,13 +65,27 @@ async function submitToBackendSettlement(
       // Base64 이미지를 Blob으로 변환
       const response = await fetch(certificationImage);
       const blob = await response.blob();
-      formData.append('photo', blob, 'certification.jpg');
+      
+      // MIME 타입에 따라 적절한 확장자 결정
+      let extension = 'jpg'; // 기본값
+      if (blob.type === 'image/png') {
+        extension = 'png';
+      } else if (blob.type === 'image/jpeg' || blob.type === 'image/jpg') {
+        extension = 'jpg';
+      } else if (blob.type === 'image/webp') {
+        extension = 'webp';
+      } else if (blob.type === 'image/gif') {
+        extension = 'gif';
+      }
+      
+      formData.append('photo', blob, `certification.${extension}`);
+      console.log(`인증사진 파일 생성: certification.${extension}, MIME 타입: ${blob.type}`);
     } catch (error) {
       console.warn("사진 변환 실패:", error);
     }
   }
 
-  const response = await fetch(`${backendUrl}/api/v1/receipt/settlement`, {
+  const response = await fetch(`${backendUrl}/api/v1/settlement-withdraw-burn`, {
     method: 'POST',
     headers: {
       // Authorization 헤더는 프론트엔드에서 처리해야 함

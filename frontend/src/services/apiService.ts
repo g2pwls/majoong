@@ -439,7 +439,6 @@ interface ReceiptSettlementPayload {
     totalPrice: number;
   }>;
   receiptAmount: number;
-  photoUrl: string;
   categoryId: number;
   idempotencyKey: string;
 }
