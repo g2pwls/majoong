@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone"; // Import useDropzone from react-dropzone
 import Image from "next/image";
 import { FarmService } from "@/services/farmService";
@@ -53,7 +53,7 @@ export default function HorseInfoPanel({
   const [isDeleting, setIsDeleting] = useState(false); // 삭제 중 상태
 
   // 등록된 말 목록 가져오기
-  const fetchRegisteredHorses = async () => {
+  const fetchRegisteredHorses = useCallback(async () => {
     try {
       console.log('등록된 말 목록 조회 시작:', farm_uuid);
       const horses = await FarmService.getHorses(farm_uuid);
@@ -62,7 +62,7 @@ export default function HorseInfoPanel({
     } catch (err) {
       console.error('등록된 말 목록 조회 실패:', err);
     }
-  };
+  }, [farm_uuid]);
 
   // 컴포넌트 마운트 시 등록된 말 목록 가져오기
   useEffect(() => {
@@ -77,7 +77,7 @@ export default function HorseInfoPanel({
   };
 
   // 중복 마번 검증 함수
-  const isHorseNumberDuplicate = (horseNumber: string): boolean => {
+  const isHorseNumberDuplicate = useCallback((horseNumber: string): boolean => {
     const normalizedInput = normalizeHorseNumber(horseNumber);
     const isDuplicate = registeredHorses.some(horse => {
       const normalizedRegistered = normalizeHorseNumber(horse.horseNo);
@@ -93,7 +93,7 @@ export default function HorseInfoPanel({
     });
     
     return isDuplicate;
-  };
+  }, [registeredHorses]);
 
   // 등록된 말 목록이 변경될 때마다 중복 검증 재실행
   useEffect(() => {

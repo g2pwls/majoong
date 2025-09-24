@@ -22,7 +22,6 @@ export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
@@ -71,7 +70,6 @@ export default function DonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
-    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -105,7 +103,6 @@ export default function DonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
-    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {

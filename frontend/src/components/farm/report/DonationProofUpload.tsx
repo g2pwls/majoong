@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import { submitReceiptSettlement } from "../../../services/apiService";
 
 type DonationProofUploadProps = {
   farmUuid: string;
@@ -369,40 +370,80 @@ export default function DonationProofUpload({
         certificationResult
       });
 
-      // 영수증 이미지를 base64로 변환
-      const { base64: receiptBase64 } = await urlToBase64AndFormat(donationData[farmUuid].receipt);
-
-      // API 요청 데이터 구성
-      const requestData = {
-        payload: {
-          photo: receiptBase64,
-          category: selectedCategory,
-          usedAmount: usedAmount.replace(/,/g, ""),
-          extractedText: extractedText,
-          certificationResult: certificationResult,
-          farmUuid: farmUuid
-        }
+      // 카테고리 ID 매핑
+      const getCategoryId = (category: string): number => {
+        const categoryMap: { [key: string]: number } = {
+          "feed": 1,      // 사료/영양
+          "hoof": 2,      // 발굽 관리
+          "medical": 3,   // 의료/건강
+          "facility": 4,  // 시설
+          "exercise": 5,  // 운동/재활
+          "transport": 6  // 수송
+        };
+        return categoryMap[category] || 1;
       };
 
-      console.log("API 요청 데이터:", { ...requestData, payload: { ...requestData.payload, photo: receiptBase64.substring(0, 100) + "..." } });
+      // 중복 방지 키 생성 (백엔드 제한: 최대 36자)
+      const generateIdempotencyKey = (): string => {
+        const timestamp = Date.now().toString(36); // 36진수로 변환하여 길이 단축
+        const random = Math.random().toString(36).substr(2, 8); // 8자리 랜덤
+        const key = `receipt_${timestamp}_${random}`;
+        
+        // 36자 제한 확인
+        if (key.length > 36) {
+          return `receipt_${timestamp}_${random.substr(0, 8 - (key.length - 36))}`;
+        }
+        return key;
+      };
 
-      const res = await fetch("/api/v1/receipt/settlement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
-      });
+      // 멱등성 키 생성
+      const idempotencyKey = generateIdempotencyKey();
+      console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
 
-      console.log("제출 응답 상태:", res.status, res.statusText);
+      // 백엔드 API 요구사항에 맞는 데이터 구성
+      const payload = {
+        reason: certificationResult.reason || "기부금 증빙 정산",
+        storeInfo: {
+          name: certificationResult.storeInfo?.name || "가게명",
+          address: certificationResult.storeInfo?.address || "주소",
+          phone: certificationResult.storeInfo?.phone || "전화번호"
+        },
+        content: `카테고리: ${selectedCategory}, 사용금액: ${usedAmount}원`,
+        items: certificationResult.items ? certificationResult.items.map(item => ({
+          name: item.name,
+          quantity: parseInt(item.quantity) || 1,
+          unitPrice: parseInt(item.unitPrice) || 0,
+          totalPrice: parseInt(item.totalPrice) || 0
+        })) : [{
+          name: certificationResult.matchedItems?.[0] || "상품명",
+          quantity: 1,
+          unitPrice: parseInt(usedAmount.replace(/,/g, "")),
+          totalPrice: parseInt(usedAmount.replace(/,/g, ""))
+        }],
+        receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
+        photoUrl: "", // S3 업로드 후 URL로 설정됨
+        categoryId: getCategoryId(selectedCategory),
+        idempotencyKey: idempotencyKey
+      };
 
-      const json = await res.json();
-      console.log("제출 응답 데이터:", json);
+      console.log("API 요청 payload:", payload);
 
-      if (!res.ok) {
-        throw new Error(json?.error || json?.message || "제출 실패");
+      // 영수증 사진을 File 객체로 변환
+      let photoFile: File;
+      try {
+        const response = await fetch(donationData[farmUuid].receipt);
+        const blob = await response.blob();
+        photoFile = new File([blob], 'receipt.jpg', { type: blob.type });
+      } catch (error) {
+        console.warn("영수증 사진 변환 실패:", error);
+        throw new Error("영수증 사진을 처리할 수 없습니다.");
       }
 
+      // apiService를 사용하여 정산 제출
+      const result = await submitReceiptSettlement(payload as Parameters<typeof submitReceiptSettlement>[0], photoFile);
+
       setSubmitSuccess(true);
-      console.log("제출 성공:", json);
+      console.log("제출 성공:", result);
     } catch (e: unknown) {
       console.error("제출 에러:", e);
       const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";
