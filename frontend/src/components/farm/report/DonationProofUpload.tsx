@@ -214,6 +214,7 @@ export default function DonationProofUpload({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(30000), // 30초 타임아웃
       });
 
       console.log("OCR 응답 상태:", res.status, res.statusText);
@@ -228,7 +229,16 @@ export default function DonationProofUpload({
       setExtractedText(json?.text || "(추출된 텍스트가 없습니다)");
     } catch (e: unknown) {
       console.error("OCR 에러:", e);
-      const errorMessage = e instanceof Error ? e.message : "추출 중 오류가 발생했어요.";
+      let errorMessage = "추출 중 오류가 발생했어요.";
+      
+      if (e instanceof Error) {
+        if (e.name === 'TimeoutError' || e.message.includes('timeout')) {
+          errorMessage = "OCR 처리 시간이 초과되었습니다. 이미지 크기를 줄이거나 다시 시도해주세요.";
+        } else {
+          errorMessage = e.message;
+        }
+      }
+      
       setExtractError(errorMessage);
     } finally {
       setExtracting(false);
@@ -287,6 +297,7 @@ export default function DonationProofUpload({
           usedAmount: usedAmount.replace(/,/g, ""),
           certificationImage: certificationBase64,
         }),
+        signal: AbortSignal.timeout(60000), // 60초 타임아웃 (GPT 처리 시간 고려)
       });
 
       console.log("인증 사진 검증 응답 상태:", res.status, res.statusText);
@@ -315,7 +326,16 @@ export default function DonationProofUpload({
       setCertificationResult(json);
     } catch (e: unknown) {
       console.error("인증 사진 검증 에러:", e);
-      const errorMessage = e instanceof Error ? e.message : "종합 검증 중 오류가 발생했어요.";
+      let errorMessage = "종합 검증 중 오류가 발생했어요.";
+      
+      if (e instanceof Error) {
+        if (e.name === 'TimeoutError' || e.message.includes('timeout')) {
+          errorMessage = "검증 처리 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.";
+        } else {
+          errorMessage = e.message;
+        }
+      }
+      
       setCertificationError(errorMessage);
     } finally {
       setCertificationVerifying(false);
@@ -568,7 +588,12 @@ export default function DonationProofUpload({
           errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
         }
       } else if (e instanceof Error) {
-        errorMessage = e.message;
+        // 타임아웃 에러에 대한 특별 처리
+        if (e.message.includes('timeout') || e.message.includes('시간이 초과')) {
+          errorMessage = "요청 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.";
+        } else {
+          errorMessage = e.message;
+        }
       }
       
       setSubmitError(errorMessage);
