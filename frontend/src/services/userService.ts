@@ -1,7 +1,17 @@
 // 사용자 정보 관련 API 서비스 함수
 
 import { authApi } from './authService';
-import type { FarmerInfoResponse, DonatorInfoResponse, FavoriteFarmsResponse, DonationHistoryRequest, DonationHistoryResponse, DonationDetailResponse, MyFarmResponse } from '@/types/user';
+import type { 
+  FarmerInfoResponse, 
+  DonatorInfoResponse, 
+  FavoriteFarmsResponse, 
+  DonationHistoryRequest, 
+  DonationHistoryResponse, 
+  DonationDetailResponse, 
+  MyFarmResponse,
+  FarmerDonationHistoryRequest,
+  FarmerDonationHistoryResponse
+} from '@/types/user';
 
 // 목장주 정보 조회 API
 export const getFarmerInfo = async (): Promise<FarmerInfoResponse> => {
@@ -152,6 +162,39 @@ export const removeFavoriteFarm = async (farmUuid: string): Promise<{ isSuccess:
     };
   } catch (error: unknown) {
     console.error('즐겨찾기 삭제 API 오류:', error);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
+      console.error('에러 응답:', axiosError.response?.data);
+      console.error('에러 상태:', axiosError.response?.status);
+      console.error('에러 헤더:', axiosError.response?.headers);
+    }
+    throw error;
+  }
+};
+
+// 목장주 거래내역 조회 API
+export const getFarmerDonationHistory = async (
+  params: FarmerDonationHistoryRequest = {}
+): Promise<FarmerDonationHistoryResponse> => {
+  try {
+    console.log('목장주 거래내역 조회 API 호출:', params);
+    
+    // URLSearchParams를 사용하여 쿼리 파라미터 생성
+    const searchParams = new URLSearchParams();
+    if (params.page !== undefined) searchParams.append('page', params.page.toString());
+    if (params.size !== undefined) searchParams.append('size', params.size.toString());
+    if (params.startDate) searchParams.append('startDate', params.startDate);
+    if (params.endDate) searchParams.append('endDate', params.endDate);
+    
+    const queryString = searchParams.toString();
+    const url = `/api/v1/members/farmers/donations${queryString ? `?${queryString}` : ''}`;
+    
+    const response = await authApi.get<FarmerDonationHistoryResponse>(url);
+    
+    console.log('목장주 거래내역 조회 API 응답:', response.data);
+    return response.data;
+  } catch (error: unknown) {
+    console.error('목장주 거래내역 조회 API 오류:', error);
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response?: { data?: unknown; status?: number; headers?: unknown } };
       console.error('에러 응답:', axiosError.response?.data);
