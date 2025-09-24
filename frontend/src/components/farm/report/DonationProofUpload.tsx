@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from "react";
-import { submitReceiptSettlement } from "../../../services/apiService";
+// import { submitReceiptSettlement } from "../../../services/apiService"; // 중복 호출 방지를 위해 제거
 
 type DonationProofUploadProps = {
   farmUuid: string;
@@ -456,9 +456,34 @@ export default function DonationProofUpload({
         throw new Error("인증사진을 처리할 수 없습니다.");
       }
 
-      // apiService를 사용하여 정산 제출
-      const result = await submitReceiptSettlement(payload as Parameters<typeof submitReceiptSettlement>[0], photoFile);
+      // 백엔드 API로 직접 정산 제출
+      const formData = new FormData();
+      formData.append('payload', JSON.stringify(payload));
+      formData.append('photo', photoFile);
 
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+      const response = await fetch(`${backendUrl}/api/v1/settlement-withdraw-burn`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          // Content-Type은 FormData 사용 시 브라우저가 자동 설정
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API 응답 에러:', response.status, errorText);
+        throw new Error(`정산 제출 실패: ${response.status} - ${errorText}`);
+      }
+
+      const result = await response.json();
+      
+      // 백엔드 응답 형식 확인 (isSuccess 필드 체크)
+      if (result.isSuccess === false) {
+        throw new Error(`정산 제출 실패: ${result.message || '알 수 없는 오류'}`);
+      }
+      
       setSubmitSuccess(true);
       console.log("제출 성공:", result);
     } catch (e: unknown) {
