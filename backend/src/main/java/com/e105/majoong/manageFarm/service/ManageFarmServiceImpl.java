@@ -1,5 +1,6 @@
 package com.e105.majoong.manageFarm.service;
 
+import com.e105.majoong.ai.OpenAIService;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farmVault.FarmVault;
 import com.e105.majoong.common.model.farmVault.FarmVaultRepository;

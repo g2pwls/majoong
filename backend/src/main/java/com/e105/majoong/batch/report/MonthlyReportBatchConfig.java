@@ -1,4 +1,4 @@
-package com.e105.majoong.report.batch;
+package com.e105.majoong.batch.report;
 
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.monthlyReport.MonthlyReport;

@@ -53,7 +53,7 @@ public class FarmServiceImpl implements FarmService {
     }
 
     @Override
-    public FarmDetailResponseDto getFarmDetail(String farmUuid) {
+    public FarmDetailResponseDto getFarmDetail(String farmUuid, String memberUuid) {
         Farm farm = farmRepository.findByFarmUuid(farmUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
@@ -74,7 +74,9 @@ public class FarmServiceImpl implements FarmService {
                 now.getMonthValue()
         ) * 1000;
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
+        boolean bookmarked = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid);
+
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, bookmarked);
     }
 
     @Override
@@ -98,7 +100,8 @@ public class FarmServiceImpl implements FarmService {
                 now.getYear(),
                 now.getMonthValue()
         ) * 1000;
+        boolean bookmarked = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, bookmarked);
     }
 }

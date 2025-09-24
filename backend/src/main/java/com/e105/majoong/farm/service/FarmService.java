@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 
 public interface FarmService {
     Page<FarmListResponseDto> searchFarms(String farmName, int page, int size, String memberUuid);
-    FarmDetailResponseDto getFarmDetail(String farmUuid);
+    FarmDetailResponseDto getFarmDetail(String farmUuid, String memberUuid);
     FarmDetailResponseDto getMyFarm(String memberUuid);
 }
 
