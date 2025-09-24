@@ -8,29 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { startKakaoPay } from "@/services/paymentService";
+import { getFarms, Farm } from "@/services/apiService";
 
-interface FarmData {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  name: string;
-  address: string;
-  farm_phone: string;
-  area: number;
-  horse_count: number;
-  image_url: string;
-}
+// Farm 인터페이스는 apiService에서 import하여 사용
 
 const predefinedAmounts = [1000, 5000, 10000, 30000, 50000];
 
 export default function GoDonatePage() {
-  const [topFarms, setTopFarms] = useState<FarmData[]>([]);
-  const [selectedFarm, setSelectedFarm] = useState<FarmData | null>(null);
+  const [topFarms, setTopFarms] = useState<Farm[]>([]);
+  const [selectedFarm, setSelectedFarm] = useState<Farm | null>(null);
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
@@ -40,16 +32,19 @@ export default function GoDonatePage() {
   useEffect(() => {
     const fetchTopFarms = async () => {
       try {
-        const response = await fetch('/receipt/farms/all');
-        if (response.ok) {
-          const data = await response.json();
-          // 신뢰도 순으로 정렬하고 상위 5개 선택
-          const sortedFarms = data.sort((a: FarmData, b: FarmData) => b.total_score - a.total_score);
-          const top5 = sortedFarms.slice(0, 5);
-          setTopFarms(top5);
-          if (top5.length > 0) {
-            setSelectedFarm(top5[0]);
-          }
+        console.log('농장 목록 조회 시작');
+        // 목장 목록 조회 - 정확한 상위 5개를 위해 전체 데이터 가져옴 (size 미지정)
+        const response = await getFarms(); // size 파라미터 없이 호출하여 백엔드 기본값(전체) 사용
+        console.log('농장 목록 조회 성공:', response);
+        
+        // 신뢰도 순으로 정렬하고 상위 5개 선택
+        const sortedFarms = response.content.sort((a: Farm, b: Farm) => b.total_score - a.total_score);
+        const top5 = sortedFarms.slice(0, 5);
+        console.log('상위 5개 농장:', top5);
+        
+        setTopFarms(top5);
+        if (top5.length > 0) {
+          setSelectedFarm(top5[0]);
         }
       } catch (error) {
         console.error("농장 정보를 가져오는데 실패했습니다:", error);
@@ -64,6 +59,7 @@ export default function GoDonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
+    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -97,6 +93,7 @@ export default function GoDonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
+    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {

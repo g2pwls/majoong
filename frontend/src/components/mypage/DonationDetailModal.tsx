@@ -126,12 +126,12 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">농장명</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">목장명</label>
                     <p className="text-lg font-semibold text-gray-900">{donationDetail.farmName}</p>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">기부일시</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">후원 일시</label>
                     <p className="text-gray-900">{formatDate(donationDetail.donationDate)}</p>
                   </div>
                   
@@ -148,9 +148,9 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">기부자 지갑 주소</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">내 지갑 주소</label>
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 truncate">
+                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
                         {donationDetail.donatorWalletAddress}
                       </p>
                       <button
@@ -166,9 +166,9 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">농장 지갑 주소</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">목장 지갑 주소</label>
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 truncate">
+                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
                         {donationDetail.farmWalletAddress}
                       </p>
                       <button
@@ -186,7 +186,7 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">거래 해시</label>
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 truncate">
+                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
                         {donationDetail.txHash}
                       </p>
                       <button

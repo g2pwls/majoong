@@ -84,7 +84,7 @@ export default function DonorProfile({ donatorInfo: propDonatorInfo }: DonorProf
           <label className="block text-sm font-medium text-gray-700 mb-2">
             지갑 주소
           </label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm">
+          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm break-all overflow-wrap-anywhere">
             {donorInfo?.walletAddress}
           </div>
           <p className="mt-1 text-xs text-gray-500">

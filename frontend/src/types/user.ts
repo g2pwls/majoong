@@ -136,6 +136,61 @@ export interface MyFarmResponse {
   };
 }
 
-// 향후 추가될 사용자 관련 타입들
-// export interface SupportReceivedResponse { ... }
-// export interface ReportHistoryResponse { ... }
+// 목장주 거래내역 조회 관련 타입
+export interface FarmerDonationHistoryRequest {
+  page?: number;
+  size?: number;
+  startDate?: string; // YYYY-MM-DD 형식
+  endDate?: string; // YYYY-MM-DD 형식
+}
+
+export interface VaultHistoryDto {
+  donatorName: string | null;
+  donationToken: number;
+  donationAmount: number;
+  donationDate: string; // ISO 날짜 형식
+  txHash: string;
+  balance: number;
+  type: 'DONATION' | 'WITHDRAWAL' | 'OTHER';
+  receiptHistoryId: number;
+}
+
+export interface FarmerDonationHistoryResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: {
+    totalDonation: number;
+    usedAmount: number;
+    currentBalance: number;
+    vaultHistoryResponseDtos: {
+      content: VaultHistoryDto[];
+      pageable: {
+        pageNumber: number;
+        pageSize: number;
+        sort: {
+          empty: boolean;
+          unsorted: boolean;
+          sorted: boolean;
+        };
+        offset: number;
+        paged: boolean;
+        unpaged: boolean;
+      };
+      totalElements: number;
+      totalPages: number;
+      last: boolean;
+      size: number;
+      number: number;
+      sort: {
+        empty: boolean;
+        unsorted: boolean;
+        sorted: boolean;
+      };
+      numberOfElements: number;
+      first: boolean;
+      empty: boolean;
+    };
+  };
+}
