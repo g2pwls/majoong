@@ -450,22 +450,22 @@ interface ReceiptSettlementResponse {
   message: string;
 }
 
-// 중복 요청 방지를 위한 요청 추적
-let isSubmitting = false;
+// 중복 요청 방지를 위한 요청 추적 (멱등성 키별로 관리)
+const submittingKeys = new Set<string>();
 
 // 영수증 정산 제출
 export async function submitReceiptSettlement(
   payload: ReceiptSettlementPayload,
   photoFile: File
 ): Promise<ReceiptSettlementResponse> {
-  // 중복 실행 방지
-  if (isSubmitting) {
-    console.log("이미 제출 중입니다. 중복 요청을 무시합니다.");
+  // 중복 실행 방지 (멱등성 키별로 관리)
+  if (submittingKeys.has(payload.idempotencyKey)) {
+    console.log("이미 제출 중인 멱등성 키입니다. 중복 요청을 무시합니다.", payload.idempotencyKey);
     throw new Error("이미 제출 중입니다. 잠시 후 다시 시도해주세요.");
   }
 
   try {
-    isSubmitting = true;
+    submittingKeys.add(payload.idempotencyKey);
     console.log("=== submitReceiptSettlement 시작 ===", { 
       idempotencyKey: payload.idempotencyKey,
       timestamp: new Date().toISOString()
@@ -511,6 +511,6 @@ export async function submitReceiptSettlement(
     
     throw error;
   } finally {
-    isSubmitting = false;
+    submittingKeys.delete(payload.idempotencyKey);
   }
 }

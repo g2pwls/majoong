@@ -404,13 +404,14 @@ export default function DonationProofUpload({
 
       // 중복 방지 키 생성 (백엔드 제한: 최대 36자)
       const generateIdempotencyKey = (): string => {
-        const timestamp = Date.now().toString(36); // 36진수로 변환하여 길이 단축
-        const random = Math.random().toString(36).substr(2, 8); // 8자리 랜덤
-        const key = `receipt_${timestamp}_${random}`;
+        // 더 고유한 키 생성을 위해 crypto.randomUUID() 사용
+        const uuid = crypto.randomUUID().replace(/-/g, ''); // 하이픈 제거
+        const timestamp = Date.now().toString(36);
+        const key = `receipt_${timestamp}_${uuid.substring(0, 8)}`;
         
         // 36자 제한 확인
         if (key.length > 36) {
-          return `receipt_${timestamp}_${random.substr(0, 8 - (key.length - 36))}`;
+          return `receipt_${timestamp}_${uuid.substring(0, 36 - `receipt_${timestamp}_`.length)}`;
         }
         return key;
       };
