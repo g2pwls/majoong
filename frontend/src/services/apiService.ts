@@ -423,25 +423,25 @@ export async function isFarmBookmarked(farmUuid: string): Promise<boolean> {
   }
 }
 
-// 영수증 정산 제출 타입 정의 (백엔드 요구사항에 맞게 단순화)
+// 영수증 정산 제출 타입 정의 (백엔드 DTO와 일치)
 interface ReceiptSettlementPayload {
-  reason: string;
+  reason: string; // 최대 1000자
   storeInfo: {
-    name: string;
-    address: string;
-    phone: string;
+    name: string;    // 최대 255자
+    address: string; // 최대 255자
+    phone: string;   // 최대 15자
   };
-  content: string;
+  content: string; // 최대 1000자
   items: Array<{
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
+    name: string;      // 최대 255자
+    quantity: number;  // 최소 1
+    unitPrice: number; // 최소 1
+    totalPrice: number; // 최소 1
   }>;
-  receiptAmount: number;
-  categoryId: number;
-  idempotencyKey: string;
-  approvalNumber: string;
+  receiptAmount: number; // 최소 1
+  categoryId: number;    // Long 타입
+  idempotencyKey: string; // 최대 36자
+  approvalNumber: string; // 최대 255자
 }
 
 interface ReceiptSettlementResponse {
