@@ -315,7 +315,7 @@ export default function FarmerSupportHistory() {
                         {record.donatorName || '익명의 후원자'}님
                       </h3>
                       {getTypeBadge(record.type)}
-                    </div>
+                  </div>
                     <p className="text-sm text-gray-500 mb-2">후원일시: {formatDate(record.donationDate)}</p>
                     <p className="text-xs text-gray-400 font-mono break-all">
                       TX: {record.txHash}
@@ -338,10 +338,10 @@ export default function FarmerSupportHistory() {
                         </div>
                       )}
                     </div>
-                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           </div>
         )}
       </div>
