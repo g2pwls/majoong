@@ -437,7 +437,7 @@ interface ReceiptSettlementPayload {
     totalPrice: number; // 최소 1
   }>;
   receiptAmount: number; // 최소 1
-  categoryId: number;    // Long 타입
+  categoryId: number;    // Long 타입 (백엔드에서 Long으로 받음)
   idempotencyKey: string; // 최대 36자
   approvalNumber: string; // 최대 255자
 }
