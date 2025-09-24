@@ -72,7 +72,7 @@ public class FarmServiceImpl implements FarmService {
                 farmUuid,
                 now.getYear(),
                 now.getMonthValue()
-        ) * 1000;
+        ) * 100;
 
         boolean isBookmark = false;
         if (memberUuid != null && !memberUuid.isBlank()) {
@@ -102,7 +102,7 @@ public class FarmServiceImpl implements FarmService {
                 farm.getFarmUuid(),
                 now.getYear(),
                 now.getMonthValue()
-        ) * 1000;
+        ) * 100;
         boolean bookmarked = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
 
         return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, bookmarked);

@@ -145,7 +145,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
                 .select(Projections.constructor(VaultHistoryResponseDto.class,
                         donator.name,
                         donationHistory.donationToken,
-                        donationHistory.donationToken.multiply(1000),
+                        donationHistory.donationToken.multiply(100),
                         donationHistory.donationDate,
                         donationHistory.txHash,
                         donationHistory.balance,

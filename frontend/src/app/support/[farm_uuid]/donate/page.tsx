@@ -84,11 +84,11 @@ export default function DonatePage() {
     const numValue = parseInt(value.replace(/,/g, ""), 10);
 
     if (!isNaN(numValue)) {
-      // 1000 단위로 자동 내림
-      const rounded = Math.floor(numValue / 1000) * 1000;
+      // 100 단위로 자동 내림
+      const rounded = Math.floor(numValue / 100) * 100;
       setSelectedAmount(rounded);
       
-      // 1000원 단위로 딱 떨어지지 않는 경우 경고 표시
+      // 100원 단위로 딱 떨어지지 않는 경우 경고 표시
       setShowAmountWarning(numValue > 0 && numValue !== rounded);
     } else {
       setSelectedAmount(0);
@@ -310,7 +310,7 @@ export default function DonatePage() {
                 )}
               </div>
 
-              {/* 1000원 단위로 딱 떨어지지 않는 경우 안내 문구 */}
+              {/* 100원 단위로 딱 떨어지지 않는 경우 안내 문구 */}
               {showAmountWarning && (
                 <div className="flex justify-center mb-2">
                   <span className="text-orange-600 text-sm">
