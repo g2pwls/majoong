@@ -1,7 +1,7 @@
 // src/components/farm/report/DonationProofUpload.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // import { submitReceiptSettlement } from "../../../services/apiService"; // 중복 호출 방지를 위해 제거
 
 type DonationProofUploadProps = {
@@ -61,6 +61,7 @@ export default function DonationProofUpload({
       paymentMethod?: string;
       paymentDate?: string;
       receiptNumber?: string;
+      approvalNumber?: string;
     };
   } | null>(null);
   const [certificationError, setCertificationError] = useState<string | null>(null);
@@ -72,6 +73,16 @@ export default function DonationProofUpload({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
+
+  // 컴포넌트 언마운트 시 진행 중인 요청 취소
+  useEffect(() => {
+    return () => {
+      if (abortController) {
+        abortController.abort();
+      }
+    };
+  }, [abortController]);
 
   const handleDragStart = (e: React.DragEvent, type: string) => {
     if (donationData[farmUuid]?.[type]) {
@@ -314,6 +325,21 @@ export default function DonationProofUpload({
 
   // ---- 제출 처리 ----
   const handleSubmit = async () => {
+    // 중복 실행 방지
+    if (submitting) {
+      console.log("이미 제출 중입니다. 중복 요청을 무시합니다.");
+      return;
+    }
+
+    // 이전 요청이 있다면 취소
+    if (abortController) {
+      abortController.abort();
+    }
+
+    // 새로운 AbortController 생성
+    const newAbortController = new AbortController();
+    setAbortController(newAbortController);
+
     try {
       setSubmitting(true);
       setSubmitError(null);
@@ -422,10 +448,25 @@ export default function DonationProofUpload({
         }],
         receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
         categoryId: getCategoryId(selectedCategory),
-        idempotencyKey: idempotencyKey
+        idempotencyKey: idempotencyKey,
+        paymentInfo: {
+          totalAmount: certificationResult.paymentInfo?.totalAmount || usedAmount.replace(/,/g, ""),
+          paymentMethod: certificationResult.paymentInfo?.paymentMethod || "카드",
+          paymentDate: certificationResult.paymentInfo?.paymentDate || new Date().toISOString(),
+          receiptNumber: certificationResult.paymentInfo?.receiptNumber || null,
+          approvalNumber: certificationResult.paymentInfo?.approvalNumber || null
+        }
       };
 
       console.log("API 요청 payload:", payload);
+      
+      // 백엔드로 보낼 JSON 데이터를 콘솔에 출력
+      console.log("=== 백엔드로 보낼 JSON 데이터 ===");
+      console.log(JSON.stringify(payload, null, 2));
+      console.log("=== FormData 구성 ===");
+      console.log("payload:", JSON.stringify(payload));
+      console.log("photo: File 객체 (certification 이미지)");
+      console.log("================================");
 
       // 인증사진을 File 객체로 변환
       let photoFile: File;
@@ -469,6 +510,7 @@ export default function DonationProofUpload({
           // Content-Type은 FormData 사용 시 브라우저가 자동 설정
         },
         body: formData,
+        signal: newAbortController.signal,
       });
 
       if (!response.ok) {
@@ -488,10 +530,16 @@ export default function DonationProofUpload({
       console.log("제출 성공:", result);
     } catch (e: unknown) {
       console.error("제출 에러:", e);
+      // AbortError는 사용자가 요청을 취소한 경우이므로 에러로 처리하지 않음
+      if (e instanceof Error && e.name === 'AbortError') {
+        console.log("요청이 취소되었습니다.");
+        return;
+      }
       const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";
       setSubmitError(errorMessage);
     } finally {
       setSubmitting(false);
+      setAbortController(null);
     }
   };
 
@@ -862,6 +910,12 @@ export default function DonationProofUpload({
                               <span className="ml-2 font-medium">{certificationResult.paymentInfo.receiptNumber}</span>
                             </div>
                           )}
+                          {certificationResult.paymentInfo.approvalNumber && (
+                            <div>
+                              <span className="text-gray-600">승인번호:</span>
+                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.approvalNumber}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -886,7 +940,11 @@ export default function DonationProofUpload({
       <div className="flex justify-end">
         <button 
           className="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-60 disabled:cursor-not-allowed"
-          onClick={handleSubmit}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSubmit();
+          }}
           disabled={submitting || !selectedCategory || !donationData[farmUuid]?.receipt || !donationData[farmUuid]?.certification || !usedAmount || !extractedText || !certificationResult || certificationResult.result !== "적격"}
         >
           {submitting ? "제출 중..." : "제출"}
