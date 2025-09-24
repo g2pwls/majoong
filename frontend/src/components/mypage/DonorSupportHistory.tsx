@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { getDonationHistory } from '@/services/userService';
 import type { DonationHistoryRequest, DonationHistoryResponse } from '@/types/user';
 import DonationDetailModal from './DonationDetailModal';
@@ -72,7 +73,7 @@ export default function DonorSupportHistory() {
       setError('기부내역을 불러오는 중 오류가 발생했습니다.');
     } finally {
       if (isInitialLoad) {
-        setIsLoading(false);
+    setIsLoading(false);
       } else {
         setIsListLoading(false);
       }
@@ -174,12 +175,18 @@ export default function DonorSupportHistory() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">후원 내역</h2>
-         <div className="flex items-center space-x-4 text-sm text-gray-600">
-           <span>총 기부금: <strong>{formatTotalAmount(totalAmount)}</strong></span>
-           <span>총 코인: <strong>{formatCoin(totalCoin)}</strong></span>
-         </div>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">후원 내역</h2>
+      
+      {/* 요약 정보 카드 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-blue-800 mb-1">총 기부금</h3>
+          <p className="text-2xl font-bold text-blue-900">{formatTotalAmount(totalAmount)}</p>
+        </div>
+        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-green-800 mb-1">총 MARON</h3>
+          <p className="text-2xl font-bold text-green-900">{formatCoin(totalCoin)}</p>
+        </div>
       </div>
 
       {/* 날짜 필터 */}
@@ -229,26 +236,29 @@ export default function DonorSupportHistory() {
       {/* 리스트 컨텐츠 */}
       {!isListLoading && (
         <>
-          {supportHistory.length === 0 ? (
-            <div className="text-center py-12">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">후원 내역이 없습니다</h3>
-              <p className="mt-1 text-sm text-gray-500">아직 후원한 농장이 없습니다.</p>
-            </div>
-          ) : (
-             <div className="space-y-4">
+      {supportHistory.length === 0 ? (
+        <div className="text-center py-12">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">후원 내역이 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500 mb-4">아직 후원한 목장이 없습니다. 목장을 후원해보세요.</p>
+           <Link href="/support" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+             후원하러 가기
+           </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
                {supportHistory.map((record, index) => (
                  <div 
                    key={`${record.farmUuid}-${record.donationDate}-${index}`} 
                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors"
                    onClick={() => handleDonationClick(record.donationHistoryId)}
                  >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <h3 className="text-lg font-medium text-gray-900">{record.farmName}</h3>
+                  <h3 className="text-lg font-medium text-gray-900">{record.farmName}</h3>
                         <button
                           onClick={(e) => {
                             e.stopPropagation(); // 모달 열기 방지
@@ -256,23 +266,23 @@ export default function DonorSupportHistory() {
                           }}
                           className="text-blue-600 hover:text-blue-800 text-sm underline"
                         >
-                          농장 보기
+                          목장 보기
                         </button>
                       </div>
                       <p className="text-sm text-gray-500">후원일시: {formatDate(record.donationDate)}</p>
-                    </div>
-                    <div className="text-right">
+                </div>
+                <div className="text-right">
                       <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
                       <p className="text-sm text-blue-600">{formatCoin(record.donationToken)}</p>
-                      <div className="mt-1">
+                  <div className="mt-1">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           완료
                         </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
-              ))}
+              </div>
+            </div>
+          ))}
             </div>
           )}
         </>

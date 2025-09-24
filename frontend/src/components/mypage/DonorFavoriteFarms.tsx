@@ -26,11 +26,11 @@ export default function DonorFavoriteFarms() {
         if (response.isSuccess && response.result) {
           setFavoriteFarms(response.result);
         } else {
-          setError('즐겨찾기 농장 목록을 불러올 수 없습니다.');
+          setError('즐겨찾기 목장 목록을 불러올 수 없습니다.');
         }
       } catch (error) {
-        console.error('즐겨찾기 농장 조회 오류:', error);
-        setError('즐겨찾기 농장 목록을 불러오는 중 오류가 발생했습니다.');
+        console.error('즐겨찾기 목장 조회 오류:', error);
+        setError('즐겨찾기 목장 목록을 불러오는 중 오류가 발생했습니다.');
       } finally {
         setIsLoading(false);
       }
@@ -40,9 +40,9 @@ export default function DonorFavoriteFarms() {
   }, []);
 
   const handleRemoveFavorite = async (farmUuid: string) => {
-    // 해당 농장의 이름을 찾기
+    // 해당 목장의 이름을 찾기
     const farm = favoriteFarms.find(f => f.farmUuid === farmUuid);
-    const farmName = farm?.farmName || '농장';
+    const farmName = farm?.farmName || '목장';
     
     if (!confirm(`"${farmName}"을 즐겨찾기에서 제거하시겠습니까?`)) {
       return;
@@ -52,7 +52,7 @@ export default function DonorFavoriteFarms() {
       console.log('즐겨찾기 삭제 요청:', farmUuid);
       await removeFavoriteFarm(farmUuid);
       
-      // 로컬 상태에서 해당 농장 제거
+      // 로컬 상태에서 해당 목장 제거
       setFavoriteFarms(prev => prev.filter(farm => farm.farmUuid !== farmUuid));
       
       console.log('즐겨찾기 삭제 완료:', farmName);
@@ -64,8 +64,13 @@ export default function DonorFavoriteFarms() {
   };
 
   const handleVisitFarm = (farmUuid: string) => {
-    // 농장 상세 페이지로 이동
+    // 목장 상세 페이지로 이동
     window.open(`/support/${farmUuid}`, '_blank');
+  };
+
+  const handleDonate = (farmUuid: string) => {
+    // 목장 기부하기 페이지로 이동
+    window.open(`/support/${farmUuid}/donate`, '_blank');
   };
 
   if (isLoading) {
@@ -105,20 +110,20 @@ export default function DonorFavoriteFarms() {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">즐겨찾는 농장</h2>
+      <h2 className="text-xl font-semibold text-gray-900 mb-6">즐겨찾는 목장</h2>
       
       {favoriteFarms.length === 0 ? (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">즐겨찾는 농장이 없습니다</h3>
-          <p className="mt-1 text-sm text-gray-500 mb-4">관심 있는 농장을 즐겨찾기에 추가해보세요.</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">즐겨찾는 목장이 없습니다</h3>
+          <p className="mt-1 text-sm text-gray-500 mb-4">관심 있는 목장을 즐겨찾기에 추가해보세요.</p>
           <Link href="/support" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
             <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            농장 둘러보기
+            목장 둘러보기
           </Link>
         </div>
       ) : (
@@ -143,7 +148,7 @@ export default function DonorFavoriteFarms() {
                   <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                   </svg>
-                  농장 ID: {farm.farmUuid}
+                  목장 ID: {farm.farmUuid}
                 </div>
               </div>
               
@@ -152,10 +157,10 @@ export default function DonorFavoriteFarms() {
                   onClick={() => handleVisitFarm(farm.farmUuid)}
                   className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
                 >
-                  농장 보기
+                  목장 보기
                 </button>
                 <button 
-                  onClick={() => handleVisitFarm(farm.farmUuid)}
+                  onClick={() => handleDonate(farm.farmUuid)}
                   className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
                 >
                   후원하기
@@ -178,7 +183,7 @@ export default function DonorFavoriteFarms() {
               즐겨찾기 안내
             </h3>
             <div className="mt-2 text-sm text-blue-700">
-              <p>관심 있는 농장을 즐겨찾기에 추가하여 빠르게 접근할 수 있습니다. 하트 아이콘을 클릭하여 제거할 수 있습니다.</p>
+              <p>관심 있는 목장을 즐겨찾기에 추가하여 빠르게 접근할 수 있습니다. 하트 아이콘을 클릭하여 제거할 수 있습니다.</p>
             </div>
           </div>
         </div>

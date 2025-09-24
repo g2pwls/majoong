@@ -6,9 +6,11 @@ import TermsModal from './TermsModal';
 interface TermsAgreementProps {
   userType: 'donor' | 'farmer';
   onAgreementChange: (isAllAgreed: boolean) => void;
+  onAllAgreementClick?: () => void; // 전체 동의 클릭 시 콜백
+  onAllAgreementComplete?: () => void; // 모든 약관이 완료되었을 때 콜백
 }
 
-export default function TermsAgreement({ userType, onAgreementChange }: TermsAgreementProps) {
+export default function TermsAgreement({ userType, onAgreementChange, onAllAgreementClick, onAllAgreementComplete }: TermsAgreementProps) {
   const [agreements, setAgreements] = useState({
     all: false,
     service: false,
@@ -35,6 +37,11 @@ export default function TermsAgreement({ userType, onAgreementChange }: TermsAgr
         payment: value,
         privacy: value
       };
+      
+      // 전체 동의가 체크될 때 (false -> true) 콜백 호출
+      if (value && !agreements.all && onAllAgreementClick) {
+        onAllAgreementClick();
+      }
     } else {
       // 개별 체크박스 클릭 시 전체 동의 상태 업데이트
       const individualTerms = ['service', 'payment', 'privacy'] as const;
@@ -42,6 +49,12 @@ export default function TermsAgreement({ userType, onAgreementChange }: TermsAgr
         term === key ? value : newAgreements[term]
       );
       newAgreements.all = allChecked;
+      
+      // 개별 체크박스를 통해 모든 약관이 완료되었을 때 (이전에는 완료 상태가 아니었음)
+      const wasNotAllAgreed = !individualTerms.every(term => agreements[term]);
+      if (allChecked && wasNotAllAgreed && onAllAgreementComplete) {
+        onAllAgreementComplete();
+      }
     }
     
     setAgreements(newAgreements);

@@ -10,8 +10,8 @@ export const startKakaoPay = async (request: KakaoPayReadyRequest): Promise<Kaka
     
     console.log('카카오페이 결제 시작 API 응답:', response.data);
     
-    // 결제 페이지로 리다이렉트 (결제 정보를 세션 스토리지에 저장)
-    if (response.data.isSuccess && response.data.result.next_redirect_pc_url) {
+    // 결제 페이지로 리다이렉트 (모바일/PC 환경 분리)
+    if (response.data.isSuccess) {
       // 결제 정보를 세션 스토리지에 저장하여 승인 페이지에서 사용
       const paymentInfo = {
         farmUuid: request.farmUuid,
@@ -23,7 +23,18 @@ export const startKakaoPay = async (request: KakaoPayReadyRequest): Promise<Kaka
       sessionStorage.setItem('kakao_pay_info', JSON.stringify(paymentInfo));
       console.log('결제 정보 저장:', paymentInfo);
       
-      window.open(response.data.result.next_redirect_pc_url, '_blank');
+      // 모바일 환경 감지
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      if (isMobile && response.data.result.next_redirect_mobile_url) {
+        console.log('모바일 환경: 모바일 결제 페이지로 이동');
+        window.open(response.data.result.next_redirect_mobile_url, '_blank');
+      } else if (response.data.result.next_redirect_pc_url) {
+        console.log('PC 환경: PC 결제 페이지로 이동');
+        window.open(response.data.result.next_redirect_pc_url, '_blank');
+      } else {
+        console.error('결제 페이지 URL을 찾을 수 없습니다.');
+      }
     }
     
     return response.data;

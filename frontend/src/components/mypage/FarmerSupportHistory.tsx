@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFarmerDonationHistory } from '@/services/userService';
 import type { FarmerDonationHistoryRequest, FarmerDonationHistoryResponse, VaultHistoryDto } from '@/types/user';
+import FarmerDonationDetailModal from './FarmerDonationDetailModal';
 
 export default function FarmerSupportHistory() {
   const [donationHistory, setDonationHistory] = useState<VaultHistoryDto[]>([]);
@@ -24,8 +25,17 @@ export default function FarmerSupportHistory() {
   const [totalDonation, setTotalDonation] = useState(0);
   const [usedAmount, setUsedAmount] = useState(0);
   const [currentBalance, setCurrentBalance] = useState(0);
+  
+  // 모달 상태
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDonation, setSelectedDonation] = useState<VaultHistoryDto | null>(null);
 
-  const fetchDonationHistory = useCallback(async (page: number = 0, isInitialLoad: boolean = false) => {
+  const fetchDonationHistory = useCallback(async (
+    page: number = 0, 
+    isInitialLoad: boolean = false,
+    filterStartDate?: string,
+    filterEndDate?: string
+  ) => {
     try {
       if (isInitialLoad) {
         setIsLoading(true);
@@ -39,15 +49,19 @@ export default function FarmerSupportHistory() {
         size: pageSize,
       };
 
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+      // 매개변수로 전달된 날짜를 사용하거나, 없으면 현재 상태값 사용
+      const searchStartDate = filterStartDate !== undefined ? filterStartDate : startDate;
+      const searchEndDate = filterEndDate !== undefined ? filterEndDate : endDate;
+
+      if (searchStartDate) params.startDate = searchStartDate;
+      if (searchEndDate) params.endDate = searchEndDate;
 
       const response = await getFarmerDonationHistory(params);
 
       if (response.isSuccess) {
         const { result } = response;
         
-        // 거래내역 데이터 설정
+        // 후원내역 데이터 설정
         setDonationHistory(result.vaultHistoryResponseDtos.content);
         setTotalPages(result.vaultHistoryResponseDtos.totalPages);
         setTotalElements(result.vaultHistoryResponseDtos.totalElements);
@@ -58,11 +72,11 @@ export default function FarmerSupportHistory() {
         setUsedAmount(result.usedAmount);
         setCurrentBalance(result.currentBalance);
       } else {
-        setError('거래내역을 불러올 수 없습니다.');
+        setError('후원내역을 불러올 수 없습니다.');
       }
     } catch (error) {
-      console.error('목장주 거래내역 조회 오류:', error);
-      setError('거래내역을 불러오는 중 오류가 발생했습니다.');
+      console.error('목장주 후원내역 조회 오류:', error);
+      setError('후원내역을 불러오는 중 오류가 발생했습니다.');
     } finally {
       if (isInitialLoad) {
         setIsLoading(false);
@@ -70,7 +84,7 @@ export default function FarmerSupportHistory() {
         setIsListLoading(false);
       }
     }
-  }, [pageSize, startDate, endDate]);
+  }, [pageSize]); // startDate, endDate 의존성 제거
 
   useEffect(() => {
     // 컴포넌트 마운트 시에만 초기 데이터 로드
@@ -78,16 +92,31 @@ export default function FarmerSupportHistory() {
   }, [fetchDonationHistory]);
 
   const handleDateFilter = () => {
-    fetchDonationHistory(0, false); // 리스트만 로딩
+    fetchDonationHistory(0, false, startDate, endDate); // 리스트만 로딩, 현재 날짜 상태 전달
   };
 
   const handlePageChange = (page: number) => {
-    fetchDonationHistory(page, false); // 리스트만 로딩
+    fetchDonationHistory(page, false, startDate, endDate); // 리스트만 로딩, 현재 필터 유지
   };
 
   const clearDateFilter = () => {
     setStartDate('');
     setEndDate('');
+    // 초기화 후 즉시 필터 적용 (빈 날짜로)
+    fetchDonationHistory(0, false, '', '');
+  };
+
+  const handleDonationClick = (donation: VaultHistoryDto) => {
+    // DONATION 타입인 경우에만 모달 열기
+    if (donation.type === 'DONATION') {
+      setSelectedDonation(donation);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedDonation(null);
   };
 
   const formatAmount = (donationToken: number) => {
@@ -155,59 +184,51 @@ export default function FarmerSupportHistory() {
       <h2 className="text-xl font-semibold text-gray-900 mb-6">후원 내역</h2>
       
       {/* 요약 정보 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-1">총 받은 후원금</h3>
+          <h3 className="text-sm font-medium text-blue-800 mb-1">누적 후원금</h3>
           <p className="text-2xl font-bold text-blue-900">{formatAmount(totalDonation / 1000)}</p>
         </div>
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-yellow-800 mb-1">사용한 금액</h3>
+          <h3 className="text-sm font-medium text-yellow-800 mb-1">누적 정산 금액</h3>
           <p className="text-2xl font-bold text-yellow-900">{formatAmount(usedAmount / 1000)}</p>
-        </div>
-        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-green-800 mb-1">현재 잔액</h3>
-          <p className="text-2xl font-bold text-green-900">{formatAmount(currentBalance / 1000)}</p>
         </div>
       </div>
 
       {/* 날짜 필터 */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-        <div className="flex flex-wrap items-center gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">시작일</label>
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">시작일:</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">종료일</label>
+          <div className="flex items-center space-x-2">
+            <label className="text-sm font-medium text-gray-700">종료일:</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-1 border border-gray-300 rounded-md text-sm"
             />
           </div>
-          <div className="flex items-end gap-2">
-            <button
-              onClick={handleDateFilter}
-              disabled={isListLoading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
-              {isListLoading ? '조회 중...' : '조회'}
-            </button>
-            {(startDate || endDate) && (
-              <button
-                onClick={clearDateFilter}
-                className="px-3 py-2 text-gray-600 hover:text-gray-800 text-sm"
-              >
-                초기화
-              </button>
-            )}
-          </div>
+          <button
+            onClick={handleDateFilter}
+            disabled={isListLoading}
+            className="px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isListLoading ? '조회 중...' : '조회'}
+          </button>
+          <button
+            onClick={clearDateFilter}
+            className="px-4 py-1 bg-gray-600 text-white rounded-md text-sm hover:bg-gray-700 transition-colors"
+          >
+            초기화
+          </button>
         </div>
       </div>
 
@@ -226,7 +247,7 @@ export default function FarmerSupportHistory() {
         </div>
       )}
 
-      {/* 거래내역 리스트 */}
+      {/* 후원내역 리스트 */}
       <div className="bg-white rounded-lg border border-gray-200">
         {isListLoading && (
           <div className="p-4 text-center">
@@ -245,15 +266,21 @@ export default function FarmerSupportHistory() {
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">거래내역이 없습니다</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900">후원내역이 없습니다</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {startDate || endDate ? '해당 기간에 거래내역이 없습니다.' : '아직 거래내역이 없습니다.'}
+              {startDate || endDate ? '해당 기간에 후원내역이 없습니다.' : '아직 후원내역이 없습니다.'}
             </p>
           </div>
         ) : (
           <div className="overflow-hidden">
             {donationHistory.map((record, index) => (
-              <div key={`${record.receiptHistoryId}-${index}`} className="border-b border-gray-200 last:border-b-0 p-4 hover:bg-gray-50">
+              <div 
+                key={`${record.receiptHistoryId}-${index}`} 
+                className={`border-b border-gray-200 last:border-b-0 p-4 hover:bg-gray-50 ${
+                  record.type === 'DONATION' ? 'cursor-pointer transition-colors' : ''
+                }`}
+                onClick={() => handleDonationClick(record)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
@@ -262,7 +289,7 @@ export default function FarmerSupportHistory() {
                       </h3>
                       {getTypeBadge(record.type)}
                     </div>
-                    <p className="text-sm text-gray-500 mb-2">거래일시: {formatDate(record.donationDate)}</p>
+                    <p className="text-sm text-gray-500 mb-2">후원일시: {formatDate(record.donationDate)}</p>
                     <p className="text-xs text-gray-400 font-mono break-all">
                       TX: {record.txHash}
                     </p>
@@ -271,8 +298,19 @@ export default function FarmerSupportHistory() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
-                    <p className="text-xs text-green-600 mt-1">✓ 지갑에 입금됨</p>
+                    <div className="flex items-center justify-end space-x-2">
+                      <div>
+                        <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
+                        <p className="text-xs text-green-600 mt-1">✓ 금고에 입금됨</p>
+                      </div>
+                      {record.type === 'DONATION' && (
+                        <div className="text-blue-500 opacity-70">
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -362,14 +400,21 @@ export default function FarmerSupportHistory() {
           </div>
           <div className="ml-3">
             <h3 className="text-sm font-medium text-blue-800">
-              거래내역 안내
+              후원내역 안내
             </h3>
             <div className="mt-2 text-sm text-blue-700">
-              <p>모든 거래는 블록체인에 기록되며, MARON 토큰으로 후원금이 지급됩니다. (1 MARON = 1,000원)</p>
+              <p>모든 후원은 블록체인에 기록되며, MARON 토큰으로 후원금이 지급됩니다. (1 MARON = 1,000원)</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* 기부 상세 모달 */}
+      <FarmerDonationDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        donationData={selectedDonation}
+      />
     </div>
   );
 }

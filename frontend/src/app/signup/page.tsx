@@ -37,6 +37,9 @@ export default function SignupPage() {
   // 입력창에 대한 ref
   const donorNameRef = useRef<HTMLInputElement>(null);
   const farmNameRef = useRef<HTMLInputElement>(null);
+  
+  // 회원가입 버튼에 대한 ref
+  const signupButtonRef = useRef<HTMLButtonElement>(null);
 
   // 역할 선택 후 자동으로 첫 번째 입력창에 포커스
   useEffect(() => {
@@ -52,6 +55,32 @@ export default function SignupPage() {
       }, 100);
     }
   }, [userType]);
+
+  // 전체 약관 동의 클릭 시 회원가입 버튼으로 자동 스크롤
+  const handleAllAgreementClick = () => {
+    if (signupButtonRef.current) {
+      // 체크박스 상태 변화와 DOM 업데이트를 기다린 후 스크롤
+      setTimeout(() => {
+        signupButtonRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 150); // 체크박스 전환 애니메이션 완료 후 스크롤
+    }
+  };
+
+  // 개별 체크박스로 모든 약관 완료 시 회원가입 버튼으로 자동 스크롤
+  const handleAllAgreementComplete = () => {
+    if (signupButtonRef.current) {
+      // 개별 체크박스의 상태 변화와 DOM 업데이트를 기다린 후 스크롤
+      setTimeout(() => {
+        signupButtonRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100); // 개별 체크박스는 더 짧은 지연시간
+    }
+  };
 
   const handleBusinessVerification = async () => {
     if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
@@ -214,6 +243,9 @@ export default function SignupPage() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="성명을 입력해주세요"
                 />
+                <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ 회원가입 후 이름 변경은 불가능합니다. 정확히 입력해주세요.
+                </p>
               </div>
             </div>
           )}
@@ -250,6 +282,9 @@ export default function SignupPage() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                   placeholder="대표자 성명을 입력해주세요"
                 />
+                <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ 회원가입 후 이름 변경은 불가능합니다. 정확히 입력해주세요.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -333,6 +368,8 @@ export default function SignupPage() {
             <TermsAgreement
               userType={userType}
               onAgreementChange={setIsTermsAgreed}
+              onAllAgreementClick={handleAllAgreementClick}
+              onAllAgreementComplete={handleAllAgreementComplete}
             />
           )}
 
@@ -340,6 +377,7 @@ export default function SignupPage() {
           {userType && (
             <div className="pt-4">
               <button
+                ref={signupButtonRef}
                 onClick={handleSubmit}
                 disabled={!isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)}
                 className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors duration-200 ${
