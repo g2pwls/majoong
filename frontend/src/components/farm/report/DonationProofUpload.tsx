@@ -479,8 +479,50 @@ export default function DonationProofUpload({
           extension = 'gif';
         }
         
-        photoFile = new File([blob], `certification.${extension}`, { type: blob.type });
-        console.log(`인증사진 파일 생성: certification.${extension}, MIME 타입: ${blob.type}`);
+        // 이미지 압축 (최대 1MB로 제한)
+        let compressedBlob = blob;
+        if (blob.size > 1024 * 1024) { // 1MB 초과시 압축
+          console.log(`이미지 크기: ${(blob.size / 1024).toFixed(2)}KB, 압축 중...`);
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const img = new Image();
+          
+          await new Promise((resolve) => {
+            img.onload = () => {
+              // 최대 크기를 1024px로 제한
+              const maxSize = 1024;
+              let { width, height } = img;
+              
+              if (width > height) {
+                if (width > maxSize) {
+                  height = (height * maxSize) / width;
+                  width = maxSize;
+                }
+              } else {
+                if (height > maxSize) {
+                  width = (width * maxSize) / height;
+                  height = maxSize;
+                }
+              }
+              
+              canvas.width = width;
+              canvas.height = height;
+              ctx?.drawImage(img, 0, 0, width, height);
+              
+              canvas.toBlob((compressed) => {
+                if (compressed) {
+                  compressedBlob = compressed;
+                  console.log(`압축 완료: ${(compressed.size / 1024).toFixed(2)}KB`);
+                }
+                resolve(void 0);
+              }, 'image/jpeg', 0.8); // JPEG 품질 80%
+            };
+            img.src = URL.createObjectURL(blob);
+          });
+        }
+        
+        photoFile = new File([compressedBlob], `certification.${extension}`, { type: compressedBlob.type });
+        console.log(`인증사진 파일 생성: certification.${extension}, MIME 타입: ${compressedBlob.type}, 크기: ${(compressedBlob.size / 1024).toFixed(2)}KB`);
       } catch (error) {
         console.warn("인증사진 변환 실패:", error);
         throw new Error("인증사진을 처리할 수 없습니다.");
