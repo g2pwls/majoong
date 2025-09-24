@@ -44,9 +44,9 @@ public class SettlementWithdrawBurnRequestDto {
   @NotBlank @Size(max = 36)
   private String idempotencyKey;
 
-  /** Multipart 사진 업로드 */
+  /** 승인 번호 (필수) */
   @NotNull
-  private MultipartFile photo;
+  private Long approvalNumber;
 
   // ---------- inner ----------
   @Getter

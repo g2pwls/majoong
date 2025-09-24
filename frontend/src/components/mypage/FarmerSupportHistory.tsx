@@ -120,7 +120,7 @@ export default function FarmerSupportHistory() {
   };
 
   const formatAmount = (donationToken: number) => {
-    const amountKrw = donationToken * 1000; // 1 MARON = 1000 KRW
+    const amountKrw = donationToken * 100; // 1 MARON = 100 KRW
     return new Intl.NumberFormat('ko-KR').format(amountKrw) + '원';
   };
 
@@ -187,11 +187,11 @@ export default function FarmerSupportHistory() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-800 mb-1">누적 후원금</h3>
-          <p className="text-2xl font-bold text-blue-900">{formatAmount(totalDonation / 1000)}</p>
+          <p className="text-2xl font-bold text-blue-900">{formatAmount(totalDonation / 100)}</p>
         </div>
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-yellow-800 mb-1">누적 정산 금액</h3>
-          <p className="text-2xl font-bold text-yellow-900">{formatAmount(usedAmount / 1000)}</p>
+          <p className="text-2xl font-bold text-yellow-900">{formatAmount(usedAmount / 100)}</p>
         </div>
       </div>
 

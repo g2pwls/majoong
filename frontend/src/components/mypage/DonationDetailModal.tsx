@@ -43,7 +43,7 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
   }, [isOpen, donationHistoryId, fetchDonationDetail]);
 
   const formatAmount = (donationToken: number) => {
-    const amount = donationToken * 1000; // 마론 1개 = 1,000원
+    const amount = donationToken * 100; // 마론 1개 = 100원
     return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 

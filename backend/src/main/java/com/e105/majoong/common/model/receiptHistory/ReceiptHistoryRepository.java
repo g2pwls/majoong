@@ -46,4 +46,6 @@ public interface ReceiptHistoryRepository extends JpaRepository<ReceiptHistory, 
 
 
     Optional<ReceiptHistory> findByIdAndFarmUuid(Long id, String farmUuid);
+    boolean existsByApprovalNumber(Long approvalNumber);
+    Optional<ReceiptHistory> findByApprovalNumber(Long approvalNumber);
 }

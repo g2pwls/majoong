@@ -78,6 +78,11 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
     if (req.getReceiptAmount() == null || req.getReceiptAmount() <= 0)
       throw new BaseException(BaseResponseStatus.INVALID_AMOUNT);
 
+    if(receiptHistoryRepository.existsByApprovalNumber(req.getApprovalNumber())){
+      throw new BaseException(BaseResponseStatus.DUPLICATE_APPROVAL_NUMBER);
+    }
+
+
     final long krw = req.getReceiptAmount();
     log.info("settle request by memberUuid={}", memberUuid);
 

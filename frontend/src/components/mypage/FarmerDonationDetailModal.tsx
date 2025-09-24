@@ -13,7 +13,7 @@ interface FarmerDonationDetailModalProps {
 export default function FarmerDonationDetailModal({ isOpen, onClose, donationData }: FarmerDonationDetailModalProps) {
   
   const formatAmount = (donationToken: number) => {
-    const amount = donationToken * 1000; // 마론 1개 = 1,000원
+    const amount = donationToken * 100; // 마론 1개 = 100원
     return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
@@ -129,7 +129,7 @@ export default function FarmerDonationDetailModal({ isOpen, onClose, donationDat
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">현재 잔액</label>
-                    <p className="text-gray-900">{formatAmount(donationData.balance / 1000)}</p>
+                    <p className="text-gray-900">{formatAmount(donationData.balance / 100)}</p>
                   </div>
                   
                   <div>
