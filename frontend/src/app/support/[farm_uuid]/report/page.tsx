@@ -1,7 +1,7 @@
 // src/app/support/[farm_uuid]/report/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState, use } from "react";
+import { useEffect, useMemo, useState, use, useRef } from "react";
 import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // HorseImageUpload 컴포넌트 불러오기
@@ -29,6 +29,9 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
   const [donationData, setDonationData] = useState<Record<string, Record<string, string>>>({});
   const [activeTab, setActiveTab] = useState<"farmManagement" | "receiptProof">("farmManagement");
   const [selectedHorseNo, setSelectedHorseNo] = useState<string | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -69,6 +72,11 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
       alive = false;
     };
   }, [farm_uuid]);
+
+  // horses 데이터가 변경될 때 스크롤 상태 확인
+  useEffect(() => {
+    checkScrollButtons();
+  }, [horses]);
 
   const handleImageUpload = (horseNo: string, imageType: string, file: File) => {
     const reader = new FileReader();
@@ -131,6 +139,34 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
   const selectedHorse = useMemo(() => {
     return horses.find((h) => h.horseNo === selectedHorseNo) || null;
   }, [horses, selectedHorseNo]);
+
+  // 스크롤 상태 확인 함수
+  const checkScrollButtons = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
+    }
+  };
+
+  // 스크롤 이벤트 핸들러
+  const handleScroll = () => {
+    checkScrollButtons();
+  };
+
+  // 좌측 스크롤 함수
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -200, behavior: 'smooth' });
+    }
+  };
+
+  // 우측 스크롤 함수
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
 
   const title = loading ? "불러오는 중..." : farm?.farm_name ?? "목장 이름";
   const scoreText = loading
@@ -200,27 +236,61 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
             {activeTab === "farmManagement" && (
               <div className="mt-0">
                 {/* 말 썸네일 가로 리스트 */}
-                <div className="flex items-center rounded-lg gap-3 overflow-x-auto py-2 bg-gray-100 p-3 mb-3 border border-gray-200">
-                  {horses.map((h) => (
+                <div className="relative">
+                  {/* 좌측 화살표 버튼 */}
+                  {canScrollLeft && (
                     <button
-                      key={h.horseNo}
-                      onClick={() => setSelectedHorseNo(h.horseNo)}
-                      className={`flex-shrink-0 w-30 h-38 rounded border overflow-hidden transition-all ${selectedHorseNo === h.horseNo ? "ring-2 ring-blue-600" : "opacity-80 hover:opacity-100"}`}
-                      title={h.hrNm}
+                      onClick={scrollLeft}
+                      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border border-gray-200 transition-all"
+                      aria-label="왼쪽으로 스크롤"
                     >
-                      {h.horse_url ? (
-                        <Image
-                          src={h.horse_url}
-                          alt={h.hrNm}
-                          width={120}
-                          height={152}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="w-full h-full grid place-items-center text-xs bg-gray-200">{h.hrNm}</span>
-                      )}
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
                     </button>
-                  ))}
+                  )}
+                  
+                  {/* 우측 화살표 버튼 */}
+                  {canScrollRight && (
+                    <button
+                      onClick={scrollRight}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border border-gray-200 transition-all"
+                      aria-label="오른쪽으로 스크롤"
+                    >
+                      <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* 스크롤 컨테이너 */}
+                  <div 
+                    ref={scrollContainerRef}
+                    onScroll={handleScroll}
+                    className="flex items-center rounded-lg gap-3 overflow-x-auto py-2 bg-gray-100 p-3 mb-3 border border-gray-200 scrollbar-hide"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {horses.map((h) => (
+                      <button
+                        key={h.horseNo}
+                        onClick={() => setSelectedHorseNo(h.horseNo)}
+                        className={`flex-shrink-0 w-30 h-38 rounded border overflow-hidden transition-all ${selectedHorseNo === h.horseNo ? "ring-2 ring-blue-600" : "opacity-80 hover:opacity-100"}`}
+                        title={h.hrNm}
+                      >
+                        {h.horse_url ? (
+                          <Image
+                            src={h.horse_url}
+                            alt={h.hrNm}
+                            width={120}
+                            height={152}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span className="w-full h-full grid place-items-center text-xs bg-gray-200">{h.hrNm}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* 선택된 말 업로드 섹션 */}
