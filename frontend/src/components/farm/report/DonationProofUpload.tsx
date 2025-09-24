@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-// import { submitReceiptSettlement } from "../../../services/apiService"; // 중복 호출 방지를 위해 제거
+import { submitReceiptSettlement } from "../../../services/apiService";
 
 type DonationProofUploadProps = {
   farmUuid: string;
@@ -73,16 +73,6 @@ export default function DonationProofUpload({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
-
-  // 컴포넌트 언마운트 시 진행 중인 요청 취소
-  useEffect(() => {
-    return () => {
-      if (abortController) {
-        abortController.abort();
-      }
-    };
-  }, [abortController]);
 
   // 컴포넌트 렌더링 추적
   useEffect(() => {
@@ -342,17 +332,6 @@ export default function DonationProofUpload({
       return;
     }
 
-    // 이전 요청이 있다면 취소
-    if (abortController) {
-      console.log("이전 요청을 취소합니다.");
-      abortController.abort();
-    }
-
-    // 새로운 AbortController 생성
-    const newAbortController = new AbortController();
-    setAbortController(newAbortController);
-    console.log("새로운 AbortController 생성됨");
-
     try {
       console.log("setSubmitting(true) 호출");
       setSubmitting(true);
@@ -513,64 +492,21 @@ export default function DonationProofUpload({
         throw new Error("인증사진을 처리할 수 없습니다.");
       }
 
-      // 백엔드 API로 직접 정산 제출
-      const formData = new FormData();
-      formData.append('payload', JSON.stringify(payload));
-      formData.append('photo', photoFile);
-
-      const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const apiUrl = `${backendUrl}/api/v1/settlement-withdraw-burn`;
-      console.log("=== fetch 요청 시작 ===", { 
-        url: apiUrl, 
-        method: 'POST',
-        timestamp: new Date().toISOString(),
-        hasSignal: !!newAbortController.signal
-      });
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          // Content-Type은 FormData 사용 시 브라우저가 자동 설정
-        },
-        body: formData,
-        signal: newAbortController.signal,
-      });
-      
-      console.log("=== fetch 응답 받음 ===", { 
-        status: response.status, 
-        statusText: response.statusText,
-        ok: response.ok,
+      // apiService를 통한 정산 제출
+      console.log("=== apiService를 통한 정산 제출 시작 ===", { 
         timestamp: new Date().toISOString()
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('API 응답 에러:', response.status, errorText);
-        throw new Error(`정산 제출 실패: ${response.status} - ${errorText}`);
-      }
-
-      const result = await response.json();
       
-      // 백엔드 응답 형식 확인 (isSuccess 필드 체크)
-      if (result.isSuccess === false) {
-        throw new Error(`정산 제출 실패: ${result.message || '알 수 없는 오류'}`);
-      }
+      const result = await submitReceiptSettlement(payload, photoFile);
       
       setSubmitSuccess(true);
       console.log("제출 성공:", result);
     } catch (e: unknown) {
       console.error("제출 에러:", e);
-      // AbortError는 사용자가 요청을 취소한 경우이므로 에러로 처리하지 않음
-      if (e instanceof Error && e.name === 'AbortError') {
-        console.log("요청이 취소되었습니다.");
-        return;
-      }
       const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";
       setSubmitError(errorMessage);
     } finally {
       setSubmitting(false);
-      setAbortController(null);
     }
   };
 

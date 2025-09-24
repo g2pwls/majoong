@@ -440,8 +440,14 @@ interface ReceiptSettlementPayload {
   }>;
   receiptAmount: number;
   categoryId: number;
-  approvalNumber: string;
   idempotencyKey: string;
+  paymentInfo: {
+    totalAmount: string;
+    paymentMethod: string;
+    paymentDate: string;
+    receiptNumber: string | null;
+    approvalNumber: string | null;
+  };
 }
 
 interface ReceiptSettlementResponse {
@@ -450,12 +456,27 @@ interface ReceiptSettlementResponse {
   message: string;
 }
 
+// 중복 요청 방지를 위한 요청 추적
+let isSubmitting = false;
+
 // 영수증 정산 제출
 export async function submitReceiptSettlement(
   payload: ReceiptSettlementPayload,
   photoFile: File
 ): Promise<ReceiptSettlementResponse> {
+  // 중복 실행 방지
+  if (isSubmitting) {
+    console.log("이미 제출 중입니다. 중복 요청을 무시합니다.");
+    throw new Error("이미 제출 중입니다. 잠시 후 다시 시도해주세요.");
+  }
+
   try {
+    isSubmitting = true;
+    console.log("=== submitReceiptSettlement 시작 ===", { 
+      idempotencyKey: payload.idempotencyKey,
+      timestamp: new Date().toISOString()
+    });
+
     const formData = new FormData();
     formData.append('payload', JSON.stringify(payload));
     formData.append('photo', photoFile);
@@ -466,6 +487,12 @@ export async function submitReceiptSettlement(
       },
     });
 
+    console.log("=== submitReceiptSettlement 응답 받음 ===", { 
+      status: response.status,
+      isSuccess: response.data?.isSuccess,
+      timestamp: new Date().toISOString()
+    });
+
     if (!response.data.isSuccess) {
       throw new Error(`정산 제출 실패: ${response.data.message}`);
     }
@@ -474,5 +501,7 @@ export async function submitReceiptSettlement(
   } catch (error) {
     console.error('정산 제출 실패:', error);
     throw error;
+  } finally {
+    isSubmitting = false;
   }
 }
