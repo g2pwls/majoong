@@ -12,11 +12,15 @@ import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @RestController
@@ -48,4 +52,13 @@ public class FarmerMyPageController {
                 user.getMemberUuid(), page, size, startDate, endDate));
     }
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "목장주 회원 정보 변경")
+    public BaseResponse<Void> updateFarmers(@AuthenticationPrincipal CustomUserDetails user,
+                                            @RequestPart(required = false) String farmName,
+                                            @RequestPart(required = false) String phoneNumber,
+                                            @RequestPart(required = false) MultipartFile image) {
+        farmerMyPageService.updateFarmers(user.getMemberUuid(), farmName, phoneNumber, image);
+        return new BaseResponse<>();
+    }
 }
