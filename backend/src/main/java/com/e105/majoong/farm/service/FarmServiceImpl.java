@@ -74,9 +74,12 @@ public class FarmServiceImpl implements FarmService {
                 now.getMonthValue()
         ) * 1000;
 
-        boolean bookmarked = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid);
+        boolean isBookmark = false;
+        if (memberUuid != null && !memberUuid.isBlank()) {
+            isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
+        }
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, bookmarked);
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, isBookmark);
     }
 
     @Override
