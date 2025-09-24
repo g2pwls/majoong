@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class HorseSearchResponseDto {
     private String farmUuid;
     private Long horseId;
-    private Long horseNumber;
+    private String horseNumber;
     private String profileImage;
     private String horseName;
     private String ownerName;

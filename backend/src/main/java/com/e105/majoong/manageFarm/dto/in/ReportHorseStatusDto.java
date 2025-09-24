@@ -14,7 +14,7 @@ public class ReportHorseStatusDto {
     private MultipartFile stableImage;
     private String content;
 
-    public HorseState toEntity(String farmUuid, String memberUuid, Long horseNumber,
+    public HorseState toEntity(String farmUuid, String memberUuid, String horseNumber,
                                String frontImage, String leftSideImage, String rightSideImage, String stableImage,
                                String aiSummary) {
         return HorseState.builder()

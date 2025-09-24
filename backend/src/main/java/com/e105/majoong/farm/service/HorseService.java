@@ -7,7 +7,7 @@ import org.springframework.data.domain.Page;
 
 public interface HorseService {
     Page<HorseSearchResponseDto> searchHorses(String horseName, int page, int size);
-    HorseDetailResponseDto getHorseDetail(String farmUuid, Long horseNumber, Integer year, Integer month);
-    HorseWeeklyReportDetailResponseDto getWeeklyReportDetail(Long horseNumber, Long horseStateId);
+    HorseDetailResponseDto getHorseDetail(String farmUuid, String horseNumber, Integer year, Integer month);
+    HorseWeeklyReportDetailResponseDto getWeeklyReportDetail(String horseNumber, Long horseStateId);
 }
 

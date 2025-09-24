@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Builder
 public class HorseDetailResponseDto {
-    private Long horseNumber;
+    private String horseNumber;
     private String horseName;
     private String farmName;
     private LocalDate birth;

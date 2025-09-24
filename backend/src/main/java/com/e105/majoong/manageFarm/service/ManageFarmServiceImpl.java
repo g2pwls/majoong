@@ -96,7 +96,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
 
     @Override
     @Transactional
-    public void softDeleteHorse(String memberUuid, Long horseNumber, String farmUuid) {
+    public void softDeleteHorse(String memberUuid, String horseNumber, String farmUuid) {
         Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
         if (!farm.getMemberUuid().equals(memberUuid)) {
@@ -139,7 +139,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     }
 
     @Override
-    public Mono<String> reportHorseState(String memberUuid, String farmUuid, Long horseNumber,
+    public Mono<String> reportHorseState(String memberUuid, String farmUuid, String horseNumber,
                                          ReportHorseStatusDto dto) {
         /*
          * 블로킹 코드를 비동기로 실행(블로킹 코드: 이 요청을 처리하기 위해 현재 작업을 차단하는 코드)

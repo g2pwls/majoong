@@ -13,7 +13,7 @@ public class HorseListResponseDto {
     private String gender;
     private LocalDate birth;
     private String profileImage;
-    private Long horseNumber;
+    private String horseNumber;
 
     public static HorseListResponseDto toDto(Horse horse) {
         return HorseListResponseDto.builder()

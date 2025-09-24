@@ -20,7 +20,7 @@ public class Horse extends BaseEntity {
     private Long id;
 
     @Column(nullable = false)
-    private Long horseNumber;
+    private String horseNumber;
 
     @Column(nullable = false, length = 25)
     private String horseName;

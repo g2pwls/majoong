@@ -43,7 +43,7 @@ public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport
         QReceiptHistory receiptHistory = QReceiptHistory.receiptHistory;
 
         // 말 목록 조회 (HorseNumber -> HorseName 맵핑)
-        Map<Long, String> horseMap = queryFactory
+        Map<String, String> horseMap = queryFactory
                 .select(horse.horseNumber, horse.horseName)
                 .from(horse)
                 .where(horse.farm.id.eq(farm.getId()))

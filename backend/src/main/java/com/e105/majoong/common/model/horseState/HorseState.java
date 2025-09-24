@@ -27,7 +27,7 @@ public class HorseState {
     private String memberUuid;
 
     @Column(nullable = false)
-    private Long horseNumber;
+    private String horseNumber;
 
     @CreatedDate
     private LocalDateTime uploadedAt;
