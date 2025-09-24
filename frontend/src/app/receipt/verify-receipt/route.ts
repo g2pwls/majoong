@@ -1,106 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// 백엔드 정산 요청 함수
-async function submitToBackendSettlement(
-  verificationResult: {
-    result: string;
-    reason: string;
-    matchedItems?: string[];
-    receiptAmount?: string;
-    amountMatch?: boolean;
-    storeInfo?: {
-      name?: string;
-      address?: string;
-      phone?: string;
-    };
-    items?: Array<{
-      name: string;
-      quantity: string;
-      unitPrice: string;
-      totalPrice: string;
-    }>;
-    paymentInfo?: {
-      totalAmount?: string;
-      paymentMethod?: string;
-      paymentDate?: string;
-      receiptNumber?: string;
-    };
-  }, 
-  usedAmount: number, 
-  category: string, 
-  certificationImage: string,
-  specialNote: string
-) {
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-  
-  // 사용자 제공 JSON 구조에 맞게 데이터 변환
-  const settlementData = {
-    reason: verificationResult.reason || "기부금 증빙 정산",
-    storeInfo: {
-      name: verificationResult.storeInfo?.name || "가게명",
-      address: verificationResult.storeInfo?.address || "주소",
-      phone: verificationResult.storeInfo?.phone || "전화번호"
-    },
-    content: specialNote || `카테고리: ${category}, 사용금액: ${usedAmount}원`,
-    items: verificationResult.items || [{
-      name: verificationResult.matchedItems?.[0] || "상품명",
-      quantity: 1,
-      unitPrice: usedAmount,
-      totalPrice: usedAmount
-    }],
-    receiptAmount: parseInt(verificationResult.receiptAmount?.replace(/[^\d]/g, '') || usedAmount.toString()),
-    categoryId: getCategoryId(category),
-    idempotencyKey: generateIdempotencyKey()
-  };
-
-  console.log("백엔드 정산 요청 데이터:", settlementData);
-
-  // FormData 생성 (사진과 JSON을 함께 전송)
-  const formData = new FormData();
-  formData.append('payload', JSON.stringify(settlementData));
-  
-  // 사진이 있으면 FormData에 추가
-  if (certificationImage) {
-    try {
-      // Base64 이미지를 Blob으로 변환
-      const response = await fetch(certificationImage);
-      const blob = await response.blob();
-      
-      // MIME 타입에 따라 적절한 확장자 결정
-      let extension = 'jpg'; // 기본값
-      if (blob.type === 'image/png') {
-        extension = 'png';
-      } else if (blob.type === 'image/jpeg' || blob.type === 'image/jpg') {
-        extension = 'jpg';
-      } else if (blob.type === 'image/webp') {
-        extension = 'webp';
-      } else if (blob.type === 'image/gif') {
-        extension = 'gif';
-      }
-      
-      formData.append('photo', blob, `certification.${extension}`);
-      console.log(`인증사진 파일 생성: certification.${extension}, MIME 타입: ${blob.type}`);
-    } catch (error) {
-      console.warn("사진 변환 실패:", error);
-    }
-  }
-
-  const response = await fetch(`${backendUrl}/api/v1/settlement-withdraw-burn`, {
-    method: 'POST',
-    headers: {
-      // Authorization 헤더는 프론트엔드에서 처리해야 함
-      // 'Authorization': `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`백엔드 정산 요청 실패: ${response.status} - ${errorText}`);
-  }
-
-  return await response.json();
-}
+// submitToBackendSettlement 함수는 DonationProofUpload.tsx에서 직접 백엔드 호출하므로 제거
 
 // 카테고리 ID 매핑 함수
 function getCategoryId(category: string): number {
@@ -122,7 +22,7 @@ function generateIdempotencyKey(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const { category, extractedText, usedAmount, certificationImage, submitToBackend = false, specialNote = "" } = await request.json();
+    const { category, extractedText, usedAmount, certificationImage, specialNote = "" } = await request.json();
 
     console.log("API 요청 데이터:", { 
       category, 
@@ -307,19 +207,8 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
       if (parsedResult.result && parsedResult.reason) {
         console.log("JSON 파싱 성공, 정상 응답 반환");
         
-        // 검증이 적격이고 백엔드 제출이 요청된 경우
-        if (parsedResult.result === "적격" && submitToBackend) {
-          try {
-            await submitToBackendSettlement(parsedResult, usedAmount, category, certificationImage, specialNote);
-            console.log("백엔드 정산 요청 성공");
-          } catch (backendError) {
-            console.error("백엔드 정산 요청 실패:", backendError);
-            return NextResponse.json({
-              ...parsedResult,
-              backendError: "정산 요청 중 오류가 발생했습니다."
-            });
-          }
-        }
+        // 백엔드 제출은 DonationProofUpload.tsx에서 직접 처리하므로 여기서는 제거
+        // (중복 호출 방지)
         
         return NextResponse.json(parsedResult);
       } else {
@@ -454,19 +343,8 @@ ${certificationImage ? `인증 사진: 제공됨 (이미지 데이터 길이: ${
         }
       };
       
-      // 검증이 적격이고 백엔드 제출이 요청된 경우
-      if (result === "적격" && submitToBackend) {
-        try {
-          await submitToBackendSettlement(responseData, usedAmount, category, certificationImage, specialNote);
-          console.log("백엔드 정산 요청 성공");
-        } catch (backendError) {
-          console.error("백엔드 정산 요청 실패:", backendError);
-          return NextResponse.json({
-            ...responseData,
-            backendError: "정산 요청 중 오류가 발생했습니다."
-          });
-        }
-      }
+      // 백엔드 제출은 DonationProofUpload.tsx에서 직접 처리하므로 여기서는 제거
+      // (중복 호출 방지)
       
       return NextResponse.json(responseData);
     }
