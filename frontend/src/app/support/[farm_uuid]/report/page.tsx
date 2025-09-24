@@ -235,13 +235,13 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
 
             {activeTab === "farmManagement" && (
               <div className="mt-0">
-                {/* 말 썸네일 가로 리스트 */}
-                <div className="relative">
+                {/* 말 썸네일 가로 리스트 - 고정 크기 컨테이너 */}
+                <div className="relative w-240 h-44 bg-gray-100 rounded-lg border border-gray-200 mb-3 overflow-hidden">
                   {/* 좌측 화살표 버튼 */}
                   {canScrollLeft && (
                     <button
                       onClick={scrollLeft}
-                      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border border-gray-200 transition-all"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border border-gray-200 transition-all"
                       aria-label="왼쪽으로 스크롤"
                     >
                       <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +254,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
                   {canScrollRight && (
                     <button
                       onClick={scrollRight}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border border-gray-200 transition-all"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 border border-gray-200 transition-all"
                       aria-label="오른쪽으로 스크롤"
                     >
                       <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -263,11 +263,11 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
                     </button>
                   )}
 
-                  {/* 스크롤 컨테이너 */}
+                  {/* 스크롤 컨테이너 - 고정 크기 내에서만 스크롤 */}
                   <div 
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
-                    className="flex items-center rounded-lg gap-3 overflow-x-auto py-2 bg-gray-100 p-3 mb-3 border border-gray-200 scrollbar-hide"
+                    className="flex items-center gap-3 h-full px-3 py-2 overflow-x-auto scrollbar-hide"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                   >
                     {horses.map((h) => (
