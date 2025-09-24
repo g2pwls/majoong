@@ -40,7 +40,7 @@ public class AggregateWeeklyHorseStatusUploadsTasklet implements Tasklet {
         List<HorseWithHorseStatusDto> dtos = horseStateRepositoryCustom
                 .getUploadedHorseStatusByWeek(weekStart, weekEnd);
 
-        Map<String, Set<Long>> horseStatusByFarm = new LinkedHashMap<>();
+        Map<String, Set<String>> horseStatusByFarm = new LinkedHashMap<>();
         for (HorseWithHorseStatusDto dto : dtos) {
             if (!horseStatusByFarm.containsKey(dto.getFarmUuid())) {
                 horseStatusByFarm.put(dto.getFarmUuid(), new LinkedHashSet<>());
@@ -50,7 +50,7 @@ public class AggregateWeeklyHorseStatusUploadsTasklet implements Tasklet {
 
         //농장 중 업로드 하지 않는 농장도 포함
         @SuppressWarnings("unchecked")
-        Map<String, Set<Long>> snapshot = (Map<String, Set<Long>>) executeContext.get("WEEK_HORSE_SNAPSHOT");
+        Map<String, Set<String>> snapshot = (Map<String, Set<String>>) executeContext.get("WEEK_HORSE_SNAPSHOT");
         if (snapshot != null) {
             for (String farmUuid : snapshot.keySet()) {
                 horseStatusByFarm.computeIfAbsent(farmUuid, k -> new LinkedHashSet<>());

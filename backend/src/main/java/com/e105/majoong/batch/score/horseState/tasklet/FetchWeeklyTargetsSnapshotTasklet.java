@@ -45,7 +45,7 @@ public class FetchWeeklyTargetsSnapshotTasklet implements Tasklet {
         List<Farm> farms = farmRepository.findAll();
         List<HorseInFarmDto> horseInFarm = horseRepositoryCustom.findActiveHorsesAt(start, end);
 
-        Map<String, Set<Long>> horsesByFarm = new HashMap<>();
+        Map<String, Set<String>> horsesByFarm = new HashMap<>();
         for (Farm farm : farms) {
             horsesByFarm.put(farm.getFarmUuid(), new LinkedHashSet<>());
         }

@@ -52,7 +52,7 @@ public class ManageFarmController {
     @DeleteMapping(value = "members/farmers/my-farm/horses/{horseNumber}")
     @Operation(summary = "말 삭제")
     public BaseResponse<Void> deleteHorse(@AuthenticationPrincipal CustomUserDetails user,
-                                          @PathVariable Long horseNumber,
+                                          @PathVariable String horseNumber,
                                           @RequestParam String farmUuid) {
         manageFarmService.softDeleteHorse(user.getMemberUuid(), horseNumber, farmUuid);
         return new BaseResponse<>();
@@ -75,7 +75,7 @@ public class ManageFarmController {
     @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님)")
     public Mono<BaseResponse<String>> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
                                                        @PathVariable String farmUuid,
-                                                       @PathVariable Long horseNumber,
+                                                       @PathVariable String horseNumber,
                                                        @ModelAttribute ReportHorseStatusDto dto) {
 
         return manageFarmService.reportHorseState(user.getMemberUuid(), farmUuid, horseNumber, dto)

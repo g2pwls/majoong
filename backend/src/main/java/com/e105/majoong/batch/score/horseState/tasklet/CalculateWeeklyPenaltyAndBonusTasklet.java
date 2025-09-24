@@ -30,8 +30,8 @@ public class CalculateWeeklyPenaltyAndBonusTasklet implements Tasklet {
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
         var executeContext = chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext();
 
-        Map<String, Set<Long>> allByFarm = (Map<String, Set<Long>>) executeContext.get("WEEK_HORSE_SNAPSHOT");
-        Map<String, Set<Long>> upByFarm = (Map<String, Set<Long>>) executeContext.get("WEEK_UPLOADED");
+        Map<String, Set<String>> allByFarm = (Map<String, Set<String>>) executeContext.get("WEEK_HORSE_SNAPSHOT");
+        Map<String, Set<String>> upByFarm = (Map<String, Set<String>>) executeContext.get("WEEK_UPLOADED");
         if (allByFarm == null || upByFarm == null) {
             throw new BaseException(BaseResponseStatus.NO_EXIST_JOB_PARAMETER);
         }
@@ -46,10 +46,10 @@ public class CalculateWeeklyPenaltyAndBonusTasklet implements Tasklet {
 
         Map<String, WeeklyNewScore> result = new LinkedHashMap<>();
         for (String farmUuid : allByFarm.keySet()) {
-            Set<Long> allHorses = allByFarm.getOrDefault(farmUuid, Set.of());
-            Set<Long> uploadedHorses = upByFarm.getOrDefault(farmUuid, Set.of());
+            Set<String> allHorses = allByFarm.getOrDefault(farmUuid, Set.of());
+            Set<String> uploadedHorses = upByFarm.getOrDefault(farmUuid, Set.of());
 
-            List<Long> notUploaded = allHorses.stream()
+            List<String> notUploaded = allHorses.stream()
                     .filter(horse -> !uploadedHorses.contains(horse))
                     .sorted()
                     .collect(Collectors.toList());

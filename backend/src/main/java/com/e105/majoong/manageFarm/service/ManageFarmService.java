@@ -16,12 +16,12 @@ public interface ManageFarmService {
 
     void updateHorse(String memberUuid, HorseInfoUpdateDto updateDto);
 
-    void softDeleteHorse(String memberUuid, Long horseNumber, String farmUuid);
+    void softDeleteHorse(String memberUuid, String horseNumber, String farmUuid);
 
     List<HorseListResponseDto> getHorseList(String memberUuid, String farmUuid);
 
     GeoDto getGeo(String farmUuid);
 
-    Mono<String> reportHorseState(String memberUuid, String farmUuid, Long horseNumber, ReportHorseStatusDto dto);
+    Mono<String> reportHorseState(String memberUuid, String farmUuid, String horseNumber, ReportHorseStatusDto dto);
 
 }
