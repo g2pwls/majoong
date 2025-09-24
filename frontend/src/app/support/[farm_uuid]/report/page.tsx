@@ -236,7 +236,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
             {activeTab === "farmManagement" && (
               <div className="mt-0">
                 {/* 말 썸네일 가로 리스트 - 고정 크기 컨테이너 */}
-                <div className="relative w-full h-44 bg-gray-100 rounded-lg border border-gray-200 mb-3 overflow-hidden">
+                <div className="relative w-200 h-44 bg-gray-100 rounded-lg border border-gray-200 mb-3 overflow-hidden">
                   {/* 좌측 화살표 버튼 */}
                   {canScrollLeft && (
                     <button
