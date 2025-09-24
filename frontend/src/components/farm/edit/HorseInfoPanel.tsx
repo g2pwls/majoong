@@ -213,8 +213,8 @@ export default function HorseInfoPanel({
       setIsDeleting(true);
       setError("");
 
-      // horseNo를 숫자로 변환 (앞의 0 제거)
-      const horseNumber = parseInt(normalizeHorseNumber(horse.horseNo));
+      // horseNo를 정규화 (앞의 0 제거)
+      const horseNumber = normalizeHorseNumber(horse.horseNo);
       
       console.log('말 삭제 시작:', {
         farmUuid: farm_uuid,
@@ -275,7 +275,7 @@ export default function HorseInfoPanel({
       // API에 전달할 데이터 준비
       const horseData = {
         farmUuid: farm_uuid,
-        horseNumber: parseInt(profileData.horseNo),
+        horseNumber: profileData.horseNo,
         horseName: profileData.hrNm,
         birth: formatDate(profileData.birthDt),
         gender: profileData.sex,

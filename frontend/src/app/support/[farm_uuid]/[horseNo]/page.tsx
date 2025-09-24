@@ -60,7 +60,7 @@ export default function HorseDetailPage({ params }: PageProps) {
       setLoading(true);
       setError(null);
       
-      const response = await FarmService.getHorseWeeklyReports(farm_uuid, parseInt(horseNo), year, month);
+      const response = await FarmService.getHorseWeeklyReports(farm_uuid, horseNo, year, month);
       setHorse(response.result);
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "말 정보를 불러오는 중 오류가 발생했어요.";

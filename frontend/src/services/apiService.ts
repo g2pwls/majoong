@@ -127,7 +127,7 @@ export async function getFarms(params: {
       description: string;
       bookmark?: boolean; // 북마크 상태 추가
       horses?: Array<{
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -148,7 +148,7 @@ export async function getFarms(params: {
       description: farm.description,
       bookmark: farm.bookmark || false, // 북마크 상태 매핑
       horses: (farm.horses || []).map((horse: {
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -213,7 +213,7 @@ export async function getFarm(farmUuid: string): Promise<Farm> {
       purpose_total_amount: farm.purposeTotalAmount,
       bookmark: farm.bookmark || false, // 북마크 상태 추가
       horses: (farm.horses || []).map((horse: {
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -265,7 +265,7 @@ export async function getMyFarm(): Promise<Farm> {
       purpose_total_amount: farm.purposeTotalAmount,
       member_uuid: getCurrentUserMemberUuid() || undefined, // 현재 사용자의 memberUuid 추가
       horses: (farm.horses || []).map((horse: {
-        horseNumber: number;
+        horseNumber: string;
         horseName: string;
         birth: string;
         breed: string;
@@ -368,7 +368,7 @@ interface BookmarkFarmResponse {
 }
 
 interface BookmarkHorseResponse {
-  horseNumber: number;
+  horseNumber: string;
   horseName: string;
   profileImage: string;
 }
@@ -440,6 +440,7 @@ interface ReceiptSettlementPayload {
   }>;
   receiptAmount: number;
   categoryId: number;
+  approvalNumber: string;
   idempotencyKey: string;
 }
 
