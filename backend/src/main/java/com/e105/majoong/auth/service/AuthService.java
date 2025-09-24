@@ -137,16 +137,7 @@ public class AuthService {
       log.info("Vault created & persisted: memberUuid={}, farmId={}, vault={}, tx={}",
           memberUuid, keccakKey, fv.getVaultAddress(), fv.getDeployTxHash());
 
-      //검증
-      String onchainFarmer = null;
-      try {
-        onchainFarmer = vaultService.getOnchainFarmer(fv.getVaultAddress());
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      if (!onchainFarmer.equalsIgnoreCase(farmer.getWalletAddress())) {
-        throw new BaseException(BaseResponseStatus.VAULT_FARMER_MISMATCH);
-      }
+
     } else if ("donator".equalsIgnoreCase(req.getRole().name())) {
       // 1) 기본 정보 저장
       Donator donator = donatorRepository.save(req.toDonator(memberUuid));
