@@ -8,9 +8,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-test.majoon
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30초로 증가 (영수증 처리 시간 고려)
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // Content-Type은 요청 타입에 따라 브라우저가 자동으로 설정하도록 함
 });
 
 // 요청 인터셉터 - 토큰 자동 추가
@@ -476,9 +474,7 @@ export async function submitReceiptSettlement(
     formData.append('photo', photoFile);
 
     const response = await apiClient.post('/api/v1/settlement-withdraw-burn', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // Content-Type은 브라우저가 multipart/form-data와 boundary를 자동으로 설정하도록 함
       timeout: 60000, // 영수증 제출은 60초로 별도 설정 (이미지 처리 시간 고려)
     });
 
