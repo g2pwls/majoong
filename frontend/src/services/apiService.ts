@@ -440,8 +440,8 @@ interface ReceiptSettlementPayload {
   }>;
   receiptAmount: number;
   categoryId: number;
-  approvalNumber: number;
   idempotencyKey: string;
+  approvalNumber: string;
 }
 
 interface ReceiptSettlementResponse {
