@@ -66,6 +66,7 @@ public class SettlementHistory extends BaseEntity {
       String failReason,
       Long balance,
       Long withdrawAmount,
+      Long withdrawToken,
       Long receiptHistoryId
   ) {
     return SettlementHistory.builder()
@@ -79,6 +80,7 @@ public class SettlementHistory extends BaseEntity {
         .failReason(failReason)
         .balance(balance)
         .withdrawAmount(withdrawAmount)
+        .withdrawToken(withdrawToken)
         .receiptHistoryId(receiptHistoryId)
         .build();
   }
@@ -93,11 +95,12 @@ public class SettlementHistory extends BaseEntity {
       String txHash,
       Long balance,
       Long withdrawAmount,
+      Long withdrawToken,
       Long receiptHistoryId
   ) {
     return toEntity(farmUuid, evidenceId, farmerWallet,
             vaultAddress, releasedAmount, "RELEASED",
-            txHash, null, balance, withdrawAmount, receiptHistoryId);
+            txHash, null, balance, withdrawAmount, withdrawToken, receiptHistoryId);
   }
 
   /** 실패 케이스 편의 생성자 */
@@ -110,10 +113,11 @@ public class SettlementHistory extends BaseEntity {
       String failReason,
       Long balance,
       Long withdrawAmount,
+      Long withdrawToken,
       Long receiptHistoryId
   ) {
     return toEntity(farmUuid, evidenceId, farmerWallet,
             vaultAddress, releasedAmount, "FAILED",
-            null, failReason, balance, withdrawAmount, receiptHistoryId);
+            null, failReason, balance, withdrawAmount, withdrawToken, receiptHistoryId);
   }
 }

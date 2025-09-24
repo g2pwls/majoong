@@ -1,4 +1,4 @@
-package com.e105.majoong.withdraw.dto.in;
+package com.e105.majoong.receipt.dto.in;
 
 import lombok.Data;
 

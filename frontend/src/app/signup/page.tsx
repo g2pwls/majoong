@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { verifyBusiness } from '@/services/authService';
+import TermsAgreement from '@/components/signup/TermsAgreement';
 
 type UserType = 'donor' | 'farmer';
 
@@ -31,6 +32,56 @@ export default function SignupPage() {
     businessVerified: false,
     businessVerifying: false
   });
+  const [isTermsAgreed, setIsTermsAgreed] = useState(false);
+  
+  // 입력창에 대한 ref
+  const donorNameRef = useRef<HTMLInputElement>(null);
+  const farmNameRef = useRef<HTMLInputElement>(null);
+  
+  // 회원가입 버튼에 대한 ref
+  const signupButtonRef = useRef<HTMLButtonElement>(null);
+
+  // 역할 선택 후 자동으로 첫 번째 입력창에 포커스
+  useEffect(() => {
+    if (userType === 'donor' && donorNameRef.current) {
+      // 약간의 지연을 두어 애니메이션 완료 후 포커스
+      setTimeout(() => {
+        donorNameRef.current?.focus();
+      }, 100);
+    } else if (userType === 'farmer' && farmNameRef.current) {
+      // 약간의 지연을 두어 애니메이션 완료 후 포커스
+      setTimeout(() => {
+        farmNameRef.current?.focus();
+      }, 100);
+    }
+  }, [userType]);
+
+  // 전체 약관 동의 클릭 시 회원가입 버튼으로 자동 스크롤
+  const handleAllAgreementClick = () => {
+    if (signupButtonRef.current) {
+      // 체크박스 상태 변화와 DOM 업데이트를 기다린 후 스크롤
+      setTimeout(() => {
+        signupButtonRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 150); // 체크박스 전환 애니메이션 완료 후 스크롤
+    }
+  };
+
+  // 개별 체크박스로 모든 약관 완료 시 회원가입 버튼으로 자동 스크롤
+  const handleAllAgreementComplete = () => {
+    if (signupButtonRef.current) {
+      // 개별 체크박스의 상태 변화와 DOM 업데이트를 기다린 후 스크롤
+      setTimeout(() => {
+        signupButtonRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100); // 개별 체크박스는 더 짧은 지연시간
+    }
+  };
+
   const handleBusinessVerification = async () => {
     if (!farmerInfo.businessNumber || !farmerInfo.openingDate || !farmerInfo.farmName || !farmerInfo.representativeName) {
       alert('모든 필수 정보를 입력해주세요.');
@@ -88,6 +139,12 @@ export default function SignupPage() {
   };
 
   const handleSubmit = async () => {
+    // 약관 동의 확인
+    if (!isTermsAgreed) {
+      alert('모든 필수 약관에 동의해주세요.');
+      return;
+    }
+
     if (!userType) {
       alert('회원 유형을 선택해주세요.');
       return;
@@ -178,6 +235,7 @@ export default function SignupPage() {
                   성명 *
                 </label>
                 <input
+                  ref={donorNameRef}
                   id="donorName"
                   type="text"
                   value={donorInfo.name}
@@ -185,6 +243,9 @@ export default function SignupPage() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                   placeholder="성명을 입력해주세요"
                 />
+                <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ 회원가입 후 이름 변경은 불가능합니다. 정확히 입력해주세요.
+                </p>
               </div>
             </div>
           )}
@@ -199,6 +260,7 @@ export default function SignupPage() {
                   목장명 *
                 </label>
                 <input
+                  ref={farmNameRef}
                   id="farmName"
                   type="text"
                   value={farmerInfo.farmName}
@@ -220,6 +282,9 @@ export default function SignupPage() {
                   className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
                   placeholder="대표자 성명을 입력해주세요"
                 />
+                <p className="mt-1 text-xs text-amber-600">
+                  ⚠️ 회원가입 후 이름 변경은 불가능합니다. 정확히 입력해주세요.
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -298,14 +363,25 @@ export default function SignupPage() {
             </div>
           )}
 
+          {/* 약관 동의 */}
+          {userType && (
+            <TermsAgreement
+              userType={userType}
+              onAgreementChange={setIsTermsAgreed}
+              onAllAgreementClick={handleAllAgreementClick}
+              onAllAgreementComplete={handleAllAgreementComplete}
+            />
+          )}
+
           {/* 가입 완료 버튼 */}
           {userType && (
             <div className="pt-4">
               <button
+                ref={signupButtonRef}
                 onClick={handleSubmit}
-                disabled={userType === 'farmer' && !farmerInfo.businessVerified}
+                disabled={!isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)}
                 className={`w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white transition-colors duration-200 ${
-                  userType === 'farmer' && !farmerInfo.businessVerified
+                  !isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)
                     ? 'bg-gray-400 cursor-not-allowed'
                     : userType === 'donor'
                     ? 'bg-blue-600 hover:bg-blue-700'
@@ -314,9 +390,14 @@ export default function SignupPage() {
               >
                 회원가입
               </button>
-              {userType === 'farmer' && !farmerInfo.businessVerified && (
+              {(!isTermsAgreed || (userType === 'farmer' && !farmerInfo.businessVerified)) && (
                 <p className="mt-2 text-xs text-red-600 text-center">
-                  사업자 정보 확인을 완료해주세요.
+                  {!isTermsAgreed 
+                    ? '모든 필수 약관에 동의해주세요.'
+                    : userType === 'farmer' && !farmerInfo.businessVerified
+                    ? '사업자 정보 확인을 완료해주세요.'
+                    : ''
+                  }
                 </p>
               )}
             </div>

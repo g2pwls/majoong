@@ -86,8 +86,8 @@ export default function MyPage() {
       case 'DONATOR':
         return [
           { id: 'profile', label: '회원 정보', component: DonorProfile },
+          { id: 'favorites', label: '즐겨찾는 목장', component: DonorFavoriteFarms },
           { id: 'support', label: '후원 내역', component: DonorSupportHistory },
-          { id: 'favorites', label: '즐겨찾는 농장', component: DonorFavoriteFarms },
         ];
       case 'FARMER':
         return [
@@ -128,15 +128,10 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">마이페이지</h1>
-          <p className="mt-2 text-gray-600">
-            {userRole === 'DONATOR' && '기부자'}
-            {userRole === 'FARMER' && '목장주'}
-            {userRole === 'ADMIN' && '관리자'}
-          </p>
         </div>
 
         {/* 탭 네비게이션 */}

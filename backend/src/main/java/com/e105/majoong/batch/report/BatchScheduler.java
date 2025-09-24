@@ -1,4 +1,4 @@
-package com.e105.majoong.report.batch;
+package com.e105.majoong.batch.report;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;

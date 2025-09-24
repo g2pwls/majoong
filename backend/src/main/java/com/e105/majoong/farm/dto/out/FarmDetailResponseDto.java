@@ -24,12 +24,14 @@ public class FarmDetailResponseDto {
     private String description;
     private List<MonthlyScoreResponseDto> monthlyScores;
     private List<FarmHorseDetailResponseDto> horses;
+    private boolean bookmarked;
 
     public static FarmDetailResponseDto toDto(
             Farm farm,
             List<MonthlyScoreResponseDto> monthlyScores,
             List<FarmHorseDetailResponseDto> horses,
-            long monthTotalAmount
+            long monthTotalAmount,
+            boolean bookmarked
     ) {
         return FarmDetailResponseDto.builder()
                 .farmUuid(farm.getFarmUuid())
@@ -46,6 +48,7 @@ public class FarmDetailResponseDto {
                 .horses(horses)
                 .description(farm.getDescription())
                 .area(farm.getArea())
+                .bookmarked(bookmarked)
                 .build();
     }
 }
