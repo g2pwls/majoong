@@ -9,13 +9,14 @@ import Breadcrumbs from "@/components/common/Breadcrumb";
 import FarmInfo from "@/components/farm/FarmInfo";
 import FarmTabs, { FarmTabValue } from "@/components/farm/FarmTabs";
 import IntroPanel from "@/components/farm/panels/IntroPanel";
+import HorsesPanel from "@/components/farm/panels/HorsesPanel";
 import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
-import { getFarm, Farm, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
+import { getFarm, Farm, addFarmBookmark, removeFarmBookmark, isMyFarm as checkIsMyFarm } from "@/services/apiService";
 import { isDonator, isFarmer } from "@/services/authService";
 
-const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
+const TABS: FarmTabValue[] = ["intro", "horses", "newsletter", "donations", "trust"];
 
 export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   );
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [isMyFarm, setIsMyFarm] = useState(false);
 
   // URL → 탭 동기화
   useEffect(() => {
@@ -43,6 +45,17 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         const data = await getFarm(farm_uuid);
         console.log('농장 상세 데이터:', data);
         if (mounted) setFarm(data);
+        
+        // 내 목장인지 확인
+        if (isFarmer()) {
+          try {
+            const isMyFarmResult = await checkIsMyFarm(farm_uuid);
+            if (mounted) setIsMyFarm(isMyFarmResult);
+          } catch (error) {
+            console.error('내 목장 확인 실패:', error);
+            if (mounted) setIsMyFarm(false);
+          }
+        }
         
         // 즐겨찾기 상태 확인 (localStorage 우선, 없으면 API 응답 사용)
         if (isDonator()) {
@@ -122,23 +135,34 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   // farm_uuid prop을 사용
 
   return (
-    <div className="mx-auto max-w-7xl p-6">
-      {/* 브레드크럼과 기부하기 버튼 */}
+    <div className="mx-auto max-w-6xl p-6">
+      {/* 브레드크럼과 버튼들 */}
       <div className="flex items-center justify-between">
         <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
-        {/* 기부하기 버튼 - 기부자이고 농부가 아닌 경우에만 표시 */}
-        {isDonator() && !isFarmer() && (
-          <Link 
-            href={`/support/${farm_uuid}/donate`}
-            className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors"
-          >
-            기부하기
-          </Link>
-        )}
+        <div className="flex gap-2">
+          {/* 기부하기 버튼 - 기부자이고 농부가 아닌 경우에만 표시 */}
+          {isDonator() && !isFarmer() && (
+            <Link 
+              href={`/support/${farm_uuid}/donate`}
+              className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors"
+            >
+              기부하기
+            </Link>
+          )}
+          {/* 목장 정보 수정 버튼 - 내 목장인 경우에만 표시 */}
+          {isMyFarm && (
+            <Link 
+              href={`/support/${farm_uuid}/edit`}
+              className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors"
+            >
+              목장 정보 수정
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
-      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
+      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[290px_1fr]">
         {/* 왼쪽: 카드(헤더 포함) */}
         <aside className="lg:sticky lg:top-20 self-start">
           {/* 카드: 헤더 포함 (즐겨찾기 버튼 포함) */}
@@ -162,9 +186,10 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farm_uuid} />
+          <FarmTabs value={tab} onChange={onChangeTab} />
           <div className="mt-4.5">
-            {tab === "intro" && <IntroPanel farm={farm} />}
+            {tab === "intro" && <IntroPanel farm={farm} isMyFarm={false} />}
+            {tab === "horses" && <HorsesPanel farmUuid={farm_uuid} isMyFarm={isMyFarm} />}
             {tab === "newsletter" && <NewsletterPanel farmUuid={farm_uuid} />}
             {tab === "donations" && <DonationPanel farmUuid={farm_uuid} />}
             {tab === "trust" && <TrustPanel farmUuid={farm_uuid} currentScore={farm.total_score} />}

@@ -427,11 +427,11 @@ export class FarmService {
   static async registerFarmWithFormData(formData: FormData): Promise<FarmRegistrationResponse> {
     try {
       console.log('농장 정보 등록/수정 API 요청 (FormData):', {
-        url: '/api/v1/members/farmers/my-farm',
+        url: '/api/v1/members/farmers',
         baseURL: API_BASE_URL
       });
 
-      const response = await apiClient.post('/api/v1/members/farmers/my-farm', formData, {
+      const response = await apiClient.post('/api/v1/members/farmers', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
