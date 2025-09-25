@@ -1,5 +1,7 @@
 package com.e105.majoong.common.model.farm;
 
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface FarmRepository extends JpaRepository<Farm, Long> {
     Optional<Farm> findByMemberUuid(String memberUuid);
+
+    List<Farm> findByFarmUuidIn(Collection<String> farmUuids);
 
     boolean existsByMemberUuid(String memberUuid);
 

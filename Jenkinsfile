@@ -120,7 +120,7 @@ pipeline {
         }
 
         stage('Backend Build') {
-            when { expression { env.BACK_CHANGED == 'true' } }
+            when { expression { env.BACK_CHANGED == 'true' || env.BRANCH_NAME == 'main' } }
             steps {
                 echo "🛠️ Backend Build: Gradle 빌드 시작"
                 dir("${BACKEND_DIR}") {
@@ -221,6 +221,9 @@ pipeline {
             steps {
                 echo "🚀 Deploy to Dev: DEV 네트워크/컨테이너 준비"
                 script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_TOKEN')]) {
+                        sh 'echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin'
+                    }
                     // 네트워크가 없으면 생성
                     sh "docker network inspect ${TEST_NETWORK} >/dev/null 2>&1 || docker network create ${TEST_NETWORK}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
@@ -304,6 +307,9 @@ pipeline {
             steps {
                 echo "🚀 Deploy to Prod: PROD 네트워크/컨테이너 준비"
                 script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_TOKEN')]) {
+                        sh 'echo "$DOCKER_TOKEN" | docker login -u "$DOCKER_USER" --password-stdin'
+                    }
                     sh "docker network inspect ${PROD_NETWORK} >/dev/null 2>&1 || docker network create ${PROD_NETWORK}"
                     def TAG = sh(script: "git rev-parse --short=12 HEAD", returnStdout: true).trim()
                     env.IMAGE_TAG = TAG
