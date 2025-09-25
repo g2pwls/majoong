@@ -191,7 +191,7 @@ export default function DonatePage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-6 flex flex-row">
           <div className="flex items-centermb-4 flex flex-col">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
             <div className="w-37 h-1 bg-gray-300"></div>
           </div>
         </div>

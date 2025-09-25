@@ -242,145 +242,153 @@ export default function FarmerMyFarm() {
             <h3 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h3>
             <div className="space-y-6">
               {/* 목장명 (편집 가능) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   목장명
                 </label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedInfo.name}
-                    onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="목장명을 입력하세요"
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                    {myFarmData?.farmName}
-                  </div>
-                )}
+                <div className="flex-1 ml-4">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={editedInfo.name}
+                      onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="목장명을 입력하세요"
+                    />
+                  ) : (
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                      {myFarmData?.farmName}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 대표 사진 (편집 가능) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-start">
+                <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                   대표 사진
                 </label>
-                {isEditing ? (
-                  <div className="space-y-3">
-                    {(imagePreview || myFarmData?.profileImage) && (
-                      <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 relative">
+                <div className="flex-1 ml-4">
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      {(imagePreview || myFarmData?.profileImage) && (
+                        <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 relative">
+                          <Image
+                            src={imagePreview || myFarmData?.profileImage || ''}
+                            alt={editedInfo.name || '목장 대표 사진'}
+                            width={800}
+                            height={400}
+                            className="w-full h-auto object-contain rounded-lg"
+                          />
+                          {imagePreview && (
+                            <button
+                              type="button"
+                              onClick={handleRemoveImage}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                            >
+                              ×
+                            </button>
+                          )}
+                        </div>
+                      )}
+                      <div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                          className="hidden"
+                          id="farm-image-upload"
+                        />
+                        <label
+                          htmlFor="farm-image-upload"
+                          className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
+                        >
+                          이미지 선택
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일 (최대 5MB)</p>
+                      </div>
+                    </div>
+                  ) : (
+                    myFarmData?.profileImage ? (
+                      <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
                         <Image
-                          src={imagePreview || myFarmData?.profileImage || ''}
-                          alt={editedInfo.name || '목장 대표 사진'}
+                          src={myFarmData.profileImage}
+                          alt={farmInfo?.name || '목장 대표 사진'}
                           width={800}
                           height={400}
                           className="w-full h-auto object-contain rounded-lg"
                         />
-                        {imagePreview && (
-                          <button
-                            type="button"
-                            onClick={handleRemoveImage}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
-                          >
-                            ×
-                          </button>
-                        )}
                       </div>
-                    )}
-                    <div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                        id="farm-image-upload"
-                      />
-                      <label
-                        htmlFor="farm-image-upload"
-                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
-                      >
-                        이미지 선택
-                      </label>
-                      <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일 (최대 5MB)</p>
-                    </div>
-                  </div>
-                ) : (
-                  myFarmData?.profileImage ? (
-                    <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-                      <Image
-                        src={myFarmData.profileImage}
-                        alt={farmInfo?.name || '목장 대표 사진'}
-                        width={800}
-                        height={400}
-                        className="w-full h-auto object-contain rounded-lg"
-                      />
-                    </div>
-                  ) : (
-                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-500">
-                      대표 사진이 없습니다
-                    </div>
-                  )
-                )}
+                    ) : (
+                      <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-500">
+                        대표 사진이 없습니다
+                      </div>
+                    )
+                  )}
+                </div>
               </div>
 
               {/* 연락처 (편집 가능) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   연락처
                 </label>
-                {isEditing ? (
-                  <input
-                    type="tel"
-                    value={editedPhoneNumber}
-                    onChange={(e) => handlePhoneNumberChange(e.target.value)}
-                    placeholder="010-1234-5678"
-                    maxLength={13}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                    {myFarmData?.phoneNumber}
-                  </div>
-                )}
+                <div className="flex-1 ml-4">
+                  {isEditing ? (
+                    <input
+                      type="tel"
+                      value={editedPhoneNumber}
+                      onChange={(e) => handlePhoneNumberChange(e.target.value)}
+                      placeholder="010-1234-5678"
+                      maxLength={13}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                  ) : (
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                      {myFarmData?.phoneNumber}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 목장 설명 (편집 가능) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-start">
+                <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                   목장 설명
                 </label>
-                {isEditing ? (
-                  <textarea
-                    value={editedInfo.description}
-                    onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
-                    rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                    placeholder="목장에 대한 설명을 입력하세요"
-                  />
-                ) : (
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-                    {myFarmData?.description || '목장 설명이 없습니다.'}
-                  </div>
-                )}
+                <div className="flex-1 ml-4">
+                  {isEditing ? (
+                    <textarea
+                      value={editedInfo.description}
+                      onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                      placeholder="목장에 대한 설명을 입력하세요"
+                    />
+                  ) : (
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                      {myFarmData?.description || '목장 설명이 없습니다.'}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 주소 (읽기 전용) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   주소
                 </label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
                   {myFarmData?.address}
                 </div>
               </div>
 
               {/* 면적 (읽기 전용) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   면적
                 </label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
                   {myFarmData?.area}m²
                 </div>
               </div>
@@ -388,7 +396,7 @@ export default function FarmerMyFarm() {
             
             {/* 정보 수정 버튼 */}
             {!isEditing && (
-              <div className="pt-4 border-t border-gray-200 flex justify-end">
+              <div className="pt-4 flex justify-end">
                 <button
                   onClick={() => setIsEditing(true)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -435,31 +443,31 @@ export default function FarmerMyFarm() {
             <h3 className="text-lg font-semibold text-gray-900 mb-6">활동 정보</h3>
             <div className="space-y-6">
               {/* 현재 두 수 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   현재 두 수
                 </label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
                   {myFarmData?.horseCount}두
                 </div>
               </div>
 
               {/* 신뢰온도 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   신뢰온도
                 </label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
                   {myFarmData?.totalScore}점
                 </div>
               </div>
 
               {/* 이번 달 후원금 */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center">
+                <label className="w-40 text-sm font-medium text-gray-700">
                   이번 달 후원금
                 </label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
                   {myFarmData?.monthTotalAmount.toLocaleString()}원
                 </div>
               </div>
