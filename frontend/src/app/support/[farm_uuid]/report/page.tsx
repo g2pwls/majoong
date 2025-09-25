@@ -184,7 +184,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
   return (
     <div className="min-h-screen">
       <header>
-        <div className="mx-auto max-w-6xl px-6 py-5">
+        <div className="mx-auto max-w-6xl px-6 py-8 pb-3">
           {/* 브래드크럼 */}
           <Breadcrumbs
             items={[

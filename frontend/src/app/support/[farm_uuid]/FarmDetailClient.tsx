@@ -135,7 +135,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   // farm_uuid prop을 사용
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto max-w-6xl px-1 p-8">
       {/* 브레드크럼과 버튼들 */}
       <div className="flex items-center justify-between">
         <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
@@ -153,7 +153,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
           {isMyFarm && (
             <Link 
               href={`/support/${farm_uuid}/edit`}
-              className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors"
+              className="bg-gray-500 text-white py-1 px-4 rounded-md hover:bg-gray-600 transition-colors"
             >
               목장 정보 수정
             </Link>
