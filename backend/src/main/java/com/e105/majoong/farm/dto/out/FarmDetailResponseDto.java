@@ -3,6 +3,7 @@ package com.e105.majoong.farm.dto.out;
 import com.e105.majoong.common.model.farm.Farm;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -22,6 +23,7 @@ public class FarmDetailResponseDto {
     private long purposeTotalAmount;
     private double area;
     private String description;
+    private LocalDateTime createdAt;
     private List<MonthlyScoreResponseDto> monthlyScores;
     private List<FarmHorseDetailResponseDto> horses;
     private boolean bookmarked;
@@ -47,6 +49,7 @@ public class FarmDetailResponseDto {
                 .monthlyScores(monthlyScores)
                 .horses(horses)
                 .description(farm.getDescription())
+                .createdAt(farm.getCreatedAt())
                 .area(farm.getArea())
                 .bookmarked(bookmarked)
                 .build();
