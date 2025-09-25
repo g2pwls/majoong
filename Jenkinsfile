@@ -120,7 +120,7 @@ pipeline {
         }
 
         stage('Backend Build') {
-            when { expression { env.BACK_CHANGED == 'true' } }
+            when { expression { env.BACK_CHANGED == 'true' || env.BRANCH_NAME == 'main' } }
             steps {
                 echo "🛠️ Backend Build: Gradle 빌드 시작"
                 dir("${BACKEND_DIR}") {
