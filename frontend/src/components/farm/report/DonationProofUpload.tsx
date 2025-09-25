@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { submitReceiptSettlement } from "../../../services/apiService";
+import ReceiptSubmissionProgress from "../panels/ReceiptSubmissionProgress";
 
 type DonationProofUploadProps = {
   farmUuid: string;
@@ -73,6 +74,14 @@ export default function DonationProofUpload({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
+  const [apiComplete, setApiComplete] = useState(false);
+
+  // 진행 상황 완료 핸들러
+  const handleProgressComplete = () => {
+    setShowProgress(false);
+    setSubmitting(false);
+  };
 
   // 컴포넌트 렌더링 추적
   useEffect(() => {
@@ -357,6 +366,7 @@ export default function DonationProofUpload({
       setSubmitting(true);
       setSubmitError(null);
       setSubmitSuccess(false);
+      setApiComplete(false); // 제출 시작 시 API 완료 상태 리셋
 
       // 필수 데이터 검증
       if (!selectedCategory) {
@@ -503,6 +513,9 @@ export default function DonationProofUpload({
       
       console.log("=== API 호출 시작 ===", { timestamp: new Date().toISOString() });
 
+      // 진행 상황 표시 시작
+      setShowProgress(true);
+
       // 인증사진을 File 객체로 변환
       let photoFile: File;
       try {
@@ -582,12 +595,15 @@ export default function DonationProofUpload({
       const result = await submitReceiptSettlement(payload, photoFile);
       
       setSubmitSuccess(true);
+      setApiComplete(true); // API 완료 상태 설정
       console.log("제출 성공:", result);
       
       // 성공 메시지 표시
       if (result?.settlement?.released) {
         console.log("정산 성공:", result.settlement);
       }
+      
+      // 진행 상황은 자동으로 완료되므로 여기서는 숨기지 않음
     } catch (e: unknown) {
       console.error("제출 에러:", e);
       
@@ -625,6 +641,8 @@ export default function DonationProofUpload({
       }
       
       setSubmitError(errorMessage);
+      setShowProgress(false); // 에러 발생 시 진행 상황 숨기기
+      setApiComplete(false); // 에러 발생 시 API 완료 상태 리셋
     } finally {
       setSubmitting(false);
     }
@@ -671,347 +689,348 @@ export default function DonationProofUpload({
       </div>
 
 
-      {/* 영수증 사진 */}
+      {/* 영수증 사진과 인증 사진을 한 줄에 배치 */}
       <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">영수증 사진</label>
-        <div
-          className={`w-full h-60 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all relative ${
-            dragOverType === 'receipt' ? 'border-blue-500 bg-blue-50' : ''
-          } ${donationData[farmUuid]?.receipt ? 'border-solid' : ''}`}
-          style={{
-            backgroundImage: `url(${donationData[farmUuid]?.receipt || ''})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-          onClick={() => document.getElementById(`file-${farmUuid}-receipt`)?.click()}
-          draggable={!!donationData[farmUuid]?.receipt}
-          onDragStart={(e) => handleDragStart(e, 'receipt')}
-          onDragOver={(e) => handleDragOver(e, 'receipt')}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => {
-            if (e.dataTransfer.files.length > 0) {
-              handleFileDrop(e, 'receipt');
-            } else {
-              handleDrop(e, 'receipt');
-            }
-          }}
-        >
-          {!donationData[farmUuid]?.receipt && (
-            <div className="text-center">
-              <span className="text-sm text-gray-600 block">클릭 또는 드래그하여 업로드</span>
-            </div>
-          )}
-        </div>
-        <input
-          id={`file-${farmUuid}-receipt`}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleFileInput(e, 'receipt')}
-          className="mt-2 hidden"
-        />
-
-        {/* 사용 금액 입력 */}
-        <div className="mt-4">
-          <label className="block text-sm font-medium mb-2">사용 금액</label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={usedAmount}
-              onChange={(e) => {
-                const value = e.target.value.replace(/[^0-9]/g, '');
-                const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-                setUsedAmount(formattedValue);
-                // 금액 변경 시 검증 결과 초기화
-                setCertificationResult(null);
-                setCertificationError(null);
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* 영수증 사진 */}
+          <div>
+            <label className="block text-sm font-medium mb-2">영수증 사진</label>
+            <div
+              className={`w-full h-60 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all relative ${
+                dragOverType === 'receipt' ? 'border-blue-500 bg-blue-50' : ''
+              } ${donationData[farmUuid]?.receipt ? 'border-solid' : ''}`}
+              style={{
+                backgroundImage: `url(${donationData[farmUuid]?.receipt || ''})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
               }}
-              placeholder="사용한 금액을 입력하세요"
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-            <span className="text-gray-600">원</span>
-          </div>
-        </div>
-
-        {/* 버튼들 */}
-        <div className="mt-3 flex justify-end gap-2">
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
-            onClick={handleExtractReceipt}
-            disabled={extracting}
-          >
-            {extracting ? "추출 중..." : "추출"}
-          </button>
-        </div>
-
-        {/* 추출 결과 출력 영역 */}
-        {(extracting || extractError || extractedText) && (
-          <div className="mt-4">
-            {extracting && <p className="text-sm text-gray-600">영수증에서 글자를 추출하는 중입니다…</p>}
-            {extractError && <p className="text-sm text-red-600">에러: {extractError}</p>}
-            {extractedText && (
-              <>
-                <h4 className="text-sm font-semibold mb-2">추출된 글</h4>
-                <pre className="whitespace-pre-wrap bg-white border rounded p-3 text-sm">
-                  {extractedText}
-                </pre>
-              </>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 인증 사진 */}
-      <div className="mb-6">
-        <label className="block text-sm font-medium mb-2">인증 사진</label>
-        <div
-          className={`w-full h-60 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all relative ${
-            dragOverType === 'certification' ? 'border-blue-500 bg-blue-50' : ''
-          } ${donationData[farmUuid]?.certification ? 'border-solid' : ''}`}
-          style={{
-            backgroundImage: `url(${donationData[farmUuid]?.certification || ''})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-          onClick={() => document.getElementById(`file-${farmUuid}-certification`)?.click()}
-          draggable={!!donationData[farmUuid]?.certification}
-          onDragStart={(e) => handleDragStart(e, 'certification')}
-          onDragOver={(e) => handleDragOver(e, 'certification')}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => {
-            if (e.dataTransfer.files.length > 0) {
-              handleFileDrop(e, 'certification');
-            } else {
-              handleDrop(e, 'certification');
-            }
-          }}
-        >
-          {!donationData[farmUuid]?.certification && (
-            <div className="text-center">
-              <span className="text-sm text-gray-600 block">클릭 또는 드래그하여 업로드</span>
-            </div>
-          )}
-        </div>
-        <input
-          id={`file-${farmUuid}-certification`}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleFileInput(e, 'certification')}
-          className="mt-2 hidden"
-        />
-        <div className="mt-3 flex justify-end">
-          <button 
-            className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-60"
-            onClick={handleVerifyCertification}
-            disabled={certificationVerifying || !selectedCategory || !extractedText || !usedAmount || !donationData[farmUuid]?.certification}
-          >
-            {certificationVerifying ? "검사 중..." : "검사"}
-          </button>
-        </div>
-
-        {/* 인증 사진 검증 결과 표시 */}
-        {(certificationVerifying || certificationError || certificationResult) && (
-          <div className="mt-4 p-4 bg-white rounded-lg border">
-            <h4 className="text-lg font-bold mb-4">검증 결과</h4>
-            {certificationVerifying && <p className="text-sm text-gray-600">GPT가 영수증과 인증사진을 종합 검증하는 중입니다…</p>}
-            {certificationError && <p className="text-sm text-red-600">에러: {certificationError}</p>}
-            {certificationResult && (
-              <div className="space-y-4">
-                {/* 결과 배지 */}
-                <div className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
-                  certificationResult.result === "적격" 
-                    ? "bg-green-100 text-gray-900" 
-                    : "bg-red-100 text-gray-900"
-                }`}>
-                  {certificationResult.result}
+              onClick={() => document.getElementById(`file-${farmUuid}-receipt`)?.click()}
+              draggable={!!donationData[farmUuid]?.receipt}
+              onDragStart={(e) => handleDragStart(e, 'receipt')}
+              onDragOver={(e) => handleDragOver(e, 'receipt')}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => {
+                if (e.dataTransfer.files.length > 0) {
+                  handleFileDrop(e, 'receipt');
+                } else {
+                  handleDrop(e, 'receipt');
+                }
+              }}
+            >
+              {!donationData[farmUuid]?.receipt && (
+                <div className="text-center">
+                  <span className="text-sm text-gray-600 block">클릭 또는 드래그하여 업로드</span>
                 </div>
+              )}
+            </div>
+            <input
+              id={`file-${farmUuid}-receipt`}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFileInput(e, 'receipt')}
+              className="mt-2 hidden"
+            />
 
-                {/* 검증 이유 */}
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {(() => {
-                    try {
-                      // JSON 형태의 문자열인지 확인
-                      if (certificationResult.reason.includes('{') && certificationResult.reason.includes('}')) {
-                        // JSON이 ```json ... ``` 형태로 감싸져 있는 경우 처리
-                        const jsonMatch = certificationResult.reason.match(/```json\s*([\s\S]*?)\s*```/);
-                        if (jsonMatch) {
-                          const parsed = JSON.parse(jsonMatch[1]);
-                          return parsed.reason || parsed.detail || certificationResult.reason;
-                        }
-                        
-                        // JSON이 ``` ... ``` 형태로 감싸져 있는 경우 처리
-                        const codeMatch = certificationResult.reason.match(/```\s*([\s\S]*?)\s*```/);
-                        if (codeMatch) {
-                          const parsed = JSON.parse(codeMatch[1]);
-                          return parsed.reason || parsed.detail || certificationResult.reason;
-                        }
-                        
-                        // JSON이 { ... } 형태로 감싸져 있는 경우 처리
-                        const braceMatch = certificationResult.reason.match(/\{[\s\S]*\}/);
-                        if (braceMatch) {
-                          const parsed = JSON.parse(braceMatch[0]);
-                          return parsed.reason || parsed.detail || certificationResult.reason;
-                        }
-                        
-                        // 전체 문자열이 JSON인 경우
-                        const parsed = JSON.parse(certificationResult.reason);
-                        return parsed.reason || parsed.detail || certificationResult.reason;
-                      }
-                      return certificationResult.reason;
-                    } catch (error) {
-                      console.log("reason 파싱 실패:", error);
-                      return certificationResult.reason;
-                    }
-                  })()}
-                </p>
-                
-                {/* 금액 정보 표시 */}
-                {(certificationResult.receiptAmount || certificationResult.amountMatch !== undefined) && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-600 mb-1">입력한 금액:</p>
-                        <p className="font-bold text-lg text-gray-900">{usedAmount}원</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-600 mb-1">영수증 금액:</p>
-                        <p className="font-bold text-lg text-gray-900">{certificationResult.receiptAmount || "추출 실패"}</p>
-                      </div>
-                    </div>
-                    {certificationResult.amountMatch !== undefined && (
-                      <div className="mt-3">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${
-                          certificationResult.amountMatch 
-                            ? "bg-green-100 text-gray-900" 
-                            : "bg-red-100 text-gray-900"
-                        }`}>
-                          {certificationResult.amountMatch ? "금액 일치" : "금액 불일치"}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {/* 연관 상품 표시 */}
-                {certificationResult.matchedItems && certificationResult.matchedItems.length > 0 && (
-                  <div>
-                    <p className="text-sm text-gray-600 mb-2">연관된 상품:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {certificationResult.matchedItems.map((item, index) => (
-                        <span key={index} className="inline-flex items-center px-3 py-1 rounded-lg text-sm bg-blue-100 text-gray-900 font-medium">
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            {/* 사용 금액 입력과 추출 버튼을 한 줄에 배치 */}
+            <div className="mt-4">
+              <div className="flex items-center space-x-2">
+              <label className="block text-sm font-medium">사용 금액</label>
+                <input
+                  type="text"
+                  value={usedAmount}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    setUsedAmount(formattedValue);
+                    // 금액 변경 시 검증 결과 초기화
+                    setCertificationResult(null);
+                    setCertificationError(null);
+                  }}
+                  placeholder="사용한 금액을 입력하세요"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <span className="text-gray-600">원</span>
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
+                  onClick={handleExtractReceipt}
+                  disabled={extracting || !donationData[farmUuid]?.receipt || !usedAmount}
+                >
+                  {extracting ? "추출 중..." : "추출"}
+                </button>
+              </div>
+            </div>
 
-                {/* 영수증 상세 정보 표시 */}
-                {(certificationResult.storeInfo || certificationResult.items || certificationResult.paymentInfo) && (
-                  <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                    <h5 className="text-lg font-semibold mb-4 text-gray-800">영수증 상세 정보</h5>
-                    
-                    {/* 가게 정보 */}
-                    {certificationResult.storeInfo && (
-                      <div className="mb-4">
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">가게 정보</h6>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                          {certificationResult.storeInfo.name && (
-                            <div>
-                              <span className="text-gray-600">상호명:</span>
-                              <span className="ml-2 font-medium">{certificationResult.storeInfo.name}</span>
-                            </div>
-                          )}
-                          {certificationResult.storeInfo.address && (
-                            <div>
-                              <span className="text-gray-600">주소:</span>
-                              <span className="ml-2 font-medium">{certificationResult.storeInfo.address}</span>
-                            </div>
-                          )}
-                          {certificationResult.storeInfo.phone && (
-                            <div>
-                              <span className="text-gray-600">전화번호:</span>
-                              <span className="ml-2 font-medium">{certificationResult.storeInfo.phone}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 구매 상품 목록 */}
-                    {certificationResult.items && certificationResult.items.length > 0 && (
-                      <div className="mb-4">
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">구매 상품</h6>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm border-collapse border border-gray-300">
-                            <thead>
-                              <tr className="bg-gray-100">
-                                <th className="border border-gray-300 px-3 py-2 text-left">상품명</th>
-                                <th className="border border-gray-300 px-3 py-2 text-center">수량</th>
-                                <th className="border border-gray-300 px-3 py-2 text-right">단가</th>
-                                <th className="border border-gray-300 px-3 py-2 text-right">금액</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {certificationResult.items.map((item, index) => (
-                                <tr key={index} className="hover:bg-gray-50">
-                                  <td className="border border-gray-300 px-3 py-2">{item.name}</td>
-                                  <td className="border border-gray-300 px-3 py-2 text-center">{item.quantity}</td>
-                                  <td className="border border-gray-300 px-3 py-2 text-right">{item.unitPrice}원</td>
-                                  <td className="border border-gray-300 px-3 py-2 text-right font-medium">{item.totalPrice}원</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* 결제 정보 */}
-                    {certificationResult.paymentInfo && (
-                      <div>
-                        <h6 className="text-sm font-medium text-gray-700 mb-2">결제 정보</h6>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                          {certificationResult.paymentInfo.totalAmount && (
-                            <div>
-                              <span className="text-gray-600">총 금액:</span>
-                              <span className="ml-2 font-bold text-lg text-gray-900">{certificationResult.paymentInfo.totalAmount}원</span>
-                            </div>
-                          )}
-                          {certificationResult.paymentInfo.paymentMethod && (
-                            <div>
-                              <span className="text-gray-600">결제 방법:</span>
-                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.paymentMethod}</span>
-                            </div>
-                          )}
-                          {certificationResult.paymentInfo.paymentDate && (
-                            <div>
-                              <span className="text-gray-600">결제일시:</span>
-                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.paymentDate}</span>
-                            </div>
-                          )}
-                          {certificationResult.paymentInfo.receiptNumber && (
-                            <div>
-                              <span className="text-gray-600">영수증번호:</span>
-                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.receiptNumber}</span>
-                            </div>
-                          )}
-                          {certificationResult.paymentInfo.approvalNumber && (
-                            <div>
-                              <span className="text-gray-600">승인번호:</span>
-                              <span className="ml-2 font-medium">{certificationResult.paymentInfo.approvalNumber}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+            {/* 추출 결과 출력 영역 */}
+            {(extracting || extractError || extractedText) && (
+              <div className="mt-4">
+                {extracting && <p className="text-sm text-gray-600">영수증에서 글자를 추출하는 중입니다…</p>}
+                {extractError && <p className="text-sm text-red-600">에러: {extractError}</p>}
+                {extractedText && (
+                  <>
+                    <h4 className="text-sm font-semibold mb-2">추출된 글</h4>
+                <div className="whitespace-pre-wrap bg-white border rounded p-3 text-sm font-sans">
+                  {extractedText}
+                </div>
+                  </>
                 )}
               </div>
             )}
           </div>
-        )}
+
+          {/* 인증 사진 */}
+          <div>
+            <label className="block text-sm font-medium mb-2">인증 사진</label>
+            <div
+              className={`w-full h-60 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all relative ${
+                dragOverType === 'certification' ? 'border-blue-500 bg-blue-50' : ''
+              } ${donationData[farmUuid]?.certification ? 'border-solid' : ''}`}
+              style={{
+                backgroundImage: `url(${donationData[farmUuid]?.certification || ''})`,
+                backgroundSize: 'contain',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }}
+              onClick={() => document.getElementById(`file-${farmUuid}-certification`)?.click()}
+              draggable={!!donationData[farmUuid]?.certification}
+              onDragStart={(e) => handleDragStart(e, 'certification')}
+              onDragOver={(e) => handleDragOver(e, 'certification')}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => {
+                if (e.dataTransfer.files.length > 0) {
+                  handleFileDrop(e, 'certification');
+                } else {
+                  handleDrop(e, 'certification');
+                }
+              }}
+            >
+              {!donationData[farmUuid]?.certification && (
+                <div className="text-center">
+                  <span className="text-sm text-gray-600 block">클릭 또는 드래그하여 업로드</span>
+                </div>
+              )}
+            </div>
+            <input
+              id={`file-${farmUuid}-certification`}
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleFileInput(e, 'certification')}
+              className="mt-2 hidden"
+            />
+            <div className="mt-3 flex justify-end">
+              <button 
+                className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-60"
+                onClick={handleVerifyCertification}
+                disabled={certificationVerifying || !donationData[farmUuid]?.certification}
+              >
+                {certificationVerifying ? "검사 중..." : "검사"}
+              </button>
+            </div>
+
+            {/* 인증 사진 검증 결과 표시 */}
+            {(certificationVerifying || certificationError || certificationResult) && (
+        <div className="mt-4 p-4 bg-white rounded-lg border">
+          <h4 className="text-lg font-bold mb-4">검증 결과</h4>
+          {certificationVerifying && <p className="text-sm text-gray-600">GPT가 영수증과 인증사진을 종합 검증하는 중입니다…</p>}
+          {certificationError && <p className="text-sm text-red-600">에러: {certificationError}</p>}
+          {certificationResult && (
+            <div className="space-y-4">
+              {/* 결과 배지 */}
+              <div className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium ${
+                certificationResult.result === "적격" 
+                  ? "bg-green-100 text-gray-900" 
+                  : "bg-red-100 text-gray-900"
+              }`}>
+                {certificationResult.result}
+              </div>
+
+              {/* 검증 이유 */}
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {(() => {
+                  try {
+                    // JSON 형태의 문자열인지 확인
+                    if (certificationResult.reason.includes('{') && certificationResult.reason.includes('}')) {
+                      // JSON이 ```json ... ``` 형태로 감싸져 있는 경우 처리
+                      const jsonMatch = certificationResult.reason.match(/```json\s*([\s\S]*?)\s*```/);
+                      if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[1]);
+                        return parsed.reason || parsed.detail || certificationResult.reason;
+                      }
+                      
+                      // JSON이 ``` ... ``` 형태로 감싸져 있는 경우 처리
+                      const codeMatch = certificationResult.reason.match(/```\s*([\s\S]*?)\s*```/);
+                      if (codeMatch) {
+                        const parsed = JSON.parse(codeMatch[1]);
+                        return parsed.reason || parsed.detail || certificationResult.reason;
+                      }
+                      
+                      // JSON이 { ... } 형태로 감싸져 있는 경우 처리
+                      const braceMatch = certificationResult.reason.match(/\{[\s\S]*\}/);
+                      if (braceMatch) {
+                        const parsed = JSON.parse(braceMatch[0]);
+                        return parsed.reason || parsed.detail || certificationResult.reason;
+                      }
+                      
+                      // 전체 문자열이 JSON인 경우
+                      const parsed = JSON.parse(certificationResult.reason);
+                      return parsed.reason || parsed.detail || certificationResult.reason;
+                    }
+                    return certificationResult.reason;
+                  } catch (error) {
+                    console.log("reason 파싱 실패:", error);
+                    return certificationResult.reason;
+                  }
+                })()}
+              </p>
+              
+              {/* 금액 정보 표시 */}
+              {(certificationResult.receiptAmount || certificationResult.amountMatch !== undefined) && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-gray-600 text-sm">입력한 금액: </span>
+                        <span className="font-bold text-lg text-gray-900">{usedAmount}원</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600 text-sm">영수증 금액: </span>
+                        <span className="font-bold text-lg text-gray-900">{certificationResult.receiptAmount || "추출 실패"}</span>
+                      </div>
+                    </div>
+                    {certificationResult.amountMatch !== undefined && (
+                      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium ${
+                        certificationResult.amountMatch 
+                          ? "bg-green-100 text-gray-900" 
+                          : "bg-red-100 text-gray-900"
+                      }`}>
+                        {certificationResult.amountMatch ? "금액 일치" : "금액 불일치"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
+              
+              {/* 연관 상품 표시 */}
+              {certificationResult.matchedItems && certificationResult.matchedItems.length > 0 && (
+                <div>
+                  <p className="text-sm text-gray-600 mb-2">연관된 상품:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {certificationResult.matchedItems.map((item, index) => (
+                      <span key={index} className="inline-flex items-center px-3 py-1 rounded-lg text-sm bg-blue-100 text-gray-900 font-medium">
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 영수증 상세 정보 표시 */}
+              {(certificationResult.storeInfo || certificationResult.items || certificationResult.paymentInfo) && (
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h5 className="text-lg font-semibold mb-4 text-gray-800">영수증 상세 정보</h5>
+                  
+                  {/* 가게 정보 */}
+                  {certificationResult.storeInfo && (
+                    <div className="mb-4">
+                      <h6 className="text-sm font-medium text-gray-700 mb-2">가게 정보</h6>
+                      <div className="grid grid-cols-1 md:grid-cols-1 gap-3 text-sm">
+                        {certificationResult.storeInfo.name && (
+                          <div>
+                            <span className="text-gray-600">상호명:</span>
+                            <span className="ml-2 font-medium">{certificationResult.storeInfo.name}</span>
+                          </div>
+                        )}
+                        {certificationResult.storeInfo.address && (
+                          <div>
+                            <span className="text-gray-600">주소:</span>
+                            <span className="ml-2 font-medium">{certificationResult.storeInfo.address}</span>
+                          </div>
+                        )}
+                        {certificationResult.storeInfo.phone && (
+                          <div>
+                            <span className="text-gray-600">전화번호:</span>
+                            <span className="ml-2 font-medium">{certificationResult.storeInfo.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 구매 상품 목록 */}
+                  {certificationResult.items && certificationResult.items.length > 0 && (
+                    <div className="mb-4">
+                      <h6 className="text-sm font-medium text-gray-700 mb-2">구매 상품</h6>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm border-collapse border border-gray-300">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="border border-gray-300 px-3 py-2 text-left">상품명</th>
+                              <th className="border border-gray-300 px-3 py-2 text-center">수량</th>
+                              <th className="border border-gray-300 px-3 py-2 text-right">단가</th>
+                              <th className="border border-gray-300 px-3 py-2 text-right">금액</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {certificationResult.items.map((item, index) => (
+                              <tr key={index} className="hover:bg-gray-50">
+                                <td className="border border-gray-300 px-3 py-2">{item.name}</td>
+                                <td className="border border-gray-300 px-3 py-2 text-center">{item.quantity}</td>
+                                <td className="border border-gray-300 px-3 py-2 text-right">{item.unitPrice}원</td>
+                                <td className="border border-gray-300 px-3 py-2 text-right font-medium">{item.totalPrice}원</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 결제 정보 */}
+                  {certificationResult.paymentInfo && (
+                    <div>
+                      <h6 className="text-sm font-medium text-gray-700 mb-2">결제 정보</h6>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        {certificationResult.paymentInfo.totalAmount && (
+                          <div>
+                            <span className="text-gray-600">총 금액:</span>
+                            <span className="ml-2 font-bold text-lg text-gray-900">{certificationResult.paymentInfo.totalAmount}원</span>
+                          </div>
+                        )}
+                        {certificationResult.paymentInfo.paymentMethod && (
+                          <div>
+                            <span className="text-gray-600">결제 방법:</span>
+                            <span className="ml-2 font-medium">{certificationResult.paymentInfo.paymentMethod}</span>
+                          </div>
+                        )}
+                        {certificationResult.paymentInfo.paymentDate && (
+                          <div>
+                            <span className="text-gray-600">결제일시:</span>
+                            <span className="ml-2 font-medium">{certificationResult.paymentInfo.paymentDate}</span>
+                          </div>
+                        )}
+                        {certificationResult.paymentInfo.receiptNumber && (
+                          <div>
+                            <span className="text-gray-600">영수증번호:</span>
+                            <span className="ml-2 font-medium">{certificationResult.paymentInfo.receiptNumber}</span>
+                          </div>
+                        )}
+                        {certificationResult.paymentInfo.approvalNumber && (
+                          <div>
+                            <span className="text-gray-600">승인번호:</span>
+                            <span className="ml-2 font-medium">{certificationResult.paymentInfo.approvalNumber}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+          </div>
+        </div>
       </div>
 
       {/* 특이사항 */}
@@ -1071,6 +1090,13 @@ export default function DonationProofUpload({
           )}
         </div>
       )}
+
+      {/* 영수증 제출 진행 상황 */}
+      <ReceiptSubmissionProgress 
+        isVisible={showProgress}
+        onComplete={handleProgressComplete}
+        isApiComplete={apiComplete}
+      />
     </div>
   );
 }

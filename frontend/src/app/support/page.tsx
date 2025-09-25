@@ -196,6 +196,10 @@ export default function SupportPage() {
   const [horses, setHorses] = useState<Array<{ horse: Horse; farm: Farm }>>([]);
   const [loading, setLoading] = useState(true);
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
+  
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // 즐겨찾기 토글 함수
   const handleBookmarkToggle = async (farmUuid: string) => {
@@ -319,7 +323,7 @@ export default function SupportPage() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  const { filteredFarms, filteredHorses } = useMemo(() => {
+  const { filteredFarms, filteredHorses, paginatedFarms, paginatedHorses, totalPages, totalItems } = useMemo(() => {
     let farmArr = [...farms];
     let horseArr: Array<{ horse: Horse; farm: Farm }> = [];
     
@@ -352,17 +356,43 @@ export default function SupportPage() {
       horseArr.sort((a, b) => b.horse.id - a.horse.id);
     }
     
-    return { filteredFarms: farmArr, filteredHorses: horseArr };
-  }, [farms, horses, keyword, searchType, sort]);
+    // 페이지네이션 계산
+    const totalItems = searchType === "farm" ? farmArr.length : horseArr.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    
+    const paginatedFarms = farmArr.slice(startIndex, endIndex);
+    const paginatedHorses = horseArr.slice(startIndex, endIndex);
+    
+    return { 
+      filteredFarms: farmArr, 
+      filteredHorses: horseArr,
+      paginatedFarms,
+      paginatedHorses,
+      totalPages,
+      totalItems
+    };
+  }, [farms, horses, keyword, searchType, sort, currentPage, itemsPerPage]);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    // 페이지 변경 시 맨 위로 스크롤
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 검색어, 검색 타입, 정렬 변경 시 페이지 리셋
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [keyword, searchType, sort]);
 
   return (
     <div className="min-h-screen">
       <main className="mx-auto max-w-6xl px-4 pb-16">
         <div className="py-4">
           <Breadcrumbs items={[
-            { label: "홈", href: "/" },
             { label: "목장후원", href: "/support" },
-            { label: "목장 목록" },
           ]} />
         </div>
 
@@ -373,7 +403,7 @@ export default function SupportPage() {
             <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "recommended")} className="shrink-0">
               <TabsList>
                 <TabsTrigger value="latest">최신순</TabsTrigger>
-                <TabsTrigger value="recommended">추천순</TabsTrigger>
+                <TabsTrigger value="recommended">신뢰도순</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -399,7 +429,7 @@ export default function SupportPage() {
           {loading && (
             <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">불러오는 중…</div>
           )}
-          {!loading && searchType === "farm" && filteredFarms.map((farm) => (
+          {!loading && searchType === "farm" && paginatedFarms.map((farm) => (
             <FarmCard 
               key={farm.id} 
               farm={farm} 
@@ -410,7 +440,7 @@ export default function SupportPage() {
           ))}
           {!loading && searchType === "horse" && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
-              {filteredHorses.map(({ horse, farm }) => (
+              {paginatedHorses.map(({ horse, farm }) => (
                 <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
               ))}
             </div>
@@ -426,6 +456,74 @@ export default function SupportPage() {
             </div>
           )}
         </div>
+
+        {/* 페이지네이션 */}
+        {!loading && totalPages > 1 && (
+          <div className="flex flex-col items-center gap-4 mt-8">
+            <div className="text-sm text-gray-500">
+              총 {totalItems}개 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalItems)}개 표시
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                variant="outline"
+                size="sm"
+              >
+                이전
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  // 페이지 번호 표시 로직 (최대 5개까지만 표시)
+                  if (totalPages <= 5) {
+                    return (
+                      <Button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    );
+                  } else {
+                    // 현재 페이지 주변 2페이지씩만 표시
+                    const startPage = Math.max(1, currentPage - 2);
+                    const endPage = Math.min(totalPages, currentPage + 2);
+                    
+                    if (page === 1 || page === totalPages || (page >= startPage && page <= endPage)) {
+                      return (
+                        <Button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          className="w-8 h-8 p-0"
+                        >
+                          {page}
+                        </Button>
+                      );
+                    } else if (page === startPage - 1 || page === endPage + 1) {
+                      return <span key={page} className="text-gray-400">...</span>;
+                    }
+                    return null;
+                  }
+                })}
+              </div>
+              
+              <Button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                variant="outline"
+                size="sm"
+              >
+                다음
+              </Button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

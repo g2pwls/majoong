@@ -221,7 +221,7 @@ export interface FarmRegistrationResponse {
   isSuccess: boolean;
   message: string;
   code: number;
-  result: string; // 농장 UUID (예: "FARM-2F40B1")
+  result: string; // 목장 UUID (예: "FARM-2F40B1")
 }
 
 // 계좌 거래 내역 타입

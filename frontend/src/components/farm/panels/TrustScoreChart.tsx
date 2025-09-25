@@ -47,7 +47,7 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
             <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 평균 변화</h4>
-            <span className="text-sm text-red-500 font-medium">기준 38°C</span>
+            <span className="text-sm text-red-500 font-medium">기준 38.2°C</span>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">현재 신뢰도</p>
@@ -60,7 +60,7 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
         {scoreHistory.length > 0 ? (
           <div className="space-y-4">
             {/* 선 그래프 */}
-            <div className="h-48">
+            <div className="h-59">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={lineChartData}>
                   <CartesianGrid strokeDasharray="3 3" />

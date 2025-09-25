@@ -24,12 +24,12 @@ export default function FarmBasicInfoPanel({
 
   // 기본 정보 폼 상태 (상위에서 내려준 farm으로 초기화)
   const [farm_name, setfarm_name] = useState("");
+  const [owner_name, setOwner_name] = useState("");
   const [address, setAddress] = useState("");
   const [farm_phone, setfarm_phone] = useState("");
   const [area, setArea] = useState<string>("");
   const [count, setCount] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [openingDate, setOpeningDate] = useState<string>("");
 
   // 전화번호 포맷팅 함수
   const formatPhoneNumber = (value: string): string => {
@@ -53,7 +53,8 @@ export default function FarmBasicInfoPanel({
   };
 
   useEffect(() => {
-    setfarm_name(farm?.name ?? "");
+    setfarm_name(farm?.farm_name ?? "");
+    setOwner_name(farm?.name ?? "");
     setAddress(farm?.address ?? "");
     setfarm_phone(farm?.farm_phone ?? "");
     setArea(typeof farm?.area === "number" ? String(farm!.area) : "");
@@ -91,29 +92,25 @@ export default function FarmBasicInfoPanel({
   const handleSubmit = async () => {
     try {
       // 필수 필드 검증
-      if (!farm_phone || !address || !openingDate || !area || !description) {
+      if (!farm_name || !farm_phone || !description) {
         alert('모든 필수 필드를 입력해주세요.');
         return;
       }
 
       // FormData 생성 (multipart/form-data 형식)
       const formData = new FormData();
+      formData.append('farmName', farm_name);
       formData.append('phoneNumber', farm_phone);
-      formData.append('address', address);
-      formData.append('openingDate', openingDate); // YYYY-MM-DD 형식
-      formData.append('area', area);
       formData.append('description', description);
       
-      // 파일이 있으면 추가
+      // 파일이 있으면 추가 (API 스펙에 맞게 'image'로 변경)
       if (file) {
-        formData.append('profileImage', file);
+        formData.append('image', file);
       }
 
       console.log('농장 정보 등록/수정 요청:', {
+        farmName: farm_name,
         phoneNumber: farm_phone,
-        address: address,
-        openingDate: openingDate,
-        area: area,
         description: description,
         hasFile: !!file
       });
@@ -132,12 +129,6 @@ export default function FarmBasicInfoPanel({
 
   return (
     <section className="border bg-white p-6 shadow-sm">
-      {/* 상단에 현재 목장명 표시 (상위에서 내려줌) */}
-      <div className="mb-4 flex items-center gap-2">
-        <span className="text-sm text-neutral-500">현재 목장명</span>
-        <span className="rounded-full border px-2 py-0.5 text-sm">{farm?.farm_name ?? "-"}</span>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* 대표 사진 업로드 (드롭존 적용) */}
         <div
@@ -171,22 +162,31 @@ export default function FarmBasicInfoPanel({
         {/* 기본 정보 폼 */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-1">
           <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">목장주:</span>
+            <span className="w-16 text-sm text-neutral-600">목장명 <span className="text-red-500">*</span></span>
             <input
               className="w-[400px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
               value={farm_name}
               onChange={(e) => setfarm_name(e.target.value)}
+              placeholder="예: 제주말농장"
+              required
+            />
+          </label>
+          <label className="flex items-center flex-row gap-5">
+            <span className="w-16 text-sm text-neutral-600">목장주</span>
+            <input
+              className="w-[400px] rounded-lg border px-3 py-2 text-sm outline-none bg-gray-100 text-gray-600 cursor-not-allowed"
+              value={owner_name}
+              readOnly
               placeholder="예: 홍길동"
             />
           </label>
           <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">위치 <span className="text-red-500">*</span></span>
+            <span className="w-16 text-sm text-neutral-600">위치</span>
             <input
-              className="w-[400px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
+              className="w-[400px] rounded-lg border px-3 py-2 text-sm outline-none bg-gray-100 text-gray-600 cursor-not-allowed"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              readOnly
               placeholder="예: 제주특별자치도 제주시 ..."
-              required
             />
           </label>
           <label className="flex items-center flex-row gap-5">
@@ -201,34 +201,24 @@ export default function FarmBasicInfoPanel({
             />
           </label>
           <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">면적 <span className="text-red-500">*</span></span>
-            <input
-              className="w-[160px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
-              value={area}
-              onChange={(e) => setArea(e.target.value)}
-              placeholder="예: 10000 (㎡)"
-              inputMode="numeric"
-              required
-            />
+            <span className="w-16 text-sm text-neutral-600">면적</span>
+            <div className="flex items-center">
+              <input
+                className="w-[120px] rounded-lg border px-3 py-2 text-sm outline-none bg-gray-100 text-gray-600 cursor-not-allowed"
+                value={area}
+                readOnly
+                placeholder="예: 10000"
+              />
+              <span className="ml-2 text-sm text-gray-600">m²</span>
+            </div>
           </label>
           <label className="flex items-center flex-row gap-5">
             <span className="w-16 text-sm text-neutral-600">두수</span>
             <input
-              className="w-[120px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
+              className="w-[120px] rounded-lg border px-3 py-2 text-sm outline-none bg-gray-100 text-gray-600 cursor-not-allowed"
               value={count}
-              onChange={(e) => setCount(e.target.value)}
+              readOnly
               placeholder="예: 17"
-              inputMode="numeric"
-            />
-          </label>
-          <label className="flex items-center flex-row gap-5">
-            <span className="w-16 text-sm text-neutral-600">개업일 <span className="text-red-500">*</span></span>
-            <input
-              type="date"
-              className="w-[200px] rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10"
-              value={openingDate}
-              onChange={(e) => setOpeningDate(e.target.value)}
-              required
             />
           </label>
         </div>
@@ -237,7 +227,12 @@ export default function FarmBasicInfoPanel({
       {/* 목장 소개 섹션 */}
       <div className="mt-6">
         <label className="block">
-          <span className="text-sm font-medium text-neutral-600 mb-2 block">목장 소개 <span className="text-red-500">*</span></span>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-neutral-600">목장 소개 <span className="text-red-500">*</span></span>
+            <span className="text-xs text-neutral-400">
+              {description.length}/500
+            </span>
+          </div>
           <textarea
             className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neutral-900/10 resize-none"
             rows={4}
@@ -247,13 +242,10 @@ export default function FarmBasicInfoPanel({
             maxLength={500}
             required
           />
-          <div className="mt-1 text-right text-xs text-neutral-400">
-            {description.length}/500
-          </div>
         </label>
       </div>
 
-      <div className="mt-6 flex items-center justify-between">
+      <div className="mt-2 flex items-center justify-between">
         <div className="text-sm text-neutral-600">
           {file ? `선택된 파일: ${file.name}` : "선택된 대표 사진이 없습니다."}
         </div>
@@ -278,7 +270,7 @@ export default function FarmBasicInfoPanel({
             onClick={handleSubmit}
             disabled={!farm_uuid}
           >
-            농장 정보 수정
+            목장 정보 수정
           </button>
         </div>
       </div>

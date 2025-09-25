@@ -64,7 +64,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto  p-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">월간 보고서를 불러오는 중...</p>
@@ -75,7 +75,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">{error}</p>
           <Button 
@@ -91,7 +91,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
   if (!report || !farm) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <p className="text-gray-500">보고서를 찾을 수 없습니다.</p>
         </div>
@@ -101,7 +101,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
 
   return (
-    <div className="mx-auto max-w-7xl p-6">
+    <div className="mx-auto max-w-6xl p-6">
       {/* 브레드크럼 */}
       <Breadcrumbs items={[
         { label: "목장후원", href: "/support" }, 
