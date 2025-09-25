@@ -7,7 +7,6 @@ import lombok.Getter;
 @Builder
 @Getter
 public class FarmRecommendRequestDto {
-    //농장 uuid, 사진, 이름, 신뢰도, 주소, 설명
     private String farmUuid;
     private String profileImage;
     private String farmName;
