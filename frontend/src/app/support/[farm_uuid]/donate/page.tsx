@@ -24,7 +24,7 @@ export default function DonatePage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'kakao' | 'bank'>('kakao');
+  const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
   useEffect(() => {
@@ -125,11 +125,7 @@ export default function DonatePage() {
   };
 
 
-  const handlePaymentMethodChange = (method: 'kakao' | 'bank') => {
-    if (method === 'bank') {
-      alert('무통장입금 기능은 추후 구현될 예정입니다.');
-      return;
-    }
+  const handlePaymentMethodChange = (method: 'kakao') => {
     setPaymentMethod(method);
   };
 

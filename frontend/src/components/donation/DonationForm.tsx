@@ -23,7 +23,7 @@ interface DonationFormProps {
   customAmount: string;
   showAmountWarning: boolean;
   isCustomInputActive: boolean;
-  paymentMethod: 'kakao' | 'bank';
+  paymentMethod: 'kakao';
   showConfirmPopup: boolean;
   selectedFarm: Farm | null;
   onAmountSelect: (amount: number) => void;
@@ -31,7 +31,7 @@ interface DonationFormProps {
   onCustomInputClick: () => void;
   onCustomInputBlur: () => void;
   onCustomInputKeyDown: (e: React.KeyboardEvent) => void;
-  onPaymentMethodChange: (method: 'kakao' | 'bank') => void;
+  onPaymentMethodChange: (method: 'kakao') => void;
   onDonateClick: () => void;
   onConfirmDonation: () => void;
   onCloseConfirmPopup: () => void;
