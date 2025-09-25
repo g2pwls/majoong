@@ -10,8 +10,9 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -34,6 +35,21 @@ public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
     }
 
     @Override
+    public Map<String, Integer> sumDonationAmountByFarmUuidsBetween(
+            List<String> farmUuids, LocalDateTime start, LocalDateTime end) {
+        List<Tuple> results = queryFactory.select(receiptHistory.farmUuid, receiptHistory.totalAmount.sum())
+                .from(receiptHistory)
+                .where(receiptHistory.farmUuid.in(farmUuids).and(receiptHistory.createdAt.between(start, end)))
+                .groupBy(receiptHistory.farmUuid)
+                .fetch();
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        result -> result.get(receiptHistory.farmUuid),
+                        result -> Optional.ofNullable(result.get(receiptHistory.totalAmount.sum())).orElse(0)));
+        
+    }
+
     public List<MonthlyDonationUsedDto> findMonthlyDonationUsed(String farmUuid) {
         List<Tuple> results = queryFactory
                 .select(
