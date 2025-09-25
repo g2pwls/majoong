@@ -4,14 +4,13 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { getFarm, Farm } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
+import DonationForm from "@/components/donation/DonationForm";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
-const predefinedAmounts = [1000, 5000, 10000, 30000, 50000];
 
 export default function DonatePage() {
   const params = useParams();
@@ -223,160 +222,28 @@ export default function DonatePage() {
             </div>
 
             {/* 오른쪽: 후원 정보 */}
-            <div className="space-y-8">
-              <h3 className="text-xl font-semibold text-gray-900">후원 금액</h3>
-              
-
-              {/* 후원 금액 선택 */}
-              <div className="space-y-4">
-              
-              {/* 미리 정의된 금액 버튼들 */}
-              <div className="grid grid-cols-3 gap-3">
-                {predefinedAmounts.map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={selectedAmount === amount ? "default" : "outline"}
-                    onClick={() => handleAmountSelect(amount)}
-                    className={`h-12 ${
-                      selectedAmount === amount
-                        ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {formatAmount(amount)}원
-                  </Button>
-                ))}
-                {/* 직접 입력 버튼 또는 입력창 */}
-                {isCustomInputActive ? (
-                  <div className="relative h-12">
-                  <Input
-                    type="text"
-                    value={customAmount}
-                    onChange={(e) => handleCustomAmountChange(e.target.value)}
-                      onBlur={handleCustomInputBlur}
-                      onKeyDown={handleCustomInputKeyDown}
-                      placeholder="금액 입력"
-                      className="h-12 text-center font-medium"
-                      autoFocus
-                    />
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    onClick={handleCustomInputClick}
-                    className={`h-12 ${
-                      selectedAmount > 0 && !predefinedAmounts.includes(selectedAmount)
-                        ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {customAmount ? `${formatAmount(selectedAmount)}원` : "직접 입력"}
-                  </Button>
-                )}
-                </div>
-
-              {/* 100원 단위로 딱 떨어지지 않는 경우 안내 문구 */}
-              {showAmountWarning && (
-                <div className="flex justify-center mb-2">
-                    <span className="text-orange-600 text-sm">
-                    100원 단위로 기부됩니다.
-                  </span>
-              </div>
-              )}
-
-              {/* 기부 금액 표시 */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium text-gray-700">기부 금액:</span>
-                  <span className="text-2xl font-bold text-gray-900">
-                    {selectedAmount > 0 ? formatAmount(selectedAmount) : "0"}원
-                  </span>
-                </div>
-              </div>
-
-              </div>
-
-              {/* 결제 정보 */}
-              <div className="space-y-6 pt-6 border-t border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900">결제 수단</h3>
-                
-                {/* 결제 수단 선택 */}
-                <div className="space-y-4">
-                  <div className="flex space-x-4">
-                    <Button
-                      variant={paymentMethod === 'kakao' ? "default" : "outline"}
-                      onClick={() => handlePaymentMethodChange('kakao')}
-                      className={`px-6 py-3 ${
-                        paymentMethod === 'kakao'
-                          ? "bg-yellow-400 hover:bg-yellow-500 text-white"
-                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                      }`}
-                    >
-                      카카오페이
-                    </Button>
-                    <Button
-                      variant={paymentMethod === 'bank' ? "default" : "outline"}
-                      onClick={() => handlePaymentMethodChange('bank')}
-                      className={`px-6 py-3 ${
-                        paymentMethod === 'bank'
-                          ? "bg-blue-500 hover:bg-blue-600 text-white"
-                          : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                      }`}
-                    >
-                      무통장입금
-                    </Button>
-                </div>
-              </div>
-
-              {/* 기부하기 버튼 */}
-                <div className="flex justify-end pt-4">
-                <Button
-                    onClick={handleDonateClick}
-                    className="bg-green-500 hover:bg-green-600 text-white px-12 py-4 text-xl font-semibold"
-                  disabled={selectedAmount <= 0}
-                >
-                  기부하기
-                </Button>
-                </div>
-              </div>
-            </div>
+            <DonationForm
+              selectedAmount={selectedAmount}
+              customAmount={customAmount}
+              showAmountWarning={showAmountWarning}
+              isCustomInputActive={isCustomInputActive}
+              paymentMethod={paymentMethod}
+              showConfirmPopup={showConfirmPopup}
+              selectedFarm={farmData}
+              onAmountSelect={handleAmountSelect}
+              onCustomAmountChange={handleCustomAmountChange}
+              onCustomInputClick={handleCustomInputClick}
+              onCustomInputBlur={handleCustomInputBlur}
+              onCustomInputKeyDown={handleCustomInputKeyDown}
+              onPaymentMethodChange={handlePaymentMethodChange}
+              onDonateClick={handleDonateClick}
+              onConfirmDonation={handleConfirmDonation}
+              onCloseConfirmPopup={() => setShowConfirmPopup(false)}
+              formatAmount={formatAmount}
+            />
           </div>
         </Card>
       </div>
-
-      {/* 기부 확인 팝업 */}
-      {showConfirmPopup && (
-        <div 
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowConfirmPopup(false)}
-        >
-          <div 
-            className="bg-white rounded-lg p-8 max-w-md w-full shadow-xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">기부 확인</h3>
-            <p className="text-gray-600 mb-6 text-center">
-              <span className="font-medium text-gray-900">{farmData.farm_name}</span>에<br/>
-              <span className="font-medium text-green-600">{formatAmount(selectedAmount)}원</span>을 기부하시겠습니까?
-            </p>
-            <div className="flex space-x-4 justify-end">
-                <Button
-                onClick={() => setShowConfirmPopup(false)}
-                  variant="outline"
-                className="px-6 py-2"
-                >
-                  취소
-                </Button>
-                <Button
-                onClick={handleConfirmDonation}
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
-                >
-                확인
-                </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
