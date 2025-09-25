@@ -7,10 +7,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api-test.majoon
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  timeout: 30000, // 30초로 증가 (영수증 처리 시간 고려)
+  // Content-Type은 요청 타입에 따라 브라우저가 자동으로 설정하도록 함
 });
 
 // 요청 인터셉터 - 토큰 자동 추가
@@ -58,7 +56,7 @@ export interface Farm {
   month_total_amount?: number;
   purpose_total_amount?: number;
   member_uuid?: string; // 목장 소유자 UUID
-  bookmark?: boolean; // 즐겨찾기 상태
+  bookmarked?: boolean; // 즐겨찾기 상태
 }
 
 export interface Horse {
@@ -146,7 +144,7 @@ export async function getFarms(params: {
       farm_phone: farm.phoneNumber,
       area: farm.area,
       description: farm.description,
-      bookmark: farm.bookmark || false, // 북마크 상태 매핑
+      bookmarked: farm.bookmark || false, // 북마크 상태 매핑
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;
@@ -211,7 +209,7 @@ export async function getFarm(farmUuid: string): Promise<Farm> {
       description: farm.description,
       month_total_amount: farm.monthTotalAmount,
       purpose_total_amount: farm.purposeTotalAmount,
-      bookmark: farm.bookmark || false, // 북마크 상태 추가
+      bookmarked: farm.bookmark || false, // 북마크 상태 추가
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;
@@ -305,14 +303,82 @@ export async function isMyFarm(farmUuid: string): Promise<boolean> {
   }
 }
 
-// 농장의 말 목록 조회 (현재는 농장 목록에서 함께 반환되므로 별도 호출 불필요)
-export async function getHorses(): Promise<Horse[]> {
+// 말 목록 조회 (키워드 검색 포함)
+export async function getHorses(params: {
+  horseName?: string;
+  page?: number;
+  size?: number;
+} = {}): Promise<{
+  content: Array<{
+    horse: Horse;
+    farm: Farm;
+  }>;
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}> {
   try {
-    // 백엔드에서 농장 목록 조회 시 말 정보도 함께 반환하므로
-    // 별도의 API 호출이 필요하지 않습니다.
-    // 이 함수는 호환성을 위해 유지하지만 빈 배열을 반환합니다.
-    console.log('getHorses 호출됨 - 빈 배열 반환 (농장 상세 조회에서 말 정보 포함)');
-    return [];
+    const response = await apiClient.get('/api/v1/farms/horses', {
+      params: {
+        horseName: params.horseName,
+        page: params.page,
+        size: params.size,
+      },
+    });
+
+    if (!response.data.isSuccess) {
+      throw new Error(`API 호출 실패: ${response.data.message}`);
+    }
+
+    // 백엔드 응답을 프론트엔드 인터페이스에 맞게 변환
+    const pageData = response.data.result;
+    const horsesWithFarms = pageData.content.map((item: {
+      farmUuid: string;
+      horseId: number;
+      horseNumber: string;
+      profileImage: string;
+      horseName: string;
+      ownerName: string;
+      farmName: string;
+      countryOfOrigin: string;
+      birth: string;
+      color: string;
+      gender: string;
+    }) => ({
+      horse: {
+        id: item.horseId,
+        farm_id: item.farmUuid,
+        horseNo: item.horseNumber,
+        hrNm: item.horseName,
+        birthDt: item.birth,
+        sex: item.gender,
+        color: item.color,
+        horse_url: item.profileImage,
+      } as Horse,
+      farm: {
+        id: item.farmUuid,
+        farmUuid: item.farmUuid,
+        farm_name: item.farmName,
+        name: item.ownerName,
+        address: '', // API에서 주소 정보가 없으므로 빈 문자열
+        horse_count: 0, // API에서 말 개수 정보가 없으므로 0
+        total_score: 0, // API에서 점수 정보가 없으므로 0
+        image_url: '', // API에서 농장 이미지 정보가 없으므로 빈 문자열
+      } as Farm,
+    }));
+
+    return {
+      content: horsesWithFarms,
+      totalElements: pageData.totalElements,
+      totalPages: pageData.totalPages,
+      size: pageData.size,
+      number: pageData.number,
+      first: pageData.first,
+      last: pageData.last
+    };
   } catch (error) {
     console.error('말 목록 조회 실패:', error);
     throw error;
@@ -423,31 +489,51 @@ export async function isFarmBookmarked(farmUuid: string): Promise<boolean> {
   }
 }
 
-// 영수증 정산 제출 타입 정의 (백엔드 요구사항에 맞게 단순화)
+// 영수증 정산 제출 타입 정의 (백엔드 DTO와 일치)
 interface ReceiptSettlementPayload {
-  reason: string;
+  reason: string; // 최대 1000자
   storeInfo: {
-    name: string;
-    address: string;
-    phone: string;
+    name: string;    // 최대 255자
+    address: string; // 최대 255자
+    phone: string;   // 최대 15자
   };
-  content: string;
+  content: string; // 최대 1000자
   items: Array<{
-    name: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
+    name: string;      // 최대 255자
+    quantity: number;  // 최소 1
+    unitPrice: number; // 최소 1
+    totalPrice: number; // 최소 1
   }>;
-  receiptAmount: number;
-  categoryId: number;
-  approvalNumber: number;
-  idempotencyKey: string;
+  receiptAmount: number; // 최소 1
+  categoryId: number;    // Long 타입 (백엔드에서 Long으로 받음)
+  idempotencyKey: string; // 최대 36자
+  approvalNumber: string; // 최대 255자
 }
 
 interface ReceiptSettlementResponse {
-  id: string;
-  status: string;
-  message: string;
+  settlement: {
+    released: boolean;
+    reason: string;
+    farmerWallet: string;
+    vaultAddress: string;
+    releasedAmount: string;
+  };
+  withdraw: {
+    responseCode: string;
+    responseMessage: string;
+    rec: Array<{
+      transactionUniqueNo: string;
+      accountNo: string;
+      transactionDate: string;
+      transactionType: string;
+      transactionTypeName: string;
+      transactionAccountNo: string;
+    }>;
+  };
+  burn: {
+    burnTxHash: string | null;
+    burnSucceeded: boolean;
+  };
 }
 
 // 중복 요청 방지를 위한 요청 추적 (멱등성 키별로 관리)
@@ -476,22 +562,28 @@ export async function submitReceiptSettlement(
     formData.append('photo', photoFile);
 
     const response = await apiClient.post('/api/v1/settlement-withdraw-burn', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      // Content-Type은 브라우저가 multipart/form-data와 boundary를 자동으로 설정하도록 함
+      timeout: 60000, // 영수증 제출은 60초로 별도 설정 (이미지 처리 시간 고려)
     });
 
     console.log("=== submitReceiptSettlement 응답 받음 ===", { 
       status: response.status,
-      isSuccess: response.data?.isSuccess,
+      responseData: response.data,
       timestamp: new Date().toISOString()
     });
 
-    if (!response.data.isSuccess) {
-      throw new Error(`정산 제출 실패: ${response.data.message}`);
+    // 백엔드에서 SettlementWithdrawBurnResponseDto를 직접 반환하므로 응답 구조가 다름
+    // response.data가 직접 SettlementWithdrawBurnResponseDto 객체
+    if (response.status !== 200) {
+      throw new Error(`정산 제출 실패: HTTP ${response.status}`);
     }
 
-    return response.data.result;
+    // 정산 결과 확인
+    if (response.data?.settlement?.released === false) {
+      throw new Error(`정산 제출 실패: ${response.data.settlement?.reason || '알 수 없는 오류'}`);
+    }
+
+    return response.data;
   } catch (error: unknown) {
     console.error('정산 제출 실패:', error);
     
@@ -507,6 +599,11 @@ export async function submitReceiptSettlement(
       console.error('요청 에러:', (error as { request: unknown }).request);
     } else {
       console.error('기타 에러:', error instanceof Error ? error.message : String(error));
+    }
+    
+    // 타임아웃 에러에 대한 특별 처리
+    if (error instanceof Error && error.message.includes('timeout')) {
+      throw new Error('요청 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.');
     }
     
     throw error;

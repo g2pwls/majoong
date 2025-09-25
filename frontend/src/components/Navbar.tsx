@@ -28,6 +28,7 @@ export default function Navbar() {
         if (role === 'FARMER') {
           try {
             const farmerData = await getFarmerInfo();
+            console.log('목장주 정보 응답:', farmerData.result);
             setUserName(farmerData.result.nameString);
           } catch (error) {
             console.error('목장주 정보 조회 실패:', error);
@@ -36,6 +37,7 @@ export default function Navbar() {
         } else if (role === 'DONATOR') {
           try {
             const donatorData = await getDonatorInfo();
+            console.log('기부자 정보 응답:', donatorData.result);
             setUserName(donatorData.result.nameString);
           } catch (error) {
             console.error('기부자 정보 조회 실패:', error);

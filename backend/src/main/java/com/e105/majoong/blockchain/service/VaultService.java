@@ -122,26 +122,6 @@ public class VaultService {
   // ===================================================================================
 
   /**
-   * 기존 서비스 호출 호환용 오버로드.
-   * FarmVault는 farmer가 immutable로 고정되어 있으므로, 실제 컨트랙트 호출은 amount만 넘긴다.
-   * @param vaultAddress 금고 컨트랙트 주소
-   * @param to           (무시됨) 컨트랙트 내부 farmer로 전송
-   * @param amountWei    전송량(wei 단위, 18 decimals)
-   * @return txHash
-   */
-  @Transactional
-  public String release(String vaultAddress, String to, BigInteger amountWei) {
-    // 'to'는 FarmVault 컨트랙트에서 사용하지 않지만, 호출부 시그니처 호환을 위해 남겨둔다.
-    if (!isValidAddress(vaultAddress)) {
-      throw new IllegalArgumentException("Invalid vaultAddress: " + vaultAddress);
-    }
-    if (amountWei == null || amountWei.signum() <= 0) {
-      throw new IllegalArgumentException("Invalid amountWei: " + amountWei);
-    }
-    return release(vaultAddress, amountWei);
-  }
-
-  /**
    * 실제 컨트랙트 시그니처에 맞는 구현: release(uint256 amount)
    * - AccessControl(RELEASER_ROLE)을 가진 admin 계정으로 호출
    * - 금고의 farmer(immutable)에게 토큰이 전송됨
@@ -199,7 +179,63 @@ public class VaultService {
       throw new RuntimeException("Vault release failed", e);
     }
   }
+  /**
+   * Vault 컨트랙트에 박힌 farmer 주소 조회
+   */
+  public String getOnchainFarmer(String vaultAddress) throws Exception {
+    if (!isValidAddress(vaultAddress)) {
+      throw new IllegalArgumentException("Invalid vault address: " + vaultAddress);
+    }
 
+    // Solidity: function farmer() public view returns (address)
+    Function viewFn = new Function(
+        "farmer",
+        Collections.emptyList(),
+        List.of(new TypeReference<Address>() {})
+    );
+
+    EthCall call = web3j.ethCall(
+        Transaction.createEthCallTransaction(
+            admin.getAddress(), vaultAddress, FunctionEncoder.encode(viewFn)
+        ),
+        DefaultBlockParameterName.LATEST
+    ).send();
+
+    if (call.hasError()) {
+      throw new RuntimeException("farmer() call error: " + call.getError().getMessage());
+    }
+
+    List<Type> out = FunctionReturnDecoder.decode(call.getValue(), viewFn.getOutputParameters());
+    if (out == null || out.isEmpty()) {
+      throw new IllegalStateException("farmer() decode failed (empty output)");
+    }
+
+    return ((Address) out.get(0)).getValue();
+  }
+  
+  /**
+   * Vault 컨트랙트에 있는 토큰 잔액 조회
+   */
+  public BigInteger getVaultTokenBalanceWei(String vaultAddress) throws Exception {
+    Function f = new Function(
+        "tokenBalance",
+        java.util.List.of(),
+        java.util.List.of(new TypeReference<Uint256>() {})
+    );
+    String data = FunctionEncoder.encode(f);
+
+    EthCall resp = web3j.ethCall(
+        Transaction.createEthCallTransaction(null, vaultAddress, data),
+        DefaultBlockParameterName.LATEST
+    ).send();
+
+    if (resp.isReverted()) {
+      throw new IllegalStateException("tokenBalance() reverted: " + resp.getRevertReason());
+    }
+    java.util.List<Type> out = FunctionReturnDecoder.decode(resp.getValue(), f.getOutputParameters());
+    if (out.isEmpty()) throw new IllegalStateException("Empty tokenBalance() output");
+    return (BigInteger) out.get(0).getValue();
+  }
   // ===================================================================================
   // VIEW & UTIL
   // ===================================================================================

@@ -71,24 +71,16 @@ export default function HorseInfoPanel({
     }
   }, [farm_uuid, fetchRegisteredHorses]);
 
-  // 마번 형식 정규화 함수 (앞의 0 제거)
-  const normalizeHorseNumber = (horseNumber: string): string => {
-    return horseNumber.replace(/^0+/, '') || '0';
-  };
 
   // 중복 마번 검증 함수
   const isHorseNumberDuplicate = useCallback((horseNumber: string): boolean => {
-    const normalizedInput = normalizeHorseNumber(horseNumber);
     const isDuplicate = registeredHorses.some(horse => {
-      const normalizedRegistered = normalizeHorseNumber(horse.horseNo);
-      return normalizedRegistered === normalizedInput;
+      return horse.horseNo === horseNumber;
     });
     
     console.log('중복 검증:', {
       입력된마번: horseNumber,
-      정규화된입력마번: normalizedInput,
       등록된말목록: registeredHorses.map(h => h.horseNo),
-      정규화된등록된말목록: registeredHorses.map(h => normalizeHorseNumber(h.horseNo)),
       중복여부: isDuplicate
     });
     
@@ -213,8 +205,8 @@ export default function HorseInfoPanel({
       setIsDeleting(true);
       setError("");
 
-      // horseNo를 정규화 (앞의 0 제거)
-      const horseNumber = normalizeHorseNumber(horse.horseNo);
+      // horseNo 그대로 사용
+      const horseNumber = horse.horseNo;
       
       console.log('말 삭제 시작:', {
         farmUuid: farm_uuid,
@@ -468,7 +460,7 @@ export default function HorseInfoPanel({
               {registeredHorses.map((horse) => (
                 <div key={horse.horseNo} className="flex items-center justify-between bg-white p-3 rounded-lg border">
                   <div className="text-sm text-gray-600">
-                    <span className="font-medium">마번 {normalizeHorseNumber(horse.horseNo)}</span>
+                    <span className="font-medium">마번 {horse.horseNo}</span>
                     {horse.hrNm && <span> - {horse.hrNm}</span>}
                   </div>
                   <button
@@ -523,7 +515,7 @@ export default function HorseInfoPanel({
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">말 삭제 확인</h3>
             <p className="text-gray-600 mb-6">
-              정말로 <span className="font-medium">마번 {normalizeHorseNumber(deleteConfirmHorse.horseNo)}</span>
+              정말로 <span className="font-medium">마번 {deleteConfirmHorse.horseNo}</span>
               {deleteConfirmHorse.hrNm && <span> ({deleteConfirmHorse.hrNm})</span>} 말을 삭제하시겠습니까?
               <br />
               <span className="text-red-600 text-sm">이 작업은 되돌릴 수 없습니다.</span>

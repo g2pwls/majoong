@@ -37,14 +37,14 @@ export default function GoDonatePage() {
         const response = await getFarms(); // size 파라미터 없이 호출하여 백엔드 기본값(전체) 사용
         console.log('농장 목록 조회 성공:', response);
         
-        // 신뢰도 순으로 정렬하고 상위 5개 선택
+          // 신뢰도 순으로 정렬하고 상위 5개 선택
         const sortedFarms = response.content.sort((a: Farm, b: Farm) => b.total_score - a.total_score);
-        const top5 = sortedFarms.slice(0, 5);
+          const top5 = sortedFarms.slice(0, 5);
         console.log('상위 5개 농장:', top5);
         
-        setTopFarms(top5);
-        if (top5.length > 0) {
-          setSelectedFarm(top5[0]);
+          setTopFarms(top5);
+          if (top5.length > 0) {
+            setSelectedFarm(top5[0]);
         }
       } catch (error) {
         console.error("농장 정보를 가져오는데 실패했습니다:", error);

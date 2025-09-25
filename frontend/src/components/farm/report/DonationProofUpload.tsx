@@ -214,6 +214,7 @@ export default function DonationProofUpload({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
+        signal: AbortSignal.timeout(30000), // 30초 타임아웃
       });
 
       console.log("OCR 응답 상태:", res.status, res.statusText);
@@ -228,7 +229,16 @@ export default function DonationProofUpload({
       setExtractedText(json?.text || "(추출된 텍스트가 없습니다)");
     } catch (e: unknown) {
       console.error("OCR 에러:", e);
-      const errorMessage = e instanceof Error ? e.message : "추출 중 오류가 발생했어요.";
+      let errorMessage = "추출 중 오류가 발생했어요.";
+      
+      if (e instanceof Error) {
+        if (e.name === 'TimeoutError' || e.message.includes('timeout')) {
+          errorMessage = "OCR 처리 시간이 초과되었습니다. 이미지 크기를 줄이거나 다시 시도해주세요.";
+        } else {
+          errorMessage = e.message;
+        }
+      }
+      
       setExtractError(errorMessage);
     } finally {
       setExtracting(false);
@@ -287,6 +297,7 @@ export default function DonationProofUpload({
           usedAmount: usedAmount.replace(/,/g, ""),
           certificationImage: certificationBase64,
         }),
+        signal: AbortSignal.timeout(60000), // 60초 타임아웃 (GPT 처리 시간 고려)
       });
 
       console.log("인증 사진 검증 응답 상태:", res.status, res.statusText);
@@ -315,7 +326,16 @@ export default function DonationProofUpload({
       setCertificationResult(json);
     } catch (e: unknown) {
       console.error("인증 사진 검증 에러:", e);
-      const errorMessage = e instanceof Error ? e.message : "종합 검증 중 오류가 발생했어요.";
+      let errorMessage = "종합 검증 중 오류가 발생했어요.";
+      
+      if (e instanceof Error) {
+        if (e.name === 'TimeoutError' || e.message.includes('timeout')) {
+          errorMessage = "검증 처리 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.";
+        } else {
+          errorMessage = e.message;
+        }
+      }
+      
       setCertificationError(errorMessage);
     } finally {
       setCertificationVerifying(false);
@@ -404,14 +424,15 @@ export default function DonationProofUpload({
 
       // 중복 방지 키 생성 (백엔드 제한: 최대 36자)
       const generateIdempotencyKey = (): string => {
-        // 더 고유한 키 생성을 위해 crypto.randomUUID() 사용
-        const uuid = crypto.randomUUID().replace(/-/g, ''); // 하이픈 제거
+        // 더 고유한 키 생성을 위해 타임스탬프 + 랜덤 + UUID 조합
         const timestamp = Date.now().toString(36);
-        const key = `receipt_${timestamp}_${uuid.substring(0, 8)}`;
+        const random = Math.random().toString(36).substr(2, 6);
+        const uuid = crypto.randomUUID().replace(/-/g, '').substr(0, 8);
+        const key = `receipt_${timestamp}_${random}_${uuid}`;
         
         // 36자 제한 확인
         if (key.length > 36) {
-          return `receipt_${timestamp}_${uuid.substring(0, 36 - `receipt_${timestamp}_`.length)}`;
+          return `receipt_${timestamp}_${random}_${uuid.substring(0, 36 - `receipt_${timestamp}_${random}_`.length)}`;
         }
         return key;
       };
@@ -420,33 +441,57 @@ export default function DonationProofUpload({
       const idempotencyKey = generateIdempotencyKey();
       console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
 
-      // 백엔드 API 요구사항에 맞는 데이터 구성 (단순화)
+      // 백엔드 API 요구사항에 맞는 데이터 구성 (타입 및 유효성 검증 강화)
+      const reason = (certificationResult.reason || "기부금 증빙 정산").substring(0, 1000); // 최대 1000자
+      const storeName = (certificationResult.storeInfo?.name || "가게명").substring(0, 255); // 최대 255자
+      const storeAddress = (certificationResult.storeInfo?.address || "주소").substring(0, 255); // 최대 255자
+      const storePhone = (certificationResult.storeInfo?.phone || "전화번호").substring(0, 15); // 최대 15자
+      const content = `카테고리: ${selectedCategory}, 사용금액: ${usedAmount}원`.substring(0, 1000); // 최대 1000자
+      
+      const items = certificationResult.items ? certificationResult.items.map(item => ({
+        name: (item.name || "상품명").substring(0, 255), // 최대 255자
+        quantity: Math.max(1, parseInt(item.quantity) || 1), // 최소 1
+        unitPrice: Math.max(1, parseInt(item.unitPrice) || 0), // 최소 1
+        totalPrice: Math.max(1, parseInt(item.totalPrice) || 0) // 최소 1
+      })) : [{
+        name: (certificationResult.matchedItems?.[0] || "상품명").substring(0, 255),
+        quantity: 1,
+        unitPrice: Math.max(1, parseInt(usedAmount.replace(/,/g, ""))),
+        totalPrice: Math.max(1, parseInt(usedAmount.replace(/,/g, "")))
+      }];
+      
+      const receiptAmount = Math.max(1, parseInt(usedAmount.replace(/,/g, ""))); // 최소 1
+      const categoryId = Number(getCategoryId(selectedCategory)); // Long 타입으로 명시적 변환
+      const approvalNumber = (certificationResult.paymentInfo?.approvalNumber || 
+        `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).substring(0, 255); // 최대 255자
+      
       const payload = {
-        reason: certificationResult.reason || "기부금 증빙 정산",
+        reason: reason,
         storeInfo: {
-          name: certificationResult.storeInfo?.name || "가게명",
-          address: certificationResult.storeInfo?.address || "주소",
-          phone: certificationResult.storeInfo?.phone || "전화번호"
+          name: storeName,
+          address: storeAddress,
+          phone: storePhone
         },
-        content: `카테고리: ${selectedCategory}, 사용금액: ${usedAmount}원`,
-        items: certificationResult.items ? certificationResult.items.map(item => ({
-          name: item.name,
-          quantity: parseInt(item.quantity) || 1,
-          unitPrice: parseInt(item.unitPrice) || 0,
-          totalPrice: parseInt(item.totalPrice) || 0
-        })) : [{
-          name: certificationResult.matchedItems?.[0] || "상품명",
-          quantity: 1,
-          unitPrice: parseInt(usedAmount.replace(/,/g, "")),
-          totalPrice: parseInt(usedAmount.replace(/,/g, ""))
-        }],
-        receiptAmount: parseInt(usedAmount.replace(/,/g, "")),
-        categoryId: getCategoryId(selectedCategory),
-        approvalNumber: parseInt(certificationResult.paymentInfo?.approvalNumber || "0") || 0, // 승인번호 (없으면 0)
-        idempotencyKey: idempotencyKey
+        content: content,
+        items: items,
+        receiptAmount: receiptAmount,
+        categoryId: categoryId,
+        idempotencyKey: idempotencyKey,
+        approvalNumber: approvalNumber,
       };
 
       console.log("API 요청 payload:", payload);
+      
+      // 데이터 유효성 검증
+      console.log("=== 데이터 유효성 검증 ===");
+      console.log("reason:", payload.reason, "길이:", payload.reason?.length);
+      console.log("storeInfo:", payload.storeInfo);
+      console.log("content:", payload.content, "길이:", payload.content?.length);
+      console.log("items:", payload.items, "개수:", payload.items?.length);
+      console.log("receiptAmount:", payload.receiptAmount, "타입:", typeof payload.receiptAmount);
+      console.log("categoryId:", payload.categoryId, "타입:", typeof payload.categoryId, "값:", payload.categoryId);
+      console.log("idempotencyKey:", payload.idempotencyKey, "길이:", payload.idempotencyKey?.length);
+      console.log("approvalNumber:", payload.approvalNumber, "길이:", payload.approvalNumber?.length);
       
       // 백엔드로 보낼 JSON 데이터를 콘솔에 출력
       console.log("=== 백엔드로 보낼 JSON 데이터 ===");
@@ -538,9 +583,47 @@ export default function DonationProofUpload({
       
       setSubmitSuccess(true);
       console.log("제출 성공:", result);
+      
+      // 성공 메시지 표시
+      if (result?.settlement?.released) {
+        console.log("정산 성공:", result.settlement);
+      }
     } catch (e: unknown) {
       console.error("제출 에러:", e);
-      const errorMessage = e instanceof Error ? e.message : "제출 중 오류가 발생했어요.";
+      
+      let errorMessage = "제출 중 오류가 발생했어요.";
+      
+      // 409 Conflict 오류 처리
+      if (e && typeof e === 'object' && 'response' in e) {
+        const axiosError = e as { response?: { status: number; data: { message: string } } };
+        if (axiosError.response?.status === 409) {
+          const backendMessage = axiosError.response.data?.message || "";
+          
+          if (backendMessage.includes("이미 처리된 증빙")) {
+            errorMessage = "이미 처리된 영수증입니다. 다른 영수증을 사용해주세요.";
+          } else if (backendMessage.includes("이미 사용했던 영수증")) {
+            errorMessage = "이미 사용된 영수증입니다. 새로운 영수증을 업로드해주세요.";
+          } else {
+            errorMessage = "중복된 영수증입니다. 다른 영수증을 사용해주세요.";
+          }
+        } else if (axiosError.response?.status === 400) {
+          errorMessage = "입력 정보를 다시 확인해주세요.";
+        } else if (axiosError.response?.status === 401) {
+          errorMessage = "로그인이 필요합니다. 다시 로그인해주세요.";
+        } else if (axiosError.response?.status === 403) {
+          errorMessage = "접근 권한이 없습니다.";
+        } else if (axiosError.response?.status && axiosError.response.status >= 500) {
+          errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+        }
+      } else if (e instanceof Error) {
+        // 타임아웃 에러에 대한 특별 처리
+        if (e.message.includes('timeout') || e.message.includes('시간이 초과')) {
+          errorMessage = "요청 시간이 초과되었습니다. 네트워크 상태를 확인하고 다시 시도해주세요.";
+        } else {
+          errorMessage = e.message;
+        }
+      }
+      
       setSubmitError(errorMessage);
     } finally {
       setSubmitting(false);
@@ -983,7 +1066,7 @@ export default function DonationProofUpload({
               <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
-              <p className="text-sm text-green-600">제출이 완료되었습니다!</p>
+              <p className="text-sm text-green-600">정산이 완료되었습니다!</p>
             </div>
           )}
         </div>

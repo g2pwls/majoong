@@ -60,7 +60,7 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
         {scoreHistory.length > 0 ? (
           <div className="space-y-4">
             {/* 선 그래프 */}
-            <div className="h-64">
+            <div className="h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={lineChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
