@@ -230,7 +230,7 @@ export default function FarmerSupportHistory() {
         </div>
         <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-green-800 mb-1">현재 잔액</h3>
-          <p className="text-2xl font-bold text-green-900">{formatAmount(currentBalance / 1000)}</p>
+          <p className="text-2xl font-bold text-green-900">{formatAmount(currentBalance / 100)}</p>
         </div>
       </div>
 
