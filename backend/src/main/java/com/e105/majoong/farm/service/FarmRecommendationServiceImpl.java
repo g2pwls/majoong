@@ -23,6 +23,7 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
     private static final double DECAY = 0.75; //같은 농장이 여러 번 추천될수록 가중치에 0.75곱해져서 노출 확률 줄어듦
     private static final long COOLDOWN_MS = 2 * 60 * 60 * 1000L; // 최근 추천된 농장은 일정시간동안 다시 추천되지 않음
     private static final double MIN_WEIGHT = 1e-6; //어떤 후보라도 확률이 완전히 0이 되는 걸 방지
+    private static final double MIN_TRUST_SCORE = 38.2;
 
     private final FarmCacheUtil farmCacheUtil;
     private final DonationLimitFilterService donationLimitFilterService;
@@ -33,6 +34,11 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
         List<Farm> farms = farmRepository.findAll();
         //후보 농장 리스트
         List<Farm> filterFarms = donationLimitFilterService.filterByDonationLimit(farms, yearMonth);
+
+        filterFarms = filterFarms.stream()
+                .filter(farm -> Optional.ofNullable(farm.getTotalScore()).orElse(0.0) >= MIN_TRUST_SCORE)
+                .toList();
+
         if (filterFarms.isEmpty()) {
             return List.of();
         }
