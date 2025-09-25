@@ -30,7 +30,6 @@ public class ScoreScheduler {
     public void runWeeklyJob() {
         JobParameters params = new JobParametersBuilder()
                 .addString("weekRefDate", LocalDate.now(KST).toString())
-                .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
         try {
@@ -45,7 +44,6 @@ public class ScoreScheduler {
         LocalDate target = LocalDate.now(KST).minusDays(1);
         JobParameters params = new JobParametersBuilder()
                 .addString("targetDate", target.toString())
-                .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
         try {
