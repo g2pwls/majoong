@@ -119,7 +119,7 @@ const FarmCard: React.FC<{
             </div>
 
             {/* 오른쪽: 갤러리 + 버튼 */}
-            <div className="flex flex-col items-end gap-3 h-42">
+            <div className={`flex flex-col items-end gap-3 h-42 ${isFarmer() ? 'justify-end' : ''}`}>
               {!isFarmer() && (
                 <Link href={isDonator() ? `/support/${farm.id}/donate` : '/login'} onClick={(e) => e.stopPropagation()}>
                   <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
@@ -443,7 +443,7 @@ export default function SupportPage() {
             />
           ))}
           {!loading && searchType === "horse" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 ${isFarmer() ? 'flex justify-end' : ''}`}>
               {paginatedHorses.map(({ horse, farm }) => (
                 <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
               ))}

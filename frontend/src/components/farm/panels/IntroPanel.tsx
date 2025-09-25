@@ -100,6 +100,7 @@ export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isM
           scoreHistory={scoreHistory}
           selectedYear={new Date().getFullYear()}
           currentScore={farm?.total_score || 0}
+          createdAt={farm?.created_at}
         />
       </div>
 

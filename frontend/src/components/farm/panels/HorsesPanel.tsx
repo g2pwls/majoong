@@ -106,7 +106,7 @@ export default function HorsesPanel({ farmUuid, isMyFarm = false }: Props) {
                 </div>
               )}
               <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-1">
                   <h3 className="text-lg font-semibold text-gray-900">{horse.hrNm || "이름 없음"}</h3>
                 </div>
                 <div className="space-y-1 text-sm text-gray-600">
