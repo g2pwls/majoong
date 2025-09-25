@@ -144,7 +144,7 @@ const FarmCard: React.FC<{
     </Card>
   );
 };
-
+ 
 const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
   <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
     <Card className="relative overflow-hidden rounded-2xl shadow-sm cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200 p-0">
