@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import FarmInfo from "@/components/farm/FarmInfo";
@@ -12,7 +13,7 @@ import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { getFarm, Farm, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
-import { isDonator } from "@/services/authService";
+import { isDonator, isFarmer } from "@/services/authService";
 
 const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
 
@@ -43,9 +44,14 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         console.log('농장 상세 데이터:', data);
         if (mounted) setFarm(data);
         
-        // 즐겨찾기 상태 확인 (farm.bookmarked 속성 사용)
+        // 즐겨찾기 상태 확인 (localStorage 우선, 없으면 API 응답 사용)
         if (isDonator()) {
-          if (mounted) setIsBookmarked(data.bookmarked || false);
+          const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+          const isBookmarkedFromStorage = bookmarkedFarms.includes(farm_uuid);
+          const isBookmarkedFromAPI = data.bookmarked || false;
+          
+          // localStorage에 데이터가 있으면 그것을 사용, 없으면 API 응답 사용
+          if (mounted) setIsBookmarked(isBookmarkedFromStorage || isBookmarkedFromAPI);
         }
       } catch (e) {
         console.error('농장 상세 조회 실패:', e);
@@ -56,6 +62,20 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     return () => {
       mounted = false;
     };
+  }, [farm_uuid]);
+
+  // localStorage 변경 감지하여 즐겨찾기 상태 동기화
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'bookmarkedFarms' && e.newValue) {
+        const bookmarkedFarms = JSON.parse(e.newValue);
+        const isBookmarkedFromStorage = bookmarkedFarms.includes(farm_uuid);
+        setIsBookmarked(isBookmarkedFromStorage);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, [farm_uuid]);
 
   const onChangeTab = (next: FarmTabValue) => {
@@ -75,9 +95,19 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
       if (isBookmarked) {
         await removeFarmBookmark(farmUuid);
         setIsBookmarked(false);
+        // localStorage에서 즐겨찾기 상태 제거
+        const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+        const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
+        localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
       } else {
         await addFarmBookmark(farmUuid);
         setIsBookmarked(true);
+        // localStorage에 즐겨찾기 상태 추가
+        const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+        if (!bookmarkedFarms.includes(farmUuid)) {
+          bookmarkedFarms.push(farmUuid);
+          localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarms));
+        }
       }
     } catch (error) {
       console.error('즐겨찾기 토글 실패:', error);
@@ -93,13 +123,24 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
   return (
     <div className="mx-auto max-w-7xl p-6">
-      {/* 브레드크럼 */}
-      <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+      {/* 브레드크럼과 기부하기 버튼 */}
+      <div className="flex items-center justify-between">
+        <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+        {/* 기부하기 버튼 - 기부자이고 농부가 아닌 경우에만 표시 */}
+        {isDonator() && !isFarmer() && (
+          <Link 
+            href={`/support/${farm_uuid}/donate`}
+            className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors"
+          >
+            기부하기
+          </Link>
+        )}
+      </div>
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
       <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
         {/* 왼쪽: 카드(헤더 포함) */}
-        <aside className="lg:sticky lg:top-6 self-start">
+        <aside className="lg:sticky lg:top-20 self-start">
           {/* 카드: 헤더 포함 (즐겨찾기 버튼 포함) */}
           <FarmInfo
             farm_name={farm.farm_name}
