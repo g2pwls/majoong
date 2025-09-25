@@ -18,6 +18,8 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class PersistDailyScoreTasklet implements Tasklet {
     private final ScoreCategoryRepository scoreCategoryRepository;
     private final ScoreService scoreService;
     private final FarmRepository farmRepository;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Override
     @Transactional
@@ -47,8 +50,7 @@ public class PersistDailyScoreTasklet implements Tasklet {
         int month = targetDate.getMonthValue();
 
         var farmUuids = dailyDelta.keySet();
-        Map<String, Farm> farmsByUuid = farmRepository.findAll().stream()
-                .filter(farm -> farmUuids.contains(farm.getFarmUuid()))
+        Map<String, Farm> farmsByUuid = farmRepository.findByFarmUuidIn(farmUuids).stream()
                 .collect(Collectors.toMap(Farm::getFarmUuid, farm -> farm));
 
         ScoreCategory receiptUpload = scoreCategoryRepository.findByCategory("receipt").orElseThrow(
@@ -66,6 +68,8 @@ public class PersistDailyScoreTasklet implements Tasklet {
                 scoreService.createMyScore(dto);
             }
             farm.updateTotalScore(newScore);
+            String redisKey = String.format("candidate:%d-%02d", year, month);
+            stringRedisTemplate.opsForZSet().add(redisKey, farm.getFarmUuid(), newScore);
         }
 
         return RepeatStatus.FINISHED;
