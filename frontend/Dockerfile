@@ -1,21 +1,24 @@
+# syntax=docker/dockerfile:1.7-labs
+
 # ---- build ----
 FROM node:20-alpine AS build
 WORKDIR /app
-# 빌드 단계에서는 prod로 고정하지 않습니다
-ENV NEXT_TELEMETRY_DISABLED=1 CI=1
+ENV NEXT_TELEMETRY_DISABLED=1 CI=1 \
+    PNPM_STORE_DIR=/pnpm/store
 
 RUN corepack enable && corepack prepare pnpm@9.12.3 --activate
 RUN apk add --no-cache libc6-compat
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm fetch
+RUN --mount=type=cache,target=/pnpm/store pnpm fetch
 COPY . .
+RUN --mount=type=cache,target=/pnpm/store pnpm install --frozen-lockfile --prod=false
 
-# devDependencies 포함해서 설치 (중요!)
-RUN pnpm install --frozen-lockfile --prod=false
-
-# standalone 산출
-RUN pnpm --reporter=append-only build
+# ✅ 시크릿을 레이어에 남기지 않고 환경변수로만 주입
+RUN --mount=type=secret,id=buildenv \
+    sh -lc 'set -eu; set -a; . /run/secrets/buildenv; set +a; \
+            echo "[build] exporting NEXT_PUBLIC_*"; env | grep "^NEXT_PUBLIC_" || true; \
+            pnpm --reporter=append-only build'
 
 # ---- run ----
 FROM node:20-alpine AS run
@@ -29,4 +32,4 @@ COPY --from=build /app/public ./public
 
 USER node
 EXPOSE 3000
-CMD ["node", "server.js"] 
+CMD ["node", "server.js"]
