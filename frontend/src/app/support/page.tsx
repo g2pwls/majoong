@@ -389,8 +389,8 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-6xl px-4 pb-16">
-        <div className="py-4">
+      <main className="mx-auto max-w-6xl px-1 pb-16">
+        <div className="py-8 pb-5">
           <Breadcrumbs items={[
             { label: "목장후원", href: "/support" },
           ]} />

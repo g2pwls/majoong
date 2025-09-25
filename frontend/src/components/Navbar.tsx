@@ -86,10 +86,10 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-2 py-3">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-0 py-4">
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg">
+          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
             마중
           </Link>
 

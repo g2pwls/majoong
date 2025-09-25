@@ -369,7 +369,10 @@ export default function HorseInfoPanel({
               className="rounded-lg border bg-white px-4 py-2 text-sm shadow hover:shadow-md"
               onClick={(e) => e.preventDefault()} // 클릭은 상위 dropzone에서 처리
             >
-              말 프로필 업로드 (드래그 앤 드랍 또는 클릭)
+              <div className="text-center">
+                <div>말 프로필 업로드</div>
+                <div className="text-xs text-gray-500">(드래그 앤 드랍 또는 클릭)</div>
+              </div>
             </button>
           )}
         </div>
