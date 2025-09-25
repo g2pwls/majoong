@@ -93,7 +93,10 @@ export default function Navbar() {
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-0 py-4">
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl">
+          <Link 
+            href={userRole === 'FARMER' ? '/shortcut' : '/'} 
+            className="flex items-center gap-2 font-bold text-xl"
+          >
             마중
           </Link>
 
