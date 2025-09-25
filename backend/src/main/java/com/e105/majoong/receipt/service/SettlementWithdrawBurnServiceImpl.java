@@ -126,6 +126,8 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
         .aiSummary(req.getReason())
         .content(content)
         .categoryId(req.getCategoryId())
+        .idempotencyKey(req.getIdempotencyKey())
+        .approvalNumber(req.getApprovalNumber())
         .build();
 
     ReceiptHistory receiptHistory = receiptHistoryRepository.save(receipt);
@@ -152,7 +154,7 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
     // ── (4) 체인 출금(vault.release) ────────────────────────────────
     String releaseTxHash;
     try {
-      releaseTxHash = vaultService.release(vaultAddress, farmerWallet, tokenWei);
+      releaseTxHash = vaultService.release(vaultAddress, tokenWei);
     } catch (Exception e) {
       log.error("Settlement release failed (vault={}, to={}, wei={})",
           vaultAddress, farmerWallet, tokenWei, e);
@@ -164,9 +166,10 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
 
     // 사용금액 누적 + 성공 이력 저장
     farm.updateUsedAmount(krw);
-    Long balance = farm.getTotalDonation() - farm.getUsedAmount();
+    Long balanceKrw = farm.getTotalDonation() - farm.getUsedAmount();
+
     historyRepository.save(SettlementHistory.released(
-        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, releaseTxHash, balance, krw, tokenCount, receiptHistory.getId()));
+        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, releaseTxHash, balanceKrw, krw, tokenCount, receiptHistory.getId()));
 
     // ── (5) 원화 출금 ────────────────────────────────────────────
     WithdrawResponseDto withdrawRes;

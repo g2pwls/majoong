@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class MonthlyDonationUsedDto {
-    private int year;
-    private int month;
-    private Long amountSpent;
+public class TotalStatsDto {
+    private int totalCount;
+    private long totalAmount;
 }

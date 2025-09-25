@@ -92,7 +92,7 @@ export default function MyPage() {
       case 'FARMER':
         return [
           { id: 'profile', label: '회원 정보', component: FarmerProfile },
-          { id: 'farm', label: '나의 목장', component: FarmerMyFarm },
+          { id: 'farm', label: '목장 정보', component: FarmerMyFarm },
           { id: 'support', label: '후원 내역', component: FarmerSupportHistory },
         ];
       case 'ADMIN':

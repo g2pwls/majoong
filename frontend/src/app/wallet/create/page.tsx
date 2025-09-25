@@ -112,11 +112,11 @@ export default function WalletCreatePage() {
           
           // 8. 완료 팝업 표시 후 role에 따른 페이지 이동
           setTimeout(() => {
-            alert('🎉 회원가입이 완료되었습니다!\n지갑이 성공적으로 생성되었습니다.');
-            // role에 따른 리다이렉트
             if (role === 'FARMER') {
-              window.location.href = '/mypage';
+              alert('🎉 회원가입이 완료되었습니다!\n목장 등록 페이지로 이동합니다.');
+              window.location.href = '/farm/register';
             } else {
+              alert('🎉 회원가입이 완료되었습니다!\n지갑이 성공적으로 생성되었습니다.');
               window.location.href = '/';
             }
           }, 500);

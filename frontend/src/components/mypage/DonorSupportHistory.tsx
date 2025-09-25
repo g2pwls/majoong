@@ -68,11 +68,11 @@ export default function DonorSupportHistory() {
       const response: DonationHistoryResponse = await getDonationHistory(params);
       
       if (response.isSuccess && response.result) {
-        setSupportHistory(response.result.donationHistory.content);
-        setTotalCoin(response.result.totalCoin);
-        setTotalAmount(response.result.totalAmount);
-        setTotalPages(response.result.donationHistory.totalPages);
-        setTotalElements(response.result.donationHistory.totalElements);
+        setSupportHistory(response.result.donationHistory.content || []);
+        setTotalCoin(response.result.totalCoin || 0);
+        setTotalAmount(response.result.totalAmount || 0);
+        setTotalPages(response.result.donationHistory.totalPages || 0);
+        setTotalElements(response.result.donationHistory.totalElements || 0);
         setCurrentPage(page);
       } else {
         setError('기부내역을 불러올 수 없습니다.');
@@ -248,7 +248,7 @@ export default function DonorSupportHistory() {
       {/* 리스트 컨텐츠 */}
       {!isListLoading && (
         <>
-      {supportHistory.length === 0 ? (
+      {!supportHistory || supportHistory.length === 0 ? (
         <div className="text-center py-12">
           <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

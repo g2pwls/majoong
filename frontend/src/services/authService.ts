@@ -227,7 +227,7 @@ export const saveTokens = (accessToken: string, refreshToken: string, tempAccess
   
   // tempAccessToken이 빈 문자열이면 제거, 아니면 저장
   if (tempAccessToken && tempAccessToken !== '') {
-    localStorage.setItem('tempAccessToken', tempAccessToken);
+  localStorage.setItem('tempAccessToken', tempAccessToken);
   } else {
     localStorage.removeItem('tempAccessToken');
   }

@@ -2,8 +2,10 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { getFarmerDonationHistory } from '@/services/userService';
-import type { FarmerDonationHistoryRequest, FarmerDonationHistoryResponse, VaultHistoryDto } from '@/types/user';
+import type { FarmerDonationHistoryRequest, VaultHistoryDto } from '@/types/user';
 import FarmerDonationDetailModal from './FarmerDonationDetailModal';
+import AccountHistoryModal from './AccountHistoryModal';
+import ReceiptDetailModal from './ReceiptDetailModal';
 
 export default function FarmerSupportHistory() {
   const [donationHistory, setDonationHistory] = useState<VaultHistoryDto[]>([]);
@@ -29,6 +31,11 @@ export default function FarmerSupportHistory() {
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDonation, setSelectedDonation] = useState<VaultHistoryDto | null>(null);
+  const [isAccountHistoryModalOpen, setIsAccountHistoryModalOpen] = useState(false);
+  
+  // 영수증 증빙 모달 관련 상태
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [selectedReceiptData, setSelectedReceiptData] = useState<VaultHistoryDto | null>(null);
 
   const fetchDonationHistory = useCallback(async (
     page: number = 0, 
@@ -61,8 +68,11 @@ export default function FarmerSupportHistory() {
       if (response.isSuccess) {
         const { result } = response;
         
-        // 후원내역 데이터 설정
-        setDonationHistory(result.vaultHistoryResponseDtos.content);
+        // 후원내역 데이터 설정 (최신순으로 정렬)
+        const sortedContent = result.vaultHistoryResponseDtos.content.sort((a, b) => 
+          new Date(b.donationDate).getTime() - new Date(a.donationDate).getTime()
+        );
+        setDonationHistory(sortedContent);
         setTotalPages(result.vaultHistoryResponseDtos.totalPages);
         setTotalElements(result.vaultHistoryResponseDtos.totalElements);
         setCurrentPage(page);
@@ -107,8 +117,11 @@ export default function FarmerSupportHistory() {
   };
 
   const handleDonationClick = (donation: VaultHistoryDto) => {
-    // DONATION 타입인 경우에만 모달 열기
-    if (donation.type === 'DONATION') {
+    if (donation.type === 'SETTLEMENT') {
+      // 영수증 증빙인 경우 영수증 모달 열기
+      handleOpenReceiptModal(donation);
+    } else if (donation.type === 'DONATION') {
+      // 기부 내역인 경우 기부 상세 모달 열기
       setSelectedDonation(donation);
       setIsModalOpen(true);
     }
@@ -117,6 +130,25 @@ export default function FarmerSupportHistory() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedDonation(null);
+  };
+
+  const handleOpenAccountHistory = () => {
+    setIsAccountHistoryModalOpen(true);
+  };
+
+  const handleCloseAccountHistory = () => {
+    setIsAccountHistoryModalOpen(false);
+  };
+
+  // 영수증 증빙 모달 핸들러
+  const handleOpenReceiptModal = (receiptData: VaultHistoryDto) => {
+    setSelectedReceiptData(receiptData);
+    setIsReceiptModalOpen(true);
+  };
+
+  const handleCloseReceiptModal = () => {
+    setIsReceiptModalOpen(false);
+    setSelectedReceiptData(null);
   };
 
   const formatAmount = (donationToken: number) => {
@@ -137,21 +169,13 @@ export default function FarmerSupportHistory() {
     }).format(date);
   };
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'DONATION':
-        return '기부 받음';
-      case 'WITHDRAWAL':
-        return '출금';
-      default:
-        return type;
-    }
-  };
 
   const getTypeBadge = (type: string) => {
     switch (type) {
       case 'DONATION':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">기부 받음</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">기부</span>;
+      case 'SETTLEMENT':
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">정산</span>;
       case 'WITHDRAWAL':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">출금</span>;
       default:
@@ -181,10 +205,21 @@ export default function FarmerSupportHistory() {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">후원 내역</h2>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">후원 내역</h2>
+        <button
+          onClick={handleOpenAccountHistory}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <span>계좌 내역 조회</span>
+        </button>
+      </div>
       
       {/* 요약 정보 카드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-blue-800 mb-1">누적 후원금</h3>
           <p className="text-2xl font-bold text-blue-900">{formatAmount(totalDonation / 100)}</p>
@@ -192,6 +227,10 @@ export default function FarmerSupportHistory() {
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-yellow-800 mb-1">누적 정산 금액</h3>
           <p className="text-2xl font-bold text-yellow-900">{formatAmount(usedAmount / 100)}</p>
+        </div>
+        <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-green-800 mb-1">현재 잔액</h3>
+          <p className="text-2xl font-bold text-green-900">{formatAmount(currentBalance / 100)}</p>
         </div>
       </div>
 
@@ -233,7 +272,7 @@ export default function FarmerSupportHistory() {
           </div>
         </div>
       </div>
-
+      
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-4">
           <div className="flex">
@@ -264,33 +303,36 @@ export default function FarmerSupportHistory() {
         )}
 
         {donationHistory.length === 0 ? (
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
+        <div className="text-center py-12">
+          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
             <h3 className="mt-2 text-sm font-medium text-gray-900">후원내역이 없습니다</h3>
             <p className="mt-1 text-sm text-gray-500">
               {startDate || endDate ? '해당 기간에 후원내역이 없습니다.' : '아직 후원내역이 없습니다.'}
             </p>
-          </div>
-        ) : (
+        </div>
+      ) : (
           <div className="overflow-hidden">
             {donationHistory.map((record, index) => (
               <div 
                 key={`${record.receiptHistoryId}-${index}`} 
                 className={`border-b border-gray-200 last:border-b-0 p-4 hover:bg-gray-50 ${
-                  record.type === 'DONATION' ? 'cursor-pointer transition-colors' : ''
+                  record.type === 'DONATION' || record.type === 'SETTLEMENT' ? 'cursor-pointer transition-colors' : ''
                 }`}
                 onClick={() => handleDonationClick(record)}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
                       <h3 className="text-base font-medium text-gray-900">
-                        {record.donatorName || '익명의 후원자'}님
+                        {record.type === 'SETTLEMENT' 
+                          ? (record.donatorName || '영수증 증빙')
+                          : `${record.donatorName || '익명의 후원자'}님`
+                        }
                       </h3>
                       {getTypeBadge(record.type)}
-                    </div>
+                  </div>
                     <p className="text-sm text-gray-500 mb-2">후원일시: {formatDate(record.donationDate)}</p>
                     <p className="text-xs text-gray-400 font-mono break-all">
                       TX: {record.txHash}
@@ -298,14 +340,16 @@ export default function FarmerSupportHistory() {
                     <p className="text-xs text-gray-500 mt-1">
                       MARON: {record.donationToken.toLocaleString()} MARON
                     </p>
-                  </div>
-                  <div className="text-right">
+                </div>
+                <div className="text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <div>
                         <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
-                        <p className="text-xs text-green-600 mt-1">✓ 금고에 입금됨</p>
+                        <p className={`text-xs mt-1 ${record.type === 'SETTLEMENT' ? 'text-red-600' : 'text-green-600'}`}>
+                          {record.type === 'SETTLEMENT' ? '✓ 계좌 출금' : '✓ 금고에 입금됨'}
+                        </p>
                       </div>
-                      {record.type === 'DONATION' && (
+                      {(record.type === 'DONATION' || record.type === 'SETTLEMENT') && (
                         <div className="text-blue-500 opacity-70">
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -313,10 +357,10 @@ export default function FarmerSupportHistory() {
                         </div>
                       )}
                     </div>
-                  </div>
                 </div>
               </div>
-            ))}
+            </div>
+          ))}
           </div>
         )}
       </div>
@@ -416,6 +460,19 @@ export default function FarmerSupportHistory() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         donationData={selectedDonation}
+      />
+
+      {/* 계좌 내역 조회 모달 */}
+      <AccountHistoryModal
+        isOpen={isAccountHistoryModalOpen}
+        onClose={handleCloseAccountHistory}
+      />
+
+      {/* 영수증 증빙 상세 모달 */}
+      <ReceiptDetailModal
+        isOpen={isReceiptModalOpen}
+        onClose={handleCloseReceiptModal}
+        receiptData={selectedReceiptData}
       />
     </div>
   );
