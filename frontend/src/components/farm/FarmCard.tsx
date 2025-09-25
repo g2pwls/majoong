@@ -44,7 +44,7 @@ export default function FarmCard({
         />
         
         {/* 신뢰도 점수 배지 */}
-        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-md">
+        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 shadow-md">
           <span className="text-sm font-bold text-gray-800">
             {totalScore.toFixed(1)}°C
           </span>
@@ -80,7 +80,7 @@ export default function FarmCard({
 
       {/* 선택 표시 */}
       {isSelected && (
-        <div className="absolute top-2 left-2 bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
+        <div className="absolute top-2 right-2 bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
           ✓
         </div>
       )}
