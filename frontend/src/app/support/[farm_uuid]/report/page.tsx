@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, use, useRef } from "react";
 import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // HorseImageUpload 컴포넌트 불러오기
 import DonationProofUpload from "@/components/farm/report/DonationProofUpload"; // DonationProofUpload 컴포넌트 불러오기
 import { FarmService } from "@/services/farmService";
@@ -182,7 +183,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b bg-white">
+      <header>
         <div className="mx-auto max-w-6xl px-6 py-5">
           {/* 브래드크럼 */}
           <Breadcrumbs
@@ -195,10 +196,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
           <div className="mt-2 flex items-end justify-between">
             <div className="flex items-center gap-3">
               {/* 농장이름 및 신뢰도 */}
-              <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-              <span className="rounded-full border px-2.5 py-1 text-xs text-neutral-600">
-                {scoreText} °C
-              </span>
+              <h1 className="text-2xl font-bold tracking-tight">목장 운영 보고</h1>
             </div>
           </div>
 
@@ -209,34 +207,17 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-3">
-        <h2 className="text-xl font-semibold">목장 운영 보고</h2>
-        <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[160px_1fr]">
-          {/* 좌측 탭 */}
-          <aside>
-            <div className="flex lg:flex-col gap-2 border rounded-md p-2 bg-white">
-              <button
-                className={`px-3 py-2 text-left rounded ${activeTab === "farmManagement" ? "bg-gray-900 text-white" : "bg-gray-100"}`}
-                onClick={() => setActiveTab("farmManagement")}
-              >
-                목장 관리
-              </button>
-              <button
-                className={`px-3 py-2 text-left rounded ${activeTab === "receiptProof" ? "bg-gray-900 text-white" : "bg-gray-100"}`}
-                onClick={() => setActiveTab("receiptProof")}
-              >
-                기부금 증빙
-              </button>
-            </div>
-          </aside>
-
-          {/* 우측 콘텐츠 */}
-          <section>
-
-            {activeTab === "farmManagement" && (
-              <div className="mt-0">
-                {/* 말 썸네일 가로 리스트 - 고정 크기 컨테이너 */}
-                <div className="relative w-240 h-44 bg-gray-100 rounded-lg border border-gray-200 mb-3 overflow-hidden">
+      <main className="mx-auto max-w-6xl px-6 py-4 pt-0">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "farmManagement" | "receiptProof")} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="farmManagement">목장 관리</TabsTrigger>
+            <TabsTrigger value="receiptProof">기부금 증빙</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="farmManagement" className="space-y-6">
+            <div className="mt-0">
+                {/* 말 썸네일 가로 리스트 - 전체 너비 컨테이너 */}
+                <div className="relative w-full h-44 bg-gray-100 rounded-lg border border-gray-200 mb-3 overflow-hidden">
                   {/* 좌측 화살표 버튼 */}
                   {canScrollLeft && (
                     <button
@@ -307,21 +288,20 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
                 ) : (
                   <div className="text-center py-8 text-gray-500">등록된 말이 없습니다.</div>
                 )}
-              </div>
-            )}
-
-            {activeTab === "receiptProof" && (
-              <div className="mt-0">
-                <DonationProofUpload
-                  farmUuid={farm_uuid}
-                  donationData={donationData}
-                  onImageUpload={handleDonationImageUpload}
-                  onImageSwap={handleDonationImageSwap}
-                />
-              </div>
-            )}
-          </section>
-        </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="receiptProof" className="space-y-6">
+            <div className="mt-0">
+              <DonationProofUpload
+                farmUuid={farm_uuid}
+                donationData={donationData}
+                onImageUpload={handleDonationImageUpload}
+                onImageSwap={handleDonationImageSwap}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );

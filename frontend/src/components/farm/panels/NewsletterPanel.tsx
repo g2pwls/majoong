@@ -19,18 +19,54 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
   const [reports, setReports] = useState<MonthlyReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
 
   // 월간 보고서 조회
-  const fetchMonthlyReports = useCallback(async (year: number) => {
+  const fetchMonthlyReports = useCallback(async (year: number | 'all') => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('월간 보고서 조회 시작:', { farmUuid, year });
-      const response = await FarmService.getMonthlyReports(farmUuid, year);
-      console.log('월간 보고서 조회 성공:', response);
-      setReports(response.result);
+      if (year === 'all') {
+        // 전체 년도 조회 - 모든 년도의 데이터를 수집
+        console.log('전체 년도 월간 보고서 조회 시작:', { farmUuid });
+        const allReports: MonthlyReport[] = [];
+        
+        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
+        for (let y = 2021; y <= 2025; y++) {
+          try {
+            console.log(`${y}년 월간 보고서 조회 중...`);
+            const response = await FarmService.getMonthlyReports(farmUuid, y);
+            if (response.result && response.result.length > 0) {
+              console.log(`${y}년 월간 보고서 ${response.result.length}개 추가`);
+              allReports.push(...response.result);
+            }
+          } catch (error) {
+            console.warn(`${y}년 월간 보고서 조회 실패:`, error);
+            // 해당 년도 데이터가 없어도 계속 진행
+          }
+        }
+        
+        console.log('전체 년도 월간 보고서 수집 완료:', { totalReports: allReports.length });
+        
+        // 최신순으로 정렬 (년도 내림차순, 월 내림차순)
+        const sortedReports = allReports.sort((a, b) => {
+          if (a.year !== b.year) {
+            return b.year - a.year; // 년도 내림차순
+          }
+          return b.month - a.month; // 월 내림차순
+        });
+        
+        setReports(sortedReports);
+      } else {
+        console.log('월간 보고서 조회 시작:', { farmUuid, year });
+        const response = await FarmService.getMonthlyReports(farmUuid, year);
+        console.log('월간 보고서 조회 성공:', response);
+        
+        // 최신순으로 정렬 (월 내림차순)
+        const sortedReports = response.result.sort((a, b) => b.month - a.month);
+        setReports(sortedReports);
+      }
     } catch (e: unknown) {
       console.error('월간 보고서 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "월간 보고서를 불러오는 중 오류가 발생했어요.";
@@ -44,7 +80,7 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
     fetchMonthlyReports(selectedYear);
   }, [farmUuid, selectedYear, fetchMonthlyReports]);
 
-  const handleYearChange = (year: number) => {
+  const handleYearChange = (year: number | 'all') => {
     setSelectedYear(year);
   };
 
@@ -84,17 +120,18 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-gray-500" />
-          <select
-            value={selectedYear}
-            onChange={(e) => handleYearChange(parseInt(e.target.value))}
-            className="px-3 py-1 border rounded-md text-sm"
-          >
-            <option value={2025}>2025</option>
-            <option value={2024}>2024</option>
-            <option value={2023}>2023</option>
-            <option value={2022}>2022</option>
-            <option value={2021}>2021</option>
-          </select>
+            <select
+              value={selectedYear}
+              onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+              className="px-3 py-1 border rounded-md text-sm"
+            >
+              <option value="all">전체</option>
+              <option value={2025}>2025</option>
+              <option value={2024}>2024</option>
+              <option value={2023}>2023</option>
+              <option value={2022}>2022</option>
+              <option value={2021}>2021</option>
+            </select>
         </div>
       </div>
 
@@ -102,7 +139,12 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
         <Card>
           <CardContent className="p-6 text-center">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">해당 연도의 월간 보고서가 없습니다.</p>
+            <p className="text-gray-500">
+              {selectedYear === 'all' 
+                ? '월간 보고서가 없습니다.' 
+                : '해당 연도의 월간 보고서가 없습니다.'
+              }
+            </p>
           </CardContent>
         </Card>
       ) : (

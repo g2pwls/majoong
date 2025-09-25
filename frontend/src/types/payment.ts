@@ -3,7 +3,7 @@
 // 카카오페이 결제 시작 요청
 export interface KakaoPayReadyRequest {
   totalPrice: string; // 총 금액 (문자열로 전송)
-  farmUuid: string;   // 농장 UUID
+  farmUuid: string;   // 목장 UUID
 }
 
 // 카카오페이 결제 시작 응답
@@ -30,7 +30,7 @@ export interface KakaoPayApproveResponse {
     amount: {
       total: number;               // 총 결제 금액
     };
-    partner_order_id: string;      // 농장 UUID (farmUuid)
+    partner_order_id: string;      // 목장 UUID (farmUuid)
     partner_user_id: string;       // 사용자 UUID
   };
 }

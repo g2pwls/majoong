@@ -134,7 +134,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                목장으로 돌아가기
+                목장으로 가기
               </Button>
           </div>
         </div>

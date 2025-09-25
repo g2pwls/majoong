@@ -18,21 +18,45 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
   const [scoreHistoryList, setScoreHistoryList] = useState<ScoreHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null); // null이면 전체, 숫자면 해당 월
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   // 신뢰도 내역 조회 (월별 평균)
-  const fetchScoreHistory = useCallback(async (year: number, month?: number) => {
+  const fetchScoreHistory = useCallback(async (year: number | 'all', month?: number) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('신뢰도 내역 조회 시작:', { farmUuid, year, month });
-      const response = await FarmService.getScoreHistory(farmUuid, year, month);
-      console.log('신뢰도 내역 조회 성공:', response);
-      setScoreHistory(response.result);
+      if (year === 'all') {
+        // 전체 년도 조회 - 모든 년도의 데이터를 수집
+        console.log('전체 년도 신뢰도 내역 조회 시작:', { farmUuid });
+        const allScoreHistory: ScoreHistory[] = [];
+        
+        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
+        for (let y = 2021; y <= 2025; y++) {
+          try {
+            console.log(`${y}년 신뢰도 내역 조회 중...`);
+            const response = await FarmService.getScoreHistory(farmUuid, y, month);
+            if (response.result && response.result.length > 0) {
+              console.log(`${y}년 신뢰도 내역 ${response.result.length}개 추가`);
+              allScoreHistory.push(...response.result);
+            }
+          } catch (error) {
+            console.warn(`${y}년 신뢰도 내역 조회 실패:`, error);
+            // 해당 년도 데이터가 없어도 계속 진행
+          }
+        }
+        
+        console.log('전체 년도 신뢰도 내역 수집 완료:', { totalHistory: allScoreHistory.length });
+        setScoreHistory(allScoreHistory);
+      } else {
+        console.log('신뢰도 내역 조회 시작:', { farmUuid, year, month });
+        const response = await FarmService.getScoreHistory(farmUuid, year, month);
+        console.log('신뢰도 내역 조회 성공:', response);
+        setScoreHistory(response.result);
+      }
     } catch (e: unknown) {
       console.error('신뢰도 내역 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "신뢰도 내역을 불러오는 중 오류가 발생했어요.";
@@ -43,15 +67,39 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
   }, [farmUuid]);
 
   // 신뢰도 목록 조회 (상세 내역)
-  const fetchScoreHistoryList = useCallback(async (year?: number, month?: number) => {
+  const fetchScoreHistoryList = useCallback(async (year?: number | 'all', month?: number) => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log('신뢰도 목록 조회 시작:', { farmUuid, year, month });
-      const response = await FarmService.getScoreHistoryList(farmUuid, year, month);
-      console.log('신뢰도 목록 조회 성공:', response);
-      setScoreHistoryList(response.result);
+      if (year === 'all') {
+        // 전체 년도 조회 - 모든 년도의 데이터를 수집
+        console.log('전체 년도 신뢰도 목록 조회 시작:', { farmUuid });
+        const allScoreHistoryList: ScoreHistoryItem[] = [];
+        
+        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
+        for (let y = 2021; y <= 2025; y++) {
+          try {
+            console.log(`${y}년 신뢰도 목록 조회 중...`);
+            const response = await FarmService.getScoreHistoryList(farmUuid, y, month);
+            if (response.result && response.result.length > 0) {
+              console.log(`${y}년 신뢰도 목록 ${response.result.length}개 추가`);
+              allScoreHistoryList.push(...response.result);
+            }
+          } catch (error) {
+            console.warn(`${y}년 신뢰도 목록 조회 실패:`, error);
+            // 해당 년도 데이터가 없어도 계속 진행
+          }
+        }
+        
+        console.log('전체 년도 신뢰도 목록 수집 완료:', { totalHistoryList: allScoreHistoryList.length });
+        setScoreHistoryList(allScoreHistoryList);
+      } else {
+        console.log('신뢰도 목록 조회 시작:', { farmUuid, year, month });
+        const response = await FarmService.getScoreHistoryList(farmUuid, year, month);
+        console.log('신뢰도 목록 조회 성공:', response);
+        setScoreHistoryList(response.result);
+      }
     } catch (e: unknown) {
       console.error('신뢰도 목록 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "신뢰도 목록을 불러오는 중 오류가 발생했어요.";
@@ -76,7 +124,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
     }
   }, [selectedMonth, fetchScoreHistoryList, selectedYear]);
 
-  const handleYearChange = (year: number) => {
+  const handleYearChange = (year: number | 'all') => {
     setSelectedYear(year);
     setSelectedMonth(null); // 년도 변경 시 월 선택 초기화
     setCurrentPage(1); // 년도 변경 시 첫 페이지로 리셋
@@ -107,6 +155,22 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-600";
     return "text-red-600";
+  };
+
+  // 카테고리 ID를 한글 이름으로 매핑
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case "farm_photo":
+        return "목장 사진 업로드드";
+      case "horse_photo":
+        return "전체 말 사진 업로드";
+      case "receipt":
+        return "영수증 증빙";
+      case "not_uploaded":
+        return "미업로드";
+      default:
+        return category;
+    }
   };
 
 
@@ -177,7 +241,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
       {/* 신뢰도 내역 차트 */}
       <TrustScoreChart 
         scoreHistory={scoreHistory}
-        selectedYear={selectedYear}
+        selectedYear={selectedYear === 'all' ? new Date().getFullYear() : selectedYear}
         currentScore={currentScoreValue}
       />
       
@@ -194,9 +258,10 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
             <Calendar className="h-4 w-4 text-gray-500" />
             <select
               value={selectedYear}
-              onChange={(e) => handleYearChange(parseInt(e.target.value))}
+              onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
               className="px-3 py-1 border rounded-md text-sm"
             >
+              <option value="all">전체</option>
               <option value={2025}>2025</option>
               <option value={2024}>2024</option>
               <option value={2023}>2023</option>
@@ -236,7 +301,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                            {item.category}
+                            {getCategoryName(item.category)}
                           </span>
                           <span className="text-sm text-gray-500">
                             {new Date(item.createdAt).toLocaleDateString('ko-KR')}
@@ -263,7 +328,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
               
               {/* 페이지네이션 */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
+                <div className="flex flex-col items-center gap-4 mt-6">
                   <div className="text-sm text-gray-500">
                     총 {totalItems}개 중 {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, totalItems)}개 표시
                   </div>
@@ -307,9 +372,11 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
             <div className="text-center py-8">
               <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500">
-                {selectedMonth 
-                  ? `${selectedYear}년 ${selectedMonth}월의 신뢰도 상세 내역이 없습니다.`
-                  : `${selectedYear}년의 신뢰도 상세 내역이 없습니다.`
+                {selectedYear === 'all' 
+                  ? '신뢰도 상세 내역이 없습니다.'
+                  : selectedMonth 
+                    ? `${selectedYear}년 ${selectedMonth}월의 신뢰도 상세 내역이 없습니다.`
+                    : `${selectedYear}년의 신뢰도 상세 내역이 없습니다.`
                 }
               </p>
             </div>
