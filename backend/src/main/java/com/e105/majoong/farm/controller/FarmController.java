@@ -140,7 +140,7 @@ public class FarmController {
         return new BaseResponse<>(result);
     }
 
-    @GetMapping("horses/{horseNum}/weekly-reports/{horseStateId}")
+    @GetMapping("/horses/{horseNum}/weekly-reports/{horseStateId}")
     @Operation(summary = "말 주간 보고서 상세 조회")
     public BaseResponse<HorseWeeklyReportDetailResponseDto> getWeeklyReportDetail(
             @PathVariable String horseNum,
