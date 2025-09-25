@@ -25,7 +25,6 @@ export default function DonatePage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
-  const [donationType, setDonationType] = useState<'one-time' | 'recurring'>('one-time');
   const [paymentMethod, setPaymentMethod] = useState<'kakao' | 'bank'>('kakao');
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
@@ -126,13 +125,6 @@ export default function DonatePage() {
     }
   };
 
-  const handleDonationTypeChange = (type: 'one-time' | 'recurring') => {
-    if (type === 'recurring') {
-      alert('정기 후원 기능은 추후 구현될 예정입니다.');
-      return;
-    }
-    setDonationType(type);
-  };
 
   const handlePaymentMethodChange = (method: 'kakao' | 'bank') => {
     if (method === 'bank') {
@@ -198,9 +190,11 @@ export default function DonatePage() {
     <div>
       {/* 메인 컨텐츠 */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
-          <div className="w-36 h-1 bg-gray-300"></div>
+        <div className="mb-6 flex flex-row">
+          <div className="flex items-centermb-4 flex flex-col">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
+            <div className="w-37 h-1 bg-gray-300"></div>
+          </div>
         </div>
 
         {/* 기부 폼 */}
@@ -230,40 +224,11 @@ export default function DonatePage() {
 
             {/* 오른쪽: 후원 정보 */}
             <div className="space-y-8">
-              <h3 className="text-xl font-semibold text-gray-900">후원 정보</h3>
+              <h3 className="text-xl font-semibold text-gray-900">후원 금액</h3>
               
-              {/* 후원 방법 선택 */}
-              <div className="space-y-4">
-                <h4 className="text-lg font-medium text-gray-800">후원 방법</h4>
-                <div className="flex space-x-4">
-                  <Button
-                    variant={donationType === 'one-time' ? "default" : "outline"}
-                    onClick={() => handleDonationTypeChange('one-time')}
-                    className={`px-6 py-3 ${
-                      donationType === 'one-time'
-                        ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    일시 후원
-                  </Button>
-                  <Button
-                    variant={donationType === 'recurring' ? "default" : "outline"}
-                    onClick={() => handleDonationTypeChange('recurring')}
-                    className={`px-6 py-3 ${
-                      donationType === 'recurring'
-                        ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    정기 후원
-                  </Button>
-                </div>
-              </div>
 
               {/* 후원 금액 선택 */}
               <div className="space-y-4">
-                <h4 className="text-lg font-medium text-gray-800">후원 금액</h4>
               
               {/* 미리 정의된 금액 버튼들 */}
               <div className="grid grid-cols-3 gap-3">
@@ -313,8 +278,8 @@ export default function DonatePage() {
               {/* 100원 단위로 딱 떨어지지 않는 경우 안내 문구 */}
               {showAmountWarning && (
                 <div className="flex justify-center mb-2">
-                  <span className="text-orange-600 text-sm">
-                    1,000원 단위로 기부됩니다.
+                    <span className="text-orange-600 text-sm">
+                    100원 단위로 기부됩니다.
                   </span>
               </div>
               )}
@@ -333,11 +298,10 @@ export default function DonatePage() {
 
               {/* 결제 정보 */}
               <div className="space-y-6 pt-6 border-t border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900">결제 정보</h3>
+                <h3 className="text-xl font-semibold text-gray-900">결제 수단</h3>
                 
                 {/* 결제 수단 선택 */}
                 <div className="space-y-4">
-                  <h4 className="text-lg font-medium text-gray-800">결제 수단</h4>
                   <div className="flex space-x-4">
                     <Button
                       variant={paymentMethod === 'kakao' ? "default" : "outline"}
@@ -365,7 +329,7 @@ export default function DonatePage() {
               </div>
 
               {/* 기부하기 버튼 */}
-                <div className="flex justify-center pt-4">
+                <div className="flex justify-end pt-4">
                 <Button
                     onClick={handleDonateClick}
                     className="bg-green-500 hover:bg-green-600 text-white px-12 py-4 text-xl font-semibold"
