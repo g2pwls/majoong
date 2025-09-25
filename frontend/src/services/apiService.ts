@@ -57,6 +57,7 @@ export interface Farm {
   purpose_total_amount?: number;
   member_uuid?: string; // 목장 소유자 UUID
   bookmarked?: boolean; // 즐겨찾기 상태
+  created_at?: string; // 목장 생성일
 }
 
 // 바로기부용 목장 인터페이스
@@ -220,6 +221,7 @@ export async function getFarm(farmUuid: string): Promise<Farm> {
       month_total_amount: farm.monthTotalAmount,
       purpose_total_amount: farm.purposeTotalAmount,
       bookmarked: farm.bookmark || false, // 북마크 상태 추가
+      created_at: farm.createdAt, // 생성일 추가
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;
@@ -272,6 +274,7 @@ export async function getMyFarm(): Promise<Farm> {
       month_total_amount: farm.monthTotalAmount,
       purpose_total_amount: farm.purposeTotalAmount,
       member_uuid: getCurrentUserMemberUuid() || undefined, // 현재 사용자의 memberUuid 추가
+      created_at: farm.createdAt, // 생성일 추가
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;

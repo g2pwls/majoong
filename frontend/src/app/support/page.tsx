@@ -65,85 +65,87 @@ const FarmCard: React.FC<{
   };
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-      <CardContent className="py-4 px-4 md:px-6">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          {/* 왼쪽: cover + 정보 */}
-          <Link href={`/support/${farm.id}`} className="flex gap-4 items-start cursor-pointer">
-            <div className="relative">
-              <Image
-                src={farm.image_url}
-                alt={`${farm.farm_name} cover`}
-                width={232}
-                height={168}
-                className="h-42 w-58 rounded-xl object-cover"
-              />
-              <TempBadge temp={farm.total_score} />
-            </div>
-            <div className="flex flex-col justify-center gap-1 h-42">
-              <div className="mb-3 flex items-center gap-2">
-                <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
-                {isDonator() && (
-                  <button 
-                    className={`rounded-full border p-1 transition-colors ${
-                      isBookmarked 
-                        ? 'border-yellow-400 bg-yellow-50' 
-                        : 'border-gray-300 hover:border-yellow-400'
-                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                    aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                    onClick={handleBookmarkClick}
-                    disabled={isLoading}
-                  >
-                    <Star 
-                      className={`h-4 w-4 ${
+    <Link href={`/support/${farm.id}`} className="block">
+      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+        <CardContent className="py-1 px-3 md:px-4">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            {/* 왼쪽: cover + 정보 */}
+            <div className="flex gap-4 items-start">
+              <div className="relative">
+                <Image
+                  src={farm.image_url}
+                  alt={`${farm.farm_name} cover`}
+                  width={232}
+                  height={168}
+                  className="h-42 w-58 rounded-xl object-cover"
+                />
+                <TempBadge temp={farm.total_score} />
+              </div>
+              <div className="flex flex-col justify-center gap-1 h-42">
+                <div className="mb-3 flex items-center gap-2">
+                  <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
+                  {isDonator() && (
+                    <button 
+                      className={`rounded-full border p-1 transition-colors ${
                         isBookmarked 
-                          ? 'fill-yellow-400 text-yellow-400' 
-                          : 'text-gray-400 hover:text-yellow-400'
-                      } ${isLoading ? 'animate-pulse' : ''}`} 
-                    />
-                  </button>
+                          ? 'border-yellow-400 bg-yellow-50' 
+                          : 'border-gray-300 hover:border-yellow-400'
+                      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                      aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                      onClick={handleBookmarkClick}
+                      disabled={isLoading}
+                    >
+                      <Star 
+                        className={`h-4 w-4 ${
+                          isBookmarked 
+                            ? 'fill-yellow-400 text-yellow-400' 
+                            : 'text-gray-400 hover:text-yellow-400'
+                        } ${isLoading ? 'animate-pulse' : ''}`} 
+                      />
+                    </button>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-4 w-4" /> {farm.address}
+                </p>
+                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Users className="h-4 w-4" /> 말 {farm.horse_count}두
+                </p>
+                {farm.state && (
+                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-4 w-4" /> {farm.address}
-              </p>
-              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                <Users className="h-4 w-4" /> 말 {farm.horse_count}두
-              </p>
-              {farm.state && (
-                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
-              )}
             </div>
-          </Link>
 
-          {/* 오른쪽: 갤러리 + 버튼 */}
-          <div className="flex flex-col items-end justify-center gap-3 h-42">
-            {!isFarmer() && (
-              <Link href={isDonator() ? `/support/${farm.id}/donate` : '/login'}>
-                <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
-                  기부하기
-                </Button>
-              </Link>
-            )}
-            <div className="flex gap-2">
-              {(farm.horse_url ?? []).slice(0, 4).map((src, i) => 
-                src ? (
-                  <Image
-                    key={i}
-                    src={src}
-                    alt={`${farm.farm_name} horse_url ${i + 1}`}
-                    width={92}
-                    height={120}
-                    className="h-30 w-23 rounded-lg object-cover"
-                  />
-                ) : null
+            {/* 오른쪽: 갤러리 + 버튼 */}
+            <div className={`flex flex-col items-end gap-3 h-42 ${isFarmer() ? 'justify-end' : ''}`}>
+              {!isFarmer() && (
+                <Link href={isDonator() ? `/support/${farm.id}/donate` : '/login'} onClick={(e) => e.stopPropagation()}>
+                  <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
+                    기부하기
+                  </Button>
+                </Link>
               )}
+              <div className="flex gap-2">
+                {(farm.horse_url ?? []).slice(0, 4).map((src, i) => 
+                  src ? (
+                    <Image
+                      key={i}
+                      src={src}
+                      alt={`${farm.farm_name} horse_url ${i + 1}`}
+                      width={92}
+                      height={120}
+                      className="h-30 w-23 rounded-lg object-cover"
+                    />
+                  ) : null
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </Link>
   );
 };
  
@@ -401,7 +403,7 @@ export default function SupportPage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* 왼쪽: 제목 + 탭 */}
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl font-bold">목장 목록</h1>
+            <h1 className="text-xl font-bold">전체 목장</h1>
             <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "recommended")} className="shrink-0">
               <TabsList>
                 <TabsTrigger value="recommended">신뢰도순</TabsTrigger>
@@ -441,7 +443,7 @@ export default function SupportPage() {
             />
           ))}
           {!loading && searchType === "horse" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 ${isFarmer() ? 'flex justify-end' : ''}`}>
               {paginatedHorses.map(({ horse, farm }) => (
                 <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
               ))}
