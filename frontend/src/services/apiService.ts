@@ -59,6 +59,16 @@ export interface Farm {
   bookmarked?: boolean; // 즐겨찾기 상태
 }
 
+// 바로기부용 목장 인터페이스
+export interface RecommendFarm {
+  farmUuid: string;
+  profileImage: string;
+  farmName: string;
+  totalScore: number;
+  address: string;
+  description: string;
+}
+
 export interface Horse {
   id: number;
   farm_id: string;
@@ -609,5 +619,31 @@ export async function submitReceiptSettlement(
     throw error;
   } finally {
     submittingKeys.delete(payload.idempotencyKey);
+  }
+}
+
+// 바로기부용 추천 목장 조회
+export const getRecommendFarms = async (): Promise<RecommendFarm[]> => {
+  try {
+    const response = await apiClient.get('/api/v1/farms/recommend');
+    
+    if (response.status !== 200) {
+      throw new Error(`추천 목장 조회 실패: HTTP ${response.status}`);
+    }
+
+    return response.data.result || [];
+  } catch (error: unknown) {
+    console.error('추천 목장 조회 실패:', error);
+    
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number; statusText: string; data: unknown } };
+      console.error('응답 에러:', {
+        status: axiosError.response.status,
+        statusText: axiosError.response.statusText,
+        data: axiosError.response.data
+      });
+    }
+    
+    throw error;
   }
 }

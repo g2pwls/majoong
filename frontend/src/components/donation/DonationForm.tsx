@@ -6,12 +6,16 @@ import PaymentMethodSelector from "./PaymentMethodSelector";
 import DonationConfirmationModal from "./DonationConfirmationModal";
 
 interface Farm {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  name: string;
+  id?: string;
+  farm_name?: string;
+  farmName?: string;
+  total_score?: number;
+  totalScore?: number;
+  name?: string;
   address: string;
-  image_url: string;
+  image_url?: string;
+  profileImage?: string;
+  farmUuid?: string;
 }
 
 interface DonationFormProps {
@@ -91,7 +95,7 @@ export default function DonationForm({
         isOpen={showConfirmPopup}
         onClose={onCloseConfirmPopup}
         onConfirm={onConfirmDonation}
-        farmName={selectedFarm?.farm_name || ""}
+        farmName={selectedFarm?.farmName || selectedFarm?.farm_name || ""}
         amount={selectedAmount}
         formatAmount={formatAmount}
       />
