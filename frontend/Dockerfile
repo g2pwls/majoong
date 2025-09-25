@@ -19,7 +19,7 @@ RUN --mount=type=secret,id=buildenv \
     sh -lc 'set -eu; set -a; . /run/secrets/buildenv; set +a; \
             echo "[build] exporting NEXT_PUBLIC_*"; env | grep "^NEXT_PUBLIC_" || true; \
             pnpm --reporter=append-only build'
- 
+  
 # ---- run ----
 FROM node:20-alpine AS run
 WORKDIR /app
