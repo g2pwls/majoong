@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getFarms, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
+import { getFarms, getHorses, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
 import { isDonator, isFarmer } from "@/services/authService";
 
 // ------------------------------------------------------------------
@@ -65,7 +65,7 @@ const FarmCard: React.FC<{
   };
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl shadow-sm">
+    <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
       <TempBadge temp={farm.total_score} />
       <CardContent className="p-4 md:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -147,29 +147,30 @@ const FarmCard: React.FC<{
 
 const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
   <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
-    <Card className="relative overflow-hidden rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="flex gap-4 items-start">
+    <Card className="relative overflow-hidden rounded-2xl shadow-sm cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200 p-0">
+      <CardContent className="p-3">
+        <div className="flex flex-col gap-3">
           {/* 말 이미지 */}
-          <div className="flex-shrink-0">
+          <div className="w-full">
             <Image
               src={horse.horse_url || "/horses/mal.png"}
               alt={`${horse.hrNm} 이미지`}
-              width={96}
-              height={128}
-              className="h-32 w-24 rounded-lg object-cover"
+              width={200}
+              height={150}
+              className="w-full h-45 rounded-lg object-cover"
             />
           </div>
           
           {/* 말 정보 */}
-          <div className="flex-1 min-w-0">
-            <div className="mb-2">
+          <div className="space-y-2">
+            <div>
               <h3 className="text-lg font-semibold text-gray-900 truncate">{horse.hrNm}</h3>
               <p className="text-sm text-gray-600">마번: {horse.horseNo}</p>
             </div>
             
             <div className="space-y-1 text-sm text-gray-600">
               <p><span className="font-medium">농장:</span> {farm.farm_name}</p>
+              <p><span className="font-medium">농장주:</span> {farm.name}</p>
               <p><span className="font-medium">성별:</span> {horse.sex || "미상"}</p>
               <p><span className="font-medium">색상:</span> {horse.color || "미상"}</p>
               <p><span className="font-medium">품종:</span> {horse.breed || "미상"}</p>
@@ -179,17 +180,6 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
               {horse.amt !== undefined && horse.amt > 0 && (
                 <p><span className="font-medium">총상금:</span> {horse.amt.toLocaleString()}원</p>
               )}
-            </div>
-          </div>
-          
-          {/* 농장 정보 */}
-          <div className="flex-shrink-0 text-right">
-            <div className="text-xs text-gray-500 space-y-1">
-              <p>농장주: {farm.name}</p>
-              <p className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                {farm.address}
-              </p>
             </div>
           </div>
         </div>
@@ -203,8 +193,8 @@ export default function SupportPage() {
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState<"farm" | "horse">("farm");
   const [farms, setFarms] = useState<Farm[]>([]);
+  const [horses, setHorses] = useState<Array<{ horse: Horse; farm: Farm }>>([]);
   const [loading, setLoading] = useState(true);
-  const [bookmarkedFarms, setBookmarkedFarms] = useState<Set<string>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Set<string>>(new Set());
 
   // 즐겨찾기 토글 함수
@@ -215,28 +205,32 @@ export default function SupportPage() {
     setBookmarkLoading(prev => new Set(prev).add(farmUuid));
     
     try {
-      const isCurrentlyBookmarked = bookmarkedFarms.has(farmUuid);
+      // 현재 농장의 즐겨찾기 상태 확인
+      const currentFarm = farms.find(farm => farm.id === farmUuid);
+      const isCurrentlyBookmarked = currentFarm?.bookmarked || false;
       
       if (isCurrentlyBookmarked) {
         await removeFarmBookmark(farmUuid);
-        // 로컬 상태 업데이트
-        setBookmarkedFarms(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(farmUuid);
-          return newSet;
-        });
-        // farms 배열의 해당 농장의 bookmark 상태도 업데이트
+        // farms 배열의 해당 농장의 bookmark 상태 업데이트
         setFarms(prev => prev.map(farm => 
-          farm.id === farmUuid ? { ...farm, bookmark: false } : farm
+          farm.id === farmUuid ? { ...farm, bookmarked: false } : farm
         ));
+        // localStorage에서 즐겨찾기 상태 제거
+        const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+        const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
+        localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
       } else {
         await addFarmBookmark(farmUuid);
-        // 로컬 상태 업데이트
-        setBookmarkedFarms(prev => new Set(prev).add(farmUuid));
-        // farms 배열의 해당 농장의 bookmark 상태도 업데이트
+        // farms 배열의 해당 농장의 bookmark 상태 업데이트
         setFarms(prev => prev.map(farm => 
-          farm.id === farmUuid ? { ...farm, bookmark: true } : farm
+          farm.id === farmUuid ? { ...farm, bookmarked: true } : farm
         ));
+        // localStorage에 즐겨찾기 상태 추가
+        const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+        if (!bookmarkedFarms.includes(farmUuid)) {
+          bookmarkedFarms.push(farmUuid);
+          localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarms));
+        }
       }
     } catch (error) {
       console.error('즐겨찾기 토글 실패:', error);
@@ -251,33 +245,55 @@ export default function SupportPage() {
     }
   };
 
-  // ✅ 전체 목록을 한 번에 가져옴
+  // ✅ 농장 목록과 말 목록을 각각 가져옴
   React.useEffect(() => {
     let alive = true;
     (async () => {
       try {
         setLoading(true);
 
-        // 실제 API 호출
-        const farmListResponse = await getFarms({
-          page: 0,
-          size: 100 // 충분한 수량으로 설정
-        });
+        // 농장 목록과 말 목록을 병렬로 가져옴
+        const [farmListResponse, horseListResponse] = await Promise.all([
+          getFarms({
+            page: 0,
+            size: 100 // 충분한 수량으로 설정
+          }),
+          getHorses({
+            page: 0,
+            size: 100 // 충분한 수량으로 설정
+          })
+        ]);
 
-        const list = farmListResponse.content || [];
+        const farmList = farmListResponse.content || [];
+        const horseList = horseListResponse.content || [];
 
         // 각 농장별 말 데이터와 이미지 4장 붙이기
-        const withHorses = list.map((f) => {
+        const withHorses = farmList.map((f) => {
           const imgs = Array.isArray(f.horses)
             ? f.horses.slice(0, 4).map((h) => h.horse_url).filter(Boolean)
             : [];
           return { ...f, horse_url: imgs };
         });
 
-        if (alive) setFarms(withHorses);
+        if (alive) {
+          setFarms(withHorses);
+          setHorses(horseList);
+          
+          // localStorage에서 즐겨찾기 상태를 읽어와서 farms 배열에 반영
+          const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+          if (bookmarkedFarms.length > 0) {
+            setFarms(prev => prev.map(farm => ({
+              ...farm,
+              bookmarked: bookmarkedFarms.includes(farm.id)
+            })));
+          }
+        }
       } catch (e) {
-        console.error('농장 목록 조회 실패:', e);
-        if (alive) setFarms([]);
+        console.error('데이터 조회 실패:', e);
+        if (alive) {
+          setFarms([]);
+          setHorses([]);
+        }
       } finally {
         if (alive) setLoading(false);
       }
@@ -287,17 +303,21 @@ export default function SupportPage() {
     };
   }, []);
 
-  // 농장 목록에서 북마크 상태 추출
+  // localStorage 변경 감지하여 즐겨찾기 상태 동기화
   React.useEffect(() => {
-    if (!isDonator() || farms.length === 0) return;
-    
-    const bookmarkIds = new Set(
-      farms
-        .filter(farm => farm.bookmarked === true)
-        .map(farm => farm.id)
-    );
-    setBookmarkedFarms(bookmarkIds);
-  }, [farms]);
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'bookmarkedFarms' && e.newValue) {
+        const bookmarkedFarms = JSON.parse(e.newValue);
+        setFarms(prev => prev.map(farm => ({
+          ...farm,
+          bookmarked: bookmarkedFarms.includes(farm.id)
+        })));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const { filteredFarms, filteredHorses } = useMemo(() => {
     let farmArr = [...farms];
@@ -308,23 +328,19 @@ export default function SupportPage() {
       if (searchType === "farm") {
         farmArr = farmArr.filter((f) => f.farm_name.toLowerCase().includes(q));
       } else {
-        // 마명 검색: 각 농장의 말 데이터에서 hrNm으로 검색하여 말 카드 배열 생성
-        farmArr = farmArr.filter((f) => 
-          (f.horses ?? []).some((horse) => 
-            horse.hrNm.toLowerCase().includes(q)
-          )
-        );
-        
-        // 검색된 농장들에서 매칭된 말들만 추출
-        horseArr = farmArr.flatMap((farm) => 
-          (farm.horses ?? [])
-            .filter((horse) => horse.hrNm.toLowerCase().includes(q))
-            .map((horse) => ({ horse, farm }))
+        // 마명 검색: 전체 말 목록에서 검색
+        horseArr = horses.filter(({ horse }) => 
+          horse.hrNm.toLowerCase().includes(q)
         );
       }
     } else {
-      // 검색어가 없을 때는 모든 농장 표시
-      farmArr = farms;
+      // 검색어가 없을 때
+      if (searchType === "farm") {
+        farmArr = farms;
+      } else {
+        // 마명 탭에서는 전체 말 목록 표시
+        horseArr = horses;
+      }
     }
     
     if (sort === "recommended") {
@@ -337,7 +353,7 @@ export default function SupportPage() {
     }
     
     return { filteredFarms: farmArr, filteredHorses: horseArr };
-  }, [farms, keyword, searchType, sort]);
+  }, [farms, horses, keyword, searchType, sort]);
 
   return (
     <div className="min-h-screen">
@@ -387,14 +403,18 @@ export default function SupportPage() {
             <FarmCard 
               key={farm.id} 
               farm={farm} 
-              isBookmarked={bookmarkedFarms.has(farm.id)}
+              isBookmarked={farm.bookmarked || false}
               onBookmarkToggle={handleBookmarkToggle}
               isLoading={bookmarkLoading.has(farm.id)}
             />
           ))}
-          {!loading && searchType === "horse" && filteredHorses.map(({ horse, farm }) => (
-            <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
-          ))}
+          {!loading && searchType === "horse" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5">
+              {filteredHorses.map(({ horse, farm }) => (
+                <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
+              ))}
+            </div>
+          )}
           {!loading && searchType === "farm" && filteredFarms.length === 0 && (
             <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">
               검색 조건에 맞는 목장이 없어요.
