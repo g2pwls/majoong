@@ -56,8 +56,6 @@ export default function DonorProfile({ donatorInfo: propDonatorInfo }: DonorProf
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">회원 정보</h2>
-      
       <div className="space-y-6">
         {/* 이름 */}
         <div className="flex items-center">

@@ -185,8 +185,6 @@ export default function DonorSupportHistory() {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">후원 내역</h2>
-      
       {/* 요약 정보 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
