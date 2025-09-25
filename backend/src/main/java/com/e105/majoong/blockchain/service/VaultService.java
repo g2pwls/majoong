@@ -212,7 +212,30 @@ public class VaultService {
 
     return ((Address) out.get(0)).getValue();
   }
+  
+  /**
+   * Vault 컨트랙트에 있는 토큰 잔액 조회
+   */
+  public BigInteger getVaultTokenBalanceWei(String vaultAddress) throws Exception {
+    Function f = new Function(
+        "tokenBalance",
+        java.util.List.of(),
+        java.util.List.of(new TypeReference<Uint256>() {})
+    );
+    String data = FunctionEncoder.encode(f);
 
+    EthCall resp = web3j.ethCall(
+        Transaction.createEthCallTransaction(null, vaultAddress, data),
+        DefaultBlockParameterName.LATEST
+    ).send();
+
+    if (resp.isReverted()) {
+      throw new IllegalStateException("tokenBalance() reverted: " + resp.getRevertReason());
+    }
+    java.util.List<Type> out = FunctionReturnDecoder.decode(resp.getValue(), f.getOutputParameters());
+    if (out.isEmpty()) throw new IllegalStateException("Empty tokenBalance() output");
+    return (BigInteger) out.get(0).getValue();
+  }
   // ===================================================================================
   // VIEW & UTIL
   // ===================================================================================
