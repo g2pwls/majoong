@@ -66,18 +66,20 @@ const FarmCard: React.FC<{
 
   return (
     <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-      <TempBadge temp={farm.total_score} />
       <CardContent className="p-4 md:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* 왼쪽: cover + 정보 */}
           <Link href={`/support/${farm.id}`} className="flex gap-4 items-start cursor-pointer">
-            <Image
-              src={farm.image_url}
-              alt={`${farm.farm_name} cover`}
-              width={232}
-              height={168}
-              className="h-42 w-58 rounded-xl object-cover"
-            />
+            <div className="relative">
+              <Image
+                src={farm.image_url}
+                alt={`${farm.farm_name} cover`}
+                width={232}
+                height={168}
+                className="h-42 w-58 rounded-xl object-cover"
+              />
+              <TempBadge temp={farm.total_score} />
+            </div>
             <div className="flex flex-col gap-1">
               <div className="mb-3 flex items-center gap-2">
                 <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
