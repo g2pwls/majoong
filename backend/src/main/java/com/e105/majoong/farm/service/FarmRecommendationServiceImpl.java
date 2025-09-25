@@ -64,19 +64,19 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
         List<FarmRecommendRequestDto> topK = new ArrayList<>(target); //최종 추천될 농장 리스트
 
         //pool이 비어있지않거나 순차적으로 농장을 뽑을 때까지
-        for (int k = 0; k < K && !pool.isEmpty(); k++) {
+        for (int k = 0; k < target && !pool.isEmpty(); k++) {
             final long cutoff = nowMs - COOLDOWN_MS;
             //최근 추천된 농장은 일정 시간동안 제외
-            List<Farm> eligiable = pool.stream()
+            List<Farm> eligible = pool.stream()
                     .filter(farm -> last.getOrDefault(farm.getFarmUuid(), 0L) <= cutoff)
                     .toList();
-            if (eligiable.isEmpty()) {
-                eligiable = pool;
+            if (eligible.isEmpty()) {
+                eligible = pool;
             }
 
             double maxLogit = 0.0; // 후보 농장 점수 중 최대값
             boolean maxInit = false;
-            for (Farm farm : eligiable) {
+            for (Farm farm : eligible) {
                 double score = Optional.ofNullable(farm.getTotalScore()).orElse(0.0);
                 double logit = score / TAU;
                 if (!maxInit || logit > maxLogit) {
@@ -86,10 +86,10 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
             }
 
             //모든 score/TAU에서 maxLogit을 빼서 안정화시킴
-            double[] weights = new double[eligiable.size()];
+            double[] weights = new double[eligible.size()];
             double sum = 0.0;
-            for (int i = 0; i < eligiable.size(); i++) {
-                Farm farm = eligiable.get(i);
+            for (int i = 0; i < eligible.size(); i++) {
+                Farm farm = eligible.get(i);
                 double score = Optional.ofNullable(farm.getTotalScore()).orElse(0.0);
                 double logit = (score / TAU) - maxLogit;
                 double w = Math.exp(logit);
@@ -112,8 +112,8 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
 
             //softmax 확률 기반 랜덤 선택
             double r = ThreadLocalRandom.current().nextDouble() * sum;
-            int pick = eligiable.size() - 1;
-            for (int i = 0; i < eligiable.size(); i++) {
+            int pick = eligible.size() - 1;
+            for (int i = 0; i < eligible.size(); i++) {
                 //r을 가중치에서 순차적으로 빼면서 0 이하가 되는 순간 선택
                 r -= weights[i];
                 if (r <= 0.0) {
@@ -121,7 +121,7 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
                     break;
                 }
             }
-            Farm chosenFarm = eligiable.get(pick);
+            Farm chosenFarm = eligible.get(pick);
 
             //선택된 농장의 최근 노출 수 1 층가 및 마지막 추천 시간 갱신
             int updatedShows = farmCacheUtil.updateStatus(chosenFarm.getFarmUuid(), nowMs);
