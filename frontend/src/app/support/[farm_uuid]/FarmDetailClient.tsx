@@ -144,7 +144,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
           {isDonator() && !isFarmer() && (
             <Link 
               href={`/support/${farm_uuid}/donate`}
-              className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors"
+              className="bg-green-500 text-white py-1 px-4 rounded-md hover:bg-green-600 transition-colors"
             >
               기부하기
             </Link>
