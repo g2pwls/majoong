@@ -13,6 +13,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     // 로그인 상태 및 사용자 이름 확인
@@ -25,6 +26,7 @@ export default function Navbar() {
         
         // 사용자 역할에 따라 실제 이름 가져오기
         const role = getUserRole();
+        setUserRole(role);
         if (role === 'FARMER') {
           try {
             const farmerData = await getFarmerInfo();
@@ -48,6 +50,7 @@ export default function Navbar() {
         // accessToken이 없으면 로그아웃 상태 (마중 플랫폼 가입 미완료)
         setIsLoggedIn(false);
         setUserName(null);
+        setUserRole(null);
       }
     };
 
@@ -75,6 +78,7 @@ export default function Navbar() {
     clearTokens();
     setIsLoggedIn(false);
     setUserName(null);
+    setUserRole(null);
     // 메인 페이지로 리다이렉트
     window.location.href = '/';
   };
@@ -96,7 +100,9 @@ export default function Navbar() {
           <ul className="hidden gap-5 sm:flex">
             <li><Link href="/about" className="text-sm hover:opacity-70">소개</Link></li>
             <li><Link href="/support" className="text-sm hover:opacity-70">목장후원</Link></li>
-            <li><Link href="/godonate" className="text-sm hover:opacity-70">바로기부</Link></li>
+            {userRole !== 'FARMER' && (
+              <li><Link href="/godonate" className="text-sm hover:opacity-70">바로기부</Link></li>
+            )}
           </ul>
         </div>
 
@@ -146,7 +152,9 @@ export default function Navbar() {
           <ul className="mx-4 my-2 flex flex-col gap-2 py-2">
             <li><Link href="/about" onClick={() => setOpen(false)}>소개</Link></li>
             <li><Link href="/support" onClick={() => setOpen(false)}>목장후원</Link></li>
-            <li><Link href="/godonate" onClick={() => setOpen(false)}>바로기부</Link></li>
+            {userRole !== 'FARMER' && (
+              <li><Link href="/godonate" onClick={() => setOpen(false)}>바로기부</Link></li>
+            )}
             <li className="pt-2">
               {isLoggedIn ? (
                 <div className="flex flex-col gap-2">

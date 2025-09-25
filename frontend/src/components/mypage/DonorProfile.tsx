@@ -56,40 +56,40 @@ export default function DonorProfile({ donatorInfo: propDonatorInfo }: DonorProf
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-gray-900 mb-6">회원 정보</h2>
-      
       <div className="space-y-6">
         {/* 이름 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="flex items-center">
+          <label className="w-40 text-sm font-medium text-gray-700">
             이름
           </label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
             {donorInfo?.nameString}
           </div>
         </div>
 
         {/* 계정 (이메일) */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="flex items-center">
+          <label className="w-40 text-sm font-medium text-gray-700">
             계정
           </label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
             {donorInfo?.email}
           </div>
         </div>
 
         {/* 지갑 정보 */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="flex items-start">
+          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
             지갑 주소
           </label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm break-all overflow-wrap-anywhere">
-            {donorInfo?.walletAddress}
+          <div className="flex-1 ml-4">
+            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm break-all overflow-wrap-anywhere">
+              {donorInfo?.walletAddress}
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              블록체인 지갑 주소입니다. 수정할 수 없습니다.
+            </p>
           </div>
-          <p className="mt-1 text-xs text-gray-500">
-            블록체인 지갑 주소입니다. 수정할 수 없습니다.
-          </p>
         </div>
       </div>
 
