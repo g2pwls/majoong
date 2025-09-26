@@ -701,7 +701,7 @@ export class FarmService {
   }
 
   // 말 주간 보고서 상세 조회
-  static async getHorseWeeklyReportDetail(horseNum: number, horseStateId: number) {
+  static async getHorseWeeklyReportDetail(horseNum: string, horseStateId: number) {
     try {
       console.log('말 주간 보고서 상세 조회 API 호출:', {
         horseNum,
