@@ -9,7 +9,6 @@ import { FarmService } from "@/services/farmService";
 import { ScoreHistory } from "@/types/farm";
 
 export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isMyFarm?: boolean }) {
-  const [deadlineText, setDeadlineText] = useState<string>("");
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
 
   // 디버깅을 위한 콘솔 로그
@@ -33,42 +32,7 @@ export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isM
   // 주석 추가
 
   useEffect(() => {
-    // Calculate the deadline (Sunday) and show the countdown
-    const getDeadlineText = () => {
-      const today = new Date();
-      const dayOfWeek = today.getDay(); // Sunday = 0, Monday = 1, etc.
-      const daysUntilSunday = (7 - dayOfWeek) % 7; // Days until next Sunday
-
-      const deadlineDate = new Date(today);
-      deadlineDate.setDate(today.getDate() + daysUntilSunday); // Set to next Sunday
-      const openDate = new Date(deadlineDate);
-      openDate.setDate(deadlineDate.getDate() - 2); // Friday (open day)
-
-      // Only show the countdown on Friday, Saturday, or Sunday
-      if (today >= openDate && today <= deadlineDate) {
-        const daysLeft = Math.floor((deadlineDate.getTime() - today.getTime()) / (1000 * 3600 * 24));
-        switch (daysLeft) {
-          case 2:
-            setDeadlineText("마감일 D-2");
-            break;
-          case 1:
-            setDeadlineText("마감일 D-1");
-            break;
-          case 0:
-            setDeadlineText("마감일 D-Day");
-            break;
-          default:
-            setDeadlineText("");
-            break;
-        }
-      }
-    };
-
-    getDeadlineText();
-  }, []);
-
-  // 신뢰도 데이터 가져오기
-  useEffect(() => {
+    // 신뢰도 데이터 가져오기
     fetchScoreHistory();
   }, [fetchScoreHistory]);
 
@@ -105,13 +69,6 @@ export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isM
       </div>
 
       <div className="flex flex-col">
-        {/* Countdown Text */}
-        {deadlineText && (
-          <div className="mb-2 text-sm text-gray-600">
-            {deadlineText}
-          </div>
-        )}
-        
         {/* Horse registry section */}
         <HorseRegistrySection 
           farmUuid={farm?.farmUuid || ""} 

@@ -20,6 +20,32 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
+  
+  // 목장 정보와 동적 년도 범위
+  const [farmCreatedAt, setFarmCreatedAt] = useState<string | null>(null);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+
+  // 목장 정보 가져오기 및 년도 범위 설정
+  const fetchFarmInfo = useCallback(async () => {
+    try {
+      const farmInfo = await FarmService.getFarm(farmUuid);
+      if (farmInfo.created_at) {
+        setFarmCreatedAt(farmInfo.created_at);
+        
+        // 목장 생성일부터 현재까지의 년도 범위 생성
+        const createdDate = new Date(farmInfo.created_at);
+        const currentDate = new Date();
+        const years = [];
+        
+        for (let year = createdDate.getFullYear(); year <= currentDate.getFullYear(); year++) {
+          years.push(year);
+        }
+        setAvailableYears(years);
+      }
+    } catch (error) {
+      console.error('목장 정보 조회 실패:', error);
+    }
+  }, [farmUuid]);
 
   // 월간 보고서 조회
   const fetchMonthlyReports = useCallback(async (year: number | 'all') => {
@@ -32,8 +58,10 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
         console.log('전체 년도 월간 보고서 조회 시작:', { farmUuid });
         const allReports: MonthlyReport[] = [];
         
-        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
-        for (let y = 2021; y <= 2025; y++) {
+        // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
           try {
             console.log(`${y}년 월간 보고서 조회 중...`);
             const response = await FarmService.getMonthlyReports(farmUuid, y);
@@ -77,8 +105,15 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
   }, [farmUuid]);
 
   useEffect(() => {
-    fetchMonthlyReports(selectedYear);
-  }, [farmUuid, selectedYear, fetchMonthlyReports]);
+    const initializeData = async () => {
+      // 목장 정보 먼저 가져오기
+      await fetchFarmInfo();
+      // 월간 보고서 조회
+      await fetchMonthlyReports(selectedYear);
+    };
+    
+    initializeData();
+  }, [farmUuid, selectedYear, fetchMonthlyReports, fetchFarmInfo]);
 
   const handleYearChange = (year: number | 'all') => {
     setSelectedYear(year);
@@ -126,11 +161,9 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
               className="px-3 py-1 border rounded-md text-sm"
             >
               <option value="all">전체</option>
-              <option value={2025}>2025</option>
-              <option value={2024}>2024</option>
-              <option value={2023}>2023</option>
-              <option value={2022}>2022</option>
-              <option value={2021}>2021</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
             </select>
         </div>
       </div>
