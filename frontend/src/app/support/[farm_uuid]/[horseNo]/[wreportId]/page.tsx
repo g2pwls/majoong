@@ -57,7 +57,7 @@ type Farm = {
 
 export default function WeeklyReportDetailPage({ params }: PageProps) {
   const router = useRouter();
-  const { farm_uuid, horseNo, wreportId } = use(params);
+  const { farm_uuid, , wreportId } = use(params);
   
   const [farm, setFarm] = useState<Farm | null>(null);
   const [report, setReport] = useState<WeeklyReportDetail | null>(null);
