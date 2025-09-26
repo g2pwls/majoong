@@ -15,8 +15,9 @@ public class FarmRecommendResponseDto {
     private String description;
     private String farmerName;
     private int horseCount;
+    private Long amountToken;
 
-    public static FarmRecommendResponseDto toDto(Farm farm, String farmerName) {
+    public static FarmRecommendResponseDto toDto(Farm farm, String farmerName, Long amountToken) {
         return FarmRecommendResponseDto.builder()
                 .farmUuid(farm.getFarmUuid())
                 .profileImage(farm.getProfileImage())
@@ -26,6 +27,7 @@ public class FarmRecommendResponseDto {
                 .totalScore(farm.getTotalScore())
                 .farmerName(farmerName)
                 .horseCount(farm.getHorseCount())
+                .amountToken(amountToken)
                 .build();
     }
 }

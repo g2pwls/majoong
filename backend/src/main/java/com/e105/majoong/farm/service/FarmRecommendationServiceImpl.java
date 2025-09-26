@@ -2,6 +2,8 @@ package com.e105.majoong.farm.service;
 
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
+import com.e105.majoong.common.model.donationHistory.DonationHistoryRepository;
+import com.e105.majoong.common.model.donationHistory.DonationHistoryRepositoryCustom;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
 import com.e105.majoong.common.model.farmer.Farmer;
@@ -35,13 +37,13 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
     private final DonationLimitFilterService donationLimitFilterService;
     private final FarmRepository farmRepository;
     private final FarmerRepository farmerRepository;
+    private final DonationHistoryRepository donationHistoryRepository;
 
     @Override
     public List<FarmRecommendResponseDto> recommendFarm(YearMonth yearMonth) {
         List<Farm> farms = farmRepository.findAll();
         //후보 농장 리스트
         List<Farm> filterFarms = donationLimitFilterService.filterByDonationLimit(farms, yearMonth);
-
         filterFarms = filterFarms.stream()
                 .filter(farm -> Optional.ofNullable(farm.getTotalScore()).orElse(0.0) >= MIN_TRUST_SCORE)
                 .toList();
@@ -55,8 +57,14 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
+        Set<String> farmUuids = filterFarms.stream()
+                .map(Farm::getFarmUuid)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
         Map<String, Farmer> farmerByMemberUuid = farmerRepository.findByMemberUuidIn(memberUuids).stream()
                 .collect(Collectors.toMap(Farmer::getMemberUuid, farm -> farm));
+        Map<String, Long> monthDonationAmount = donationHistoryRepository.getMonthlyDonationByFarmList(farmUuids, yearMonth);
 
         long totalFarms = farmRepository.count();
         int K;
@@ -148,12 +156,11 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
             int updatedShows = farmCacheUtil.updateStatus(chosenFarm.getFarmUuid(), nowMs);
             shows.put(chosenFarm.getFarmUuid(), updatedShows);
             last.put(chosenFarm.getFarmUuid(), nowMs);
-
             String memberUuid = chosenFarm.getMemberUuid();
             Farmer farmer = Optional.ofNullable(farmerByMemberUuid.get(memberUuid))
                     .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARMER));
             //topK 리스트에 추가
-            topK.add(FarmRecommendResponseDto.toDto(chosenFarm, farmer.getName()));
+            topK.add(FarmRecommendResponseDto.toDto(chosenFarm, farmer.getName(), monthDonationAmount.get(chosenFarm.getFarmUuid())));
             String chosenFarmUuid = chosenFarm.getFarmUuid();
             //다음 라운드에서 중복 추천되지 않도록 후보군에서 제거
             pool.removeIf(farm -> Objects.equals(farm.getFarmUuid(), chosenFarmUuid));
