@@ -82,7 +82,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
       setError(null);
       
       console.log('주간 보고서 상세 조회 시작:', { horseNo, wreportId });
-      const response = await FarmService.getHorseWeeklyReportDetail(parseInt(horseNo), parseInt(wreportId));
+      const response = await FarmService.getHorseWeeklyReportDetail(horseNo, parseInt(wreportId));
       console.log('주간 보고서 상세 조회 성공:', response);
       setReport(response.result);
     } catch (e: unknown) {
@@ -192,7 +192,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
            </div>
          </div>
       </div>
-
+ 
       {/* 보고서 내용 */}
       <div className="space-y-6">
         {/* 이미지 섹션 */}

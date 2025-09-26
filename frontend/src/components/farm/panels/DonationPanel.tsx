@@ -468,11 +468,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     // yearlyData가 비어있으면 빈 배열 반환
     if (!yearlyData || yearlyData.length === 0) {
       console.log('yearlyData가 비어있음, 빈 막대그래프 데이터 반환');
-      return Array.from({ length: 12 }, (_, index) => ({
-        month: index + 1,
-        amount: 0,
-        year: selectedYear === 'all' ? new Date().getFullYear() : selectedYear,
-      }));
+      return [];
     }
     
     // 월별로 그룹화 (누적하지 않고 마지막 값만 사용)
@@ -670,7 +666,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
 
       {/* 3. 날짜 선택 가능한 상세 내역 */}
       <Card>
-        <CardContent className="p-4 py-0">
+        <CardContent className="px-4 py-0">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Receipt className="h-5 w-5 text-purple-600" />

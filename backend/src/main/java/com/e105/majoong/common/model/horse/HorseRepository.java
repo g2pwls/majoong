@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.swing.text.html.Option;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -13,7 +14,7 @@ import org.springframework.data.jpa.repository.Query;
 public interface HorseRepository extends JpaRepository<Horse, Long> {
     List<Horse> findByFarm(Farm farm);
 
-    Page<Horse> findByHorseNameContaining(String horseName, Pageable pageable);
+    Page<Horse> findByHorseNameContainingAndDeletedAtIsNull(String horseName, Pageable pageable);
 
     List<Horse> findByFarmIdAndDeletedAtIsNull(Long farmId);
 
@@ -26,5 +27,7 @@ public interface HorseRepository extends JpaRepository<Horse, Long> {
     List<Horse> findByFarmAndDeletedAtIsNull(Farm farm);
 
     Optional<Horse> findByHorseNumberAndDeletedAtIsNull(String horseNumber);
+
+    Page<Horse> findByDeletedAtIsNull(Pageable pageable);
 
 }
