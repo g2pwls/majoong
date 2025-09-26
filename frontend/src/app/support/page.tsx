@@ -86,43 +86,43 @@ const FarmCard: React.FC<{
               <div className="flex flex-col justify-center gap-2 lg:min-w-0 lg:flex-1">
                 <div className="mb-2 flex items-center gap-2">
                   <h3 className="text-lg sm:text-xl font-semibold">{farm.farm_name}</h3>
-                  {isDonator() && (
-                    <button 
-                      className={`rounded-full border p-1 transition-colors ${
+                {isDonator() && (
+                  <button 
+                    className={`rounded-full border p-1 transition-colors ${
+                      isBookmarked 
+                        ? 'border-yellow-400 bg-yellow-50' 
+                        : 'border-gray-300 hover:border-yellow-400'
+                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                    onClick={handleBookmarkClick}
+                    disabled={isLoading}
+                  >
+                    <Star 
+                      className={`h-4 w-4 ${
                         isBookmarked 
-                          ? 'border-yellow-400 bg-yellow-50' 
-                          : 'border-gray-300 hover:border-yellow-400'
-                      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                      aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                      onClick={handleBookmarkClick}
-                      disabled={isLoading}
-                    >
-                      <Star 
-                        className={`h-4 w-4 ${
-                          isBookmarked 
-                            ? 'fill-yellow-400 text-yellow-400' 
-                            : 'text-gray-400 hover:text-yellow-400'
-                        } ${isLoading ? 'animate-pulse' : ''}`} 
-                      />
-                    </button>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-4 w-4 flex-shrink-0" /> 
-                  <span className="truncate">{farm.address}</span>
-                </p>
-                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Users className="h-4 w-4 flex-shrink-0" /> 말 {farm.horse_count}두
-                </p>
-                {farm.state && (
-                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-400 hover:text-yellow-400'
+                      } ${isLoading ? 'animate-pulse' : ''}`} 
+                    />
+                  </button>
                 )}
               </div>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-4 w-4 flex-shrink-0" /> 
+                  <span className="truncate">{farm.address}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Users className="h-4 w-4 flex-shrink-0" /> 말 {farm.horse_count}두
+              </p>
+              {farm.state && (
+                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+              )}
+            </div>
 
-              {/* 오른쪽: 갤러리 + 버튼 */}
+          {/* 오른쪽: 갤러리 + 버튼 */}
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
-                {!isFarmer() && (
+            {!isFarmer() && (
                   <Button 
                     className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[90px] text-sm sm:text-base"
                     onClick={(e) => {
@@ -131,30 +131,30 @@ const FarmCard: React.FC<{
                       window.location.href = isDonator() ? `/support/${farm.id}/donate` : '/login';
                     }}
                   >
-                    기부하기
-                  </Button>
-                )}
+                  기부하기
+                </Button>
+            )}
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
                   {(farm.horse_url ?? []).map((src, i) => 
-                    src ? (
+                src ? (
                       <div key={i} className="relative group flex-shrink-0">
-                        <Image
-                          src={src}
-                          alt={`${farm.farm_name} horse_url ${i + 1}`}
-                          width={92}
-                          height={120}
+                  <Image
+                    src={src}
+                    alt={`${farm.farm_name} horse_url ${i + 1}`}
+                    width={92}
+                    height={120}
                           className="h-30 w-23 rounded-xl object-cover shadow-md hover:shadow-lg transition-all duration-300 group-hover:scale-105 border-2 border-white/20"
-                        />
+                  />
                         <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                       </div>
-                    ) : null
-                  )}
-                </div>
-              </div>
+                ) : null
+              )}
             </div>
           </div>
         </div>
-      </Card>
+          </div>
+        </div>
+    </Card>
     </Link>
   );
 };
@@ -181,7 +181,7 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ hors
   const averageColor = getAverageColor(index);
 
   return (
-    <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
+  <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
       <article 
         className={`
           relative group cursor-pointer transition-all duration-300 ease-in-out
@@ -230,11 +230,11 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ hors
             <p className="text-xs text-white/80 text-center mt-0.5 sm:mt-1 truncate">
               {farm.farm_name}
             </p>
+            </div>
           </div>
-        </div>
       </article>
-    </Link>
-  );
+  </Link>
+);
 };
 
 export default function SupportPage() {

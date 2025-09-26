@@ -17,10 +17,10 @@ export default function PaymentMethodSelector({
       
       {/* 결제 수단 선택 */}
       <div className="space-y-4">
-        <div className="flex justify-start">
+        <div className="grid grid-cols-3 gap-3">
           <Button
             variant="default"
-            className="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-white cursor-default"
+            className="h-12 bg-yellow-400 hover:bg-yellow-500 text-white cursor-default"
             disabled
           >
             카카오페이
