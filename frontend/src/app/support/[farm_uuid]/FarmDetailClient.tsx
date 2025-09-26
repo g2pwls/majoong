@@ -14,7 +14,7 @@ import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { getFarm, Farm, addFarmBookmark, removeFarmBookmark, isMyFarm as checkIsMyFarm } from "@/services/apiService";
-import { isDonator, isFarmer } from "@/services/authService";
+import { isDonator, isFarmer, getUserRole } from "@/services/authService";
 
 const TABS: FarmTabValue[] = ["intro", "horses", "newsletter", "donations", "trust"];
 
@@ -138,7 +138,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     <div className="mx-auto max-w-6xl px-1 p-8">
       {/* 브레드크럼과 버튼들 */}
       <div className="flex items-center justify-between">
-        <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+        <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
         <div className="flex gap-2">
           {/* 기부하기 버튼 - 기부자이고 농부가 아닌 경우에만 표시 */}
           {isDonator() && !isFarmer() && (

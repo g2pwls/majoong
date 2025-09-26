@@ -5,6 +5,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import { getTokens, clearTokens, getUserRole } from '@/services/authService';
 import { getFarmerInfo, getDonatorInfo, getMyFarm } from '@/services/userService';
 
@@ -124,7 +125,7 @@ export default function Navbar() {
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
           <Link 
-            href={userRole === 'FARMER' ? '/shortcut' : '/'} 
+            href={userRole === 'FARMER' ? '/dashboard' : '/'} 
             className="flex items-center gap-2 font-bold text-xl"
           >
             마중
@@ -132,7 +133,9 @@ export default function Navbar() {
 
           <ul className="hidden gap-5 sm:flex">
             <li><Link href="/about" className="text-sm hover:opacity-70">소개</Link></li>
-            <li><Link href="/support" className="text-sm hover:opacity-70">목장후원</Link></li>
+            <li><Link href="/support" className="text-sm hover:opacity-70">
+              {userRole === 'FARMER' ? '전체목장' : '목장후원'}
+            </Link></li>
             {userRole === 'FARMER' && (
               <>
                 <li><button onClick={handleMyFarmClick} className="text-sm hover:opacity-70 cursor-pointer">나의목장</button></li>
@@ -190,7 +193,9 @@ export default function Navbar() {
         <div className="sm:hidden border-t bg-white">
           <ul className="mx-4 my-2 flex flex-col gap-2 py-2">
             <li><Link href="/about" onClick={() => setOpen(false)}>소개</Link></li>
-            <li><Link href="/support" onClick={() => setOpen(false)}>목장후원</Link></li>
+            <li><Link href="/support" onClick={() => setOpen(false)}>
+              {userRole === 'FARMER' ? '전체목장' : '목장후원'}
+            </Link></li>
             {userRole === 'FARMER' && (
               <>
                 <li><button onClick={(e) => { handleMyFarmClick(e); setOpen(false); }} className="text-left w-full">나의목장</button></li>
@@ -234,10 +239,10 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* 목장 등록 모달 */}
-      {showFarmRegistrationModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      {/* 목장 등록 모달 - Portal을 사용하여 body에 직접 렌더링 */}
+      {showFarmRegistrationModal && typeof window !== 'undefined' && createPortal(
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
             <div className="text-center">
               <div className="text-2xl mb-4">🚜</div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
@@ -249,7 +254,7 @@ export default function Navbar() {
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => setShowFarmRegistrationModal(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   취소
                 </button>
@@ -258,14 +263,15 @@ export default function Navbar() {
                     setShowFarmRegistrationModal(false);
                     router.push('/farm/register');
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
                   목장 등록하기
                 </button>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </header>
   );

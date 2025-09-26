@@ -9,6 +9,7 @@ import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FarmService } from "@/services/farmService";
 import { Farm } from "@/types/farm";
+import { getUserRole } from "@/services/authService";
 
 type PageProps = { params: Promise<{ farm_uuid: string }> };
 
@@ -64,7 +65,7 @@ export default function FarmEdit({ params }: PageProps) {
           {/* 브래드크럼 */}
           <Breadcrumbs
             items={[
-              { label: "목장후원", href: "/support" },
+              { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
               { label: title, href: `/support/${farm_uuid}` },
               { label: "목장 정보 수정" },
             ]}

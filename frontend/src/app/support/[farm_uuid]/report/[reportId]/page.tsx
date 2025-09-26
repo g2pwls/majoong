@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Star, FileText } from "lucide-react";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { getFarm, Farm } from "@/services/apiService";
+import { getUserRole } from "@/services/authService";
 
 type PageProps = { 
   params: Promise<{ 
@@ -104,7 +105,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     <div className="mx-auto max-w-6xl p-6">
       {/* 브레드크럼 */}
       <Breadcrumbs items={[
-        { label: "목장후원", href: "/support" }, 
+        { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
         { label: farm.farm_name, href: `/support/${farm_uuid}` },
         { label: "월간 소식지", href: `/support/${farm_uuid}?tab=newsletter` },
         { label: `${report.year}년 ${report.month}월 보고서` }

@@ -30,8 +30,8 @@ export default function OAuthCallbackPage() {
         } else {
           // 기존 회원 - role에 따른 리다이렉트
           if (response.role === 'FARMER') {
-            console.log('Existing farmer, redirecting to shortcut page');
-            router.push('/shortcut');
+            console.log('Existing farmer, redirecting to dashboard page');
+            router.push('/dashboard');
           } else {
             // DONATOR 또는 기타
             console.log('Existing donator, redirecting to home page');

@@ -222,8 +222,8 @@ export default function GoDonatePage() {
                   <Shuffle className="h-4 w-4" />
                   랜덤 선택
                 </Button>
-              </div>
-              
+                            </div>
+                            
               {/* 3D 캐러셀 */}
               <FarmCarousel3D
                 farms={recommendFarms}
