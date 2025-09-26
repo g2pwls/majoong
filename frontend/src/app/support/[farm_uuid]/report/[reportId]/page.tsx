@@ -102,7 +102,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
 
   return (
-    <div className="mx-auto max-w-6xl p-6">
+    <div className="mx-auto max-w-6xl px-0 p-4">
       {/* 브레드크럼 */}
       <Breadcrumbs items={[
         { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 

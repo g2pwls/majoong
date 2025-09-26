@@ -271,16 +271,16 @@ export default function HorseInfoPanel({
         horseName: profileData.hrNm,
         birth: formatDate(profileData.birthDt),
         gender: profileData.sex,
-        color: profileData.color || '',
+        color: profileData.color && profileData.color !== "-" ? profileData.color : null,
         breed: profileData.breed,
-        countryOfOrigin: profileData.prdCty || '',
-        raceCount: parseInt(profileData.rcCnt || '0'),
-        firstPlaceCount: parseInt(profileData.fstCnt || '0'),
-        secondPlaceCount: parseInt(profileData.sndCnt || '0'),
-        totalPrize: parseInt(profileData.amt || '0'),
-        retiredDate: profileData.discardDt ? formatDate(profileData.discardDt) : undefined,
-        firstRaceDate: profileData.fdebutDt ? formatDate(profileData.fdebutDt) : undefined,
-        lastRaceDate: profileData.lchulDt ? formatDate(profileData.lchulDt) : undefined,
+        countryOfOrigin: profileData.prdCty && profileData.prdCty !== "-" ? profileData.prdCty : null,
+        raceCount: profileData.rcCnt && profileData.rcCnt !== "-" ? parseInt(profileData.rcCnt) : null,
+        firstPlaceCount: profileData.fstCnt && profileData.fstCnt !== "-" ? parseInt(profileData.fstCnt) : null,
+        secondPlaceCount: profileData.sndCnt && profileData.sndCnt !== "-" ? parseInt(profileData.sndCnt) : null,
+        totalPrize: profileData.amt && profileData.amt !== "-" ? parseInt(profileData.amt) : null,
+        retiredDate: profileData.discardDt && profileData.discardDt !== "-" ? formatDate(profileData.discardDt) : null,
+        firstRaceDate: profileData.fdebutDt && profileData.fdebutDt !== "-" ? formatDate(profileData.fdebutDt) : null,
+        lastRaceDate: profileData.lchulDt && profileData.lchulDt !== "-" ? formatDate(profileData.lchulDt) : null,
         profileImage: file,
       };
 
@@ -416,44 +416,62 @@ export default function HorseInfoPanel({
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm">
-                  <strong>모색:</strong> {profileData?.color || "-"}
-                </p>
+                {profileData?.color && profileData.color !== "-" && (
+                  <p className="text-sm">
+                    <strong>모색:</strong> {profileData.color}
+                  </p>
+                )}
                 <p className="text-sm">
                   <strong>품종:</strong> {profileData?.breed || "-"}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm">
-                  <strong>생산국:</strong> {profileData?.prdCty || "-"}
-                </p>
-                <p className="text-sm">
-                  <strong>출추횟수:</strong> {profileData?.rcCnt || "-"}
-                </p>
+                {profileData?.prdCty && profileData.prdCty !== "-" && (
+                  <p className="text-sm">
+                    <strong>생산국:</strong> {profileData.prdCty}
+                  </p>
+                )}
+                {profileData?.rcCnt && profileData.rcCnt !== "-" && (
+                  <p className="text-sm">
+                    <strong>출추 횟수:</strong> {profileData.rcCnt}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm">
-                  <strong>일착횟수:</strong> {profileData?.fstCnt || "-"}
-                </p>
-                <p className="text-sm">
-                  <strong>이착횟수:</strong> {profileData?.sndCnt || "-"}
-                </p>
+                {profileData?.fstCnt && profileData.fstCnt !== "-" && (
+                  <p className="text-sm">
+                    <strong>일착 횟수:</strong> {profileData.fstCnt}
+                  </p>
+                )}
+                {profileData?.sndCnt && profileData.sndCnt !== "-" && (
+                  <p className="text-sm">
+                    <strong>이착 횟수:</strong> {profileData.sndCnt}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm">
-                  <strong>상금:</strong> {profileData?.amt || "-"}
-                </p>
-                <p className="text-sm">
-                  <strong>경주마불용일:</strong> {profileData?.discardDt || "-"}
-                </p>
+                {profileData?.amt && profileData.amt !== "-" && (
+                  <p className="text-sm">
+                    <strong>상금:</strong> {profileData.amt}
+                  </p>
+                )}
+                {profileData?.discardDt && profileData.discardDt !== "-" && (
+                  <p className="text-sm">
+                    <strong>경주마 불용일:</strong> {profileData.discardDt}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <p className="text-sm">
-                  <strong>최초출주일:</strong> {profileData?.fdebutDt || "-"}
-                </p>
-                <p className="text-sm">
-                  <strong>최종출주일:</strong> {profileData?.lchulDt || "-"}
-                </p>
+                {profileData?.fdebutDt && profileData.fdebutDt !== "-" && (
+                  <p className="text-sm">
+                    <strong>최초 출주일:</strong> {profileData.fdebutDt}
+                  </p>
+                )}
+                {profileData?.lchulDt && profileData.lchulDt !== "-" && (
+                  <p className="text-sm">
+                    <strong>최종 출주일:</strong> {profileData.lchulDt}
+                  </p>
+                )}
               </div>
             </div>
           </div>
