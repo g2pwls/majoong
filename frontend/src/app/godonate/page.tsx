@@ -207,9 +207,9 @@ export default function GoDonatePage() {
         </div>
 
         {/* 목장 선택과 후원 정보 섹션 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 목장 선택 섹션 */}
-          <div className="space-y-6">
+            <div className="space-y-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">농장 선택</h2>
               <Button
@@ -221,7 +221,7 @@ export default function GoDonatePage() {
                 <Shuffle className="h-4 w-4" />
                 랜덤 선택
               </Button>
-            </div>
+                            </div>
                             
             {/* 3D 캐러셀 */}
             <FarmCarousel3D
@@ -229,7 +229,7 @@ export default function GoDonatePage() {
               selectedFarm={selectedFarm}
               onFarmSelect={setSelectedFarm}
             />
-          </div>
+            </div>
 
           {/* 후원 정보 섹션 */}
           <DonationSection
@@ -251,8 +251,8 @@ export default function GoDonatePage() {
             onCloseConfirmPopup={() => setShowConfirmPopup(false)}
             formatAmount={formatAmount}
           />
-        </div>
-      </div>
+            </div>
+          </div>
     </div>
   );
 }

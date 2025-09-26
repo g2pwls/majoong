@@ -237,7 +237,7 @@ export default function Navbar() {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/mypage"
-                    className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200"
+                    className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200 text-right"
                     onClick={() => setOpen(false)}
                   >
                     {userName ? `${userName}님` : ''}
@@ -255,7 +255,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="inline-block rounded border px-4 py-1"
+                  className="block w-full text-center rounded border px-4 py-2"
                   onClick={() => setOpen(false)}
                 >
                   로그인

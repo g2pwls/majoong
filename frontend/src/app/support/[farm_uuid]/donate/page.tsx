@@ -200,9 +200,9 @@ export default function DonatePage() {
           <div className="flex items-centermb-4 flex flex-col">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
             <div className="w-37 h-1 bg-gray-300"></div>
-          </div>
-        </div>
-
+                </div>
+              </div>
+              
         {/* 목장 정보와 후원 정보 섹션 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 목장 정보 */}
@@ -237,9 +237,9 @@ export default function DonatePage() {
             onConfirmDonation={handleConfirmDonation}
             onCloseConfirmPopup={() => setShowConfirmPopup(false)}
             formatAmount={formatAmount}
-          />
-        </div>
-      </div>
+                />
+              </div>
+            </div>
 
       {/* 로그인 필요 모달 */}
       {showLoginModal && (
@@ -268,7 +268,7 @@ export default function DonatePage() {
                 >
                   로그인하기
                 </button>
-              </div>
+                </div>
             </div>
           </div>
         </div>
