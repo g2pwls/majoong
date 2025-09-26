@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class FarmRecommendRequestDto {
+public class FarmRecommendResponseDto {
     private String farmUuid;
     private String profileImage;
     private String farmName;
@@ -16,8 +16,8 @@ public class FarmRecommendRequestDto {
     private String farmerName;
     private int horseCount;
 
-    public static FarmRecommendRequestDto toDto(Farm farm, String farmerName) {
-        return FarmRecommendRequestDto.builder()
+    public static FarmRecommendResponseDto toDto(Farm farm, String farmerName) {
+        return FarmRecommendResponseDto.builder()
                 .farmUuid(farm.getFarmUuid())
                 .profileImage(farm.getProfileImage())
                 .farmName(farm.getFarmName())

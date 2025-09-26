@@ -2,7 +2,6 @@ package com.e105.majoong.farm.controller;
 
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
-import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.farm.dto.out.*;
 import com.e105.majoong.farm.service.*;
 import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
@@ -161,7 +160,7 @@ public class FarmController {
 
     @GetMapping("/recommend")
     @Operation(summary = "바로 기부 페이지 추천 농장 조회")
-    public BaseResponse<List<FarmRecommendRequestDto>> getRecommendFarm() {
+    public BaseResponse<List<FarmRecommendResponseDto>> getRecommendFarm() {
         YearMonth yearMonth = YearMonth.now(ZoneId.of("Asia/Seoul"));
         return new BaseResponse<>(farmRecommendationService.recommendFarm(yearMonth));
     }

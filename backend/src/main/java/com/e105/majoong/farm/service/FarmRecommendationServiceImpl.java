@@ -6,7 +6,7 @@ import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
 import com.e105.majoong.common.model.farmer.Farmer;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
-import com.e105.majoong.farm.dto.out.FarmRecommendRequestDto;
+import com.e105.majoong.farm.dto.out.FarmRecommendResponseDto;
 import com.e105.majoong.farm.dto.out.RecentStateDto;
 import com.e105.majoong.farm.util.FarmCacheUtil;
 import java.time.YearMonth;
@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +37,7 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
     private final FarmerRepository farmerRepository;
 
     @Override
-    public List<FarmRecommendRequestDto> recommendFarm(YearMonth yearMonth) {
+    public List<FarmRecommendResponseDto> recommendFarm(YearMonth yearMonth) {
         List<Farm> farms = farmRepository.findAll();
         //후보 농장 리스트
         List<Farm> filterFarms = donationLimitFilterService.filterByDonationLimit(farms, yearMonth);
@@ -47,6 +49,14 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
         if (filterFarms.isEmpty()) {
             return List.of();
         }
+
+        Set<String> memberUuids = filterFarms.stream()
+                .map(Farm::getMemberUuid)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<String, Farmer> farmerByMemberUuid = farmerRepository.findByMemberUuidIn(memberUuids).stream()
+                .collect(Collectors.toMap(Farmer::getMemberUuid, farm -> farm));
 
         long totalFarms = farmRepository.count();
         int K;
@@ -72,7 +82,7 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
         }
 
         List<Farm> pool = new ArrayList<>(filterFarms);
-        List<FarmRecommendRequestDto> topK = new ArrayList<>(target); //최종 추천될 농장 리스트
+        List<FarmRecommendResponseDto> topK = new ArrayList<>(target); //최종 추천될 농장 리스트
 
         //pool이 비어있지않거나 순차적으로 농장을 뽑을 때까지
         for (int k = 0; k < target && !pool.isEmpty(); k++) {
@@ -140,10 +150,10 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
             last.put(chosenFarm.getFarmUuid(), nowMs);
 
             String memberUuid = chosenFarm.getMemberUuid();
-            Farmer farmer = farmerRepository.findByMemberUuid(memberUuid).orElseThrow(
-                    () -> new BaseException(BaseResponseStatus.NO_EXIST_FARMER));
+            Farmer farmer = Optional.ofNullable(farmerByMemberUuid.get(memberUuid))
+                    .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARMER));
             //topK 리스트에 추가
-            topK.add(FarmRecommendRequestDto.toDto(chosenFarm, farmer.getName()));
+            topK.add(FarmRecommendResponseDto.toDto(chosenFarm, farmer.getName()));
             String chosenFarmUuid = chosenFarm.getFarmUuid();
             //다음 라운드에서 중복 추천되지 않도록 후보군에서 제거
             pool.removeIf(farm -> Objects.equals(farm.getFarmUuid(), chosenFarmUuid));
