@@ -198,4 +198,43 @@ public class AuthService {
     byte[] bytes = Numeric.hexStringToByteArray(hex);
     return new BigInteger(1, bytes); // 1 → 양수로 간주
   }
+
+  @Transactional
+  public AuthSignInResponseDto qrLogin(String token) {
+    String memberUuid = (String) redisService.get("qr:" + token);
+    if (memberUuid == null) {
+      throw new BaseException(BaseResponseStatus.TOKEN_NOT_VALID);
+    }
+
+    OauthMember oauth = memberRepository.findByMemberUuid(memberUuid)
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_SIGN_IN));
+
+    String email;
+    if (oauth.getRole() == Role.FARMER) {
+      // Farmer 테이블 조회
+      Farmer farmer = farmerRepository.findByMemberUuid(memberUuid)
+              .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_SIGN_IN));
+      email = farmer.getEmail();
+    } else if (oauth.getRole() == Role.DONATOR) {
+      // Donator 테이블 조회
+      Donator donator = donatorRepository.findByMemberUuid(memberUuid)
+              .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_SIGN_IN));
+      email = donator.getEmail();
+    } else {
+      throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
+    }
+
+    String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, oauth.getRole().name());
+    String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, oauth.getRole().name());
+    long ttlSec = TimeUnit.MILLISECONDS.toSeconds(jwtTokenProvider.getRefreshExpireTime());
+    redisService.set("rt:" + memberUuid, refreshToken, ttlSec);
+
+    return AuthSignInResponseDto.ofLogin(
+            memberUuid,
+            accessToken,
+            refreshToken,
+            email,
+            oauth.getRole()
+    );
+  }
 }
