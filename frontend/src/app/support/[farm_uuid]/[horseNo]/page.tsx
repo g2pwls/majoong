@@ -115,7 +115,7 @@ export default function HorseDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl px-1 p-8">
+      <div className="mx-auto max-w-6xl px-1 p-4">
         {/* 브레드크럼 */}
         <Breadcrumbs
           items={[
@@ -126,7 +126,7 @@ export default function HorseDetailPage({ params }: PageProps) {
         />
 
         {/* 메인 콘텐츠 */}
-        <div className="flex flex-row items-center justify-between mt-5">
+        <div className="flex flex-row items-center justify-between mt-4">
           <h1 className="text-3xl font-bold"><span className="text-red-600">{horse.horseNumber}</span> {horse.horseName}</h1>
             <div className="mt-0">
               <Button 
