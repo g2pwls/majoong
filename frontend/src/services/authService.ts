@@ -48,6 +48,7 @@ const generateTimestampEmail = (originalEmail: string): string => {
 // 토큰을 로컬 스토리지에서 가져오기 (인터셉터에서 사용하기 위해 먼저 정의)
 export const getTokens = () => {
   const getValidToken = (key: string) => {
+    if (typeof window === 'undefined') return null;
     const value = localStorage.getItem(key);
     // null, 'null', 빈 문자열 모두 유효하지 않은 것으로 처리
     return value && value !== 'null' && value !== '' ? value : null;
@@ -222,12 +223,14 @@ export const refreshAccessToken = async (refreshToken: string): Promise<RefreshT
 
 // 토큰을 로컬 스토리지에 저장
 export const saveTokens = (accessToken: string, refreshToken: string, tempAccessToken: string, email?: string, role?: string, memberUuid?: string) => {
+  if (typeof window === 'undefined') return;
+  
   localStorage.setItem('accessToken', accessToken);
   localStorage.setItem('refreshToken', refreshToken);
   
   // tempAccessToken이 빈 문자열이면 제거, 아니면 저장
   if (tempAccessToken && tempAccessToken !== '') {
-  localStorage.setItem('tempAccessToken', tempAccessToken);
+    localStorage.setItem('tempAccessToken', tempAccessToken);
   } else {
     localStorage.removeItem('tempAccessToken');
   }
@@ -258,6 +261,8 @@ export const saveTokens = (accessToken: string, refreshToken: string, tempAccess
 
 // 토큰 삭제 (로그아웃 시)
 export const clearTokens = () => {
+  if (typeof window === 'undefined') return;
+  
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('tempAccessToken');

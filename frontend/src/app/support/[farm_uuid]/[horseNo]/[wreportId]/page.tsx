@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 import { Card, CardContent } from "@/components/ui/card";
+import { getUserRole } from "@/services/authService";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, FileText, AlertTriangle } from "lucide-react";
 
@@ -150,7 +151,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
       {/* 브레드크럼과 돌아가기 버튼 */}
       <div className="flex items-center justify-between mb-4">
         <Breadcrumbs items={[
-          { label: "목장후원", href: "/support" }, 
+          { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
           { label: farm?.farm_name || "농장", href: `/support/${farm_uuid}` },
           { label: `말 ${horseNo}번`, href: `/support/${farm_uuid}/${horseNo}` },
           { label: `주간 보고서 ${wreportId}` }

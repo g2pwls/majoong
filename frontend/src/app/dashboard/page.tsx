@@ -6,7 +6,7 @@ import { getTokens, getUserRole } from '@/services/authService';
 import { getMyFarm } from '@/services/userService';
 import { MyFarmResponse } from '@/types/user';
 
-export default function ShortcutPage() {
+export default function DashboardPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -136,7 +136,7 @@ export default function ShortcutPage() {
         {/* 페이지 헤더 */}
         <div className="text-center mb-12">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            목장주 바로가기
+            목장주 대시보드
           </h1>
           <p className="text-lg text-gray-600">
             목장 운영에 필요한 주요 기능에 빠르게 접근하세요

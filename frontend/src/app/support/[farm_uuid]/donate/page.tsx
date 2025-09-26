@@ -5,9 +5,10 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getFarm, Farm } from "@/services/apiService";
+import { getFarmDetail, FarmDetail } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
 import DonationForm from "@/components/donation/DonationForm";
+import FarmDetailCard from "@/components/farm/FarmDetailCard";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
@@ -16,7 +17,7 @@ export default function DonatePage() {
   const params = useParams();
   const farm_uuid = params.farm_uuid as string;
   
-  const [farmData, setFarmData] = useState<Farm | null>(null);
+  const [farmDetail, setFarmDetail] = useState<FarmDetail | null>(null);
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -24,14 +25,14 @@ export default function DonatePage() {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'kakao' | 'bank'>('kakao');
+  const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
   useEffect(() => {
-    const fetchFarmData = async () => {
+    const fetchFarmDetail = async () => {
       try {
-        const data = await getFarm(farm_uuid);
-        setFarmData(data);
+        const data = await getFarmDetail(farm_uuid);
+        setFarmDetail(data);
       } catch (error) {
         console.error("농장 정보를 가져오는데 실패했습니다:", error);
       } finally {
@@ -40,7 +41,7 @@ export default function DonatePage() {
     };
 
     if (farm_uuid) {
-      fetchFarmData();
+      fetchFarmDetail();
     }
   }, [farm_uuid]);
 
@@ -125,11 +126,7 @@ export default function DonatePage() {
   };
 
 
-  const handlePaymentMethodChange = (method: 'kakao' | 'bank') => {
-    if (method === 'bank') {
-      alert('무통장입금 기능은 추후 구현될 예정입니다.');
-      return;
-    }
+  const handlePaymentMethodChange = (method: 'kakao') => {
     setPaymentMethod(method);
   };
 
@@ -145,7 +142,7 @@ export default function DonatePage() {
     try {
       setShowConfirmPopup(false);
       
-      if (!farmData || selectedAmount <= 0) {
+      if (!farmDetail || selectedAmount <= 0) {
         alert('기부 정보가 올바르지 않습니다.');
         return;
       }
@@ -153,13 +150,13 @@ export default function DonatePage() {
       // 카카오페이 결제 시작 API 호출
       await startKakaoPay({
         totalPrice: selectedAmount.toString(),
-        farmUuid: farmData.id
+        farmUuid: farmDetail.farmUuid
       });
 
       console.log('카카오페이 결제 시작:', { 
-        farmName: farmData.farm_name, 
+        farmName: farmDetail.farmName, 
         amount: selectedAmount,
-        farmUuid: farmData.id 
+        farmUuid: farmDetail.farmUuid 
       });
     } catch (error) {
       console.error('카카오페이 결제 시작 오류:', error);
@@ -177,7 +174,7 @@ export default function DonatePage() {
     );
   }
 
-  if (!farmData) {
+  if (!farmDetail) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-lg text-red-500">농장 정보를 찾을 수 없습니다.</div>
@@ -200,25 +197,8 @@ export default function DonatePage() {
         <Card className="bg-white border border-gray-200 p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* 왼쪽: 농장 정보 */}
-            <div className="space-y-6">
-              <div className="flex flex-row">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  {farmData.farm_name}
-                </h2>
-                <div className="text-xl text-gray-600 ml-3">
-                  {farmData.total_score}°C
-                </div>
-              </div>
-              
-              <div className="relative">
-                <Image
-                  src={farmData.image_url}
-                  alt={`${farmData.farm_name} 프로필 이미지`}
-                  width={400}
-                  height={300}
-                  className="w-100 h-64 object-cover rounded-lg"
-                />
-              </div>
+            <div>
+              <FarmDetailCard farmDetail={farmDetail} />
             </div>
 
             {/* 오른쪽: 후원 정보 */}
@@ -229,7 +209,17 @@ export default function DonatePage() {
               isCustomInputActive={isCustomInputActive}
               paymentMethod={paymentMethod}
               showConfirmPopup={showConfirmPopup}
-              selectedFarm={farmData}
+              selectedFarm={{
+                id: farmDetail.farmUuid,
+                farm_name: farmDetail.farmName,
+                farmName: farmDetail.farmName,
+                total_score: farmDetail.totalScore,
+                totalScore: farmDetail.totalScore,
+                image_url: farmDetail.profileImage,
+                profileImage: farmDetail.profileImage,
+                address: farmDetail.address,
+                farmUuid: farmDetail.farmUuid
+              }}
               onAmountSelect={handleAmountSelect}
               onCustomAmountChange={handleCustomAmountChange}
               onCustomInputClick={handleCustomInputClick}

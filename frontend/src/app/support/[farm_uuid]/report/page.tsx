@@ -9,6 +9,7 @@ import HorseImageUpload from "@/components/farm/report/HorseImageUpload"; // Hor
 import DonationProofUpload from "@/components/farm/report/DonationProofUpload"; // DonationProofUpload 컴포넌트 불러오기
 import { FarmService } from "@/services/farmService";
 import { Farm } from "@/types/farm";
+import { getUserRole } from "@/services/authService";
 
 // ---- Types ----
 
@@ -188,7 +189,7 @@ function FarmReportContent({ farm_uuid }: { farm_uuid: string }) {
           {/* 브래드크럼 */}
           <Breadcrumbs
             items={[
-              { label: "목장후원", href: "/support" },
+              { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
               { label: title, href: `/support/${farm_uuid}` },
               { label: "운영 보고" },
             ]}

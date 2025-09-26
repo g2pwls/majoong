@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getFarms, getHorses, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
-import { isDonator, isFarmer } from "@/services/authService";
+import { isDonator, isFarmer, getUserRole } from "@/services/authService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -441,7 +441,7 @@ export default function SupportPage() {
       <main className="mx-auto max-w-6xl px-1 pb-16">
         <div className="py-8 pb-5">
           <Breadcrumbs items={[
-            { label: "목장후원", href: "/support" },
+            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
           ]} />
         </div>
 
