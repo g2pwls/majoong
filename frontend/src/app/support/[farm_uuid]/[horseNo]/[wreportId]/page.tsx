@@ -147,7 +147,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-1 p-8">
+    <div className="mx-auto max-w-6xl px-1 p-2">
       {/* 브레드크럼과 돌아가기 버튼 */}
       <div className="flex items-center justify-between mb-4">
         <Breadcrumbs items={[
