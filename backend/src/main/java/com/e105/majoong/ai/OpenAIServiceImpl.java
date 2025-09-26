@@ -141,14 +141,13 @@ public class OpenAIServiceImpl implements OpenAIService {
     }
 
     @Override
-    public String analyzeReport(String farmName, int year, int month, String content) {
+    public Mono<String> analyzeReport(String farmName, int year, int month, String content) {
         String finalPrompt = String.format(
                 "농장 이름: %s\n보고서 연월: %d년 %d월\n\n<<<<분석 데이터>>>>\n%s",
                 farmName, year, month, content
         );
 
         var messages = mapper.createArrayNode();
-
         var systemMessage = mapper.createObjectNode();
         systemMessage.put("role", "system");
         systemMessage.put("content", REPORT_SYSTEM_PROMPT);
@@ -165,107 +164,71 @@ public class OpenAIServiceImpl implements OpenAIService {
         requestBody.put("max_tokens", 1024);
         requestBody.put("temperature", 0.3);
 
-        try {
-            String responseJson = webClient.post()
-                    .uri(b -> b.path(textUrl).build())
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            return parseFirstMessageText(responseJson);
-
-        } catch (Exception e) {
-            log.error("OpenAI API 호출 실패", e);
-            return "월간 보고서 요약 중 오류가 발생했습니다: " + e.getMessage();
-        }
+        return webClient.post()
+                .uri(b -> b.path(textUrl).build())
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(this::parseFirstMessageText)
+                .onErrorResume(e -> {
+                    log.error("OpenAI API 호출 실패", e);
+                    return Mono.just("월간 보고서 요약 중 오류가 발생했습니다: " + e.getMessage());
+                });
     }
 
     @Override
-    public String generateThumbnail(String content) {
-        try {
-            // ✅ 프롬프트 랜덤 변형 배열
-            String[] variations = {
-                    "Warm and friendly illustration of horses grazing peacefully on a meadow, with a stable in the background, soft pastel tones, 16:9 aspect ratio.",
-                    "Cozy farm illustration of horses grazing under warm sunlight, with a barn in the distance, flat 2D style, 16:9 aspect ratio.",
-                    "Friendly cartoon-like illustration of a horse farm, horses eating grass on a meadow, soft colors, 16:9 ratio.",
-                    "Peaceful illustration of a horse ranch at sunset, horses standing near a wooden fence, soft warm lighting, 16:9 aspect ratio.",
-                    "Bright and colorful flat illustration of horses playing in a green pasture, with a small barn and trees in the background, 16:9 aspect ratio.",
-                    "Minimalist 2D illustration of a farm landscape with horses grazing, rolling hills, and a stable, warm muted tones, 16:9 aspect ratio.",
-                    "Cartoon-style illustration of happy horses eating hay in front of a red barn, cheerful atmosphere, 16:9 ratio.",
-                    "Illustration of horses relaxing under a tree in a sunny meadow, friendly and simple flat design, 16:9 aspect ratio.",
-                    "Whimsical illustration of a horse ranch, soft watercolor-like tones, wide landscape with barn and stable, 16:9 aspect ratio.",
-                    "Playful 2D farm illustration with horses grazing near a wooden fence, pastel palette, calm and warm mood, 16:9 aspect ratio."
-            };
+    public Mono<String> generateThumbnail(String content) {
+        String[] variations = {
+                "Warm and friendly illustration of horses grazing peacefully...",
+                "Cozy farm illustration...",
+                "Friendly cartoon-like illustration...",
+        };
+        String basePrompt = variations[new Random().nextInt(variations.length)];
+        String prompt = String.format("%s\nReport context: %s", basePrompt, shortenContent(content, 300));
 
+        var requestBody = mapper.createObjectNode();
+        var instances = mapper.createArrayNode();
+        var instance = mapper.createObjectNode();
+        instance.put("prompt", prompt);
+        instances.add(instance);
+        requestBody.set("instances", instances);
+        var params = mapper.createObjectNode();
+        params.put("sampleCount", 1);
+        requestBody.set("parameters", params);
 
-            String basePrompt = variations[new Random().nextInt(variations.length)];
+        String endpoint = String.format("%s%s?key=%s", imageBaseUrl, imageUrl, apiKey);
 
-            String prompt = String.format(
-                    "%s\nReport context: %s",
-                    basePrompt,
-                    shortenContent(content, 300)
-            );
-
-            // 요청 바디 생성
-            var requestBody = mapper.createObjectNode();
-            var instances = mapper.createArrayNode();
-
-            var instance = mapper.createObjectNode();
-            instance.put("prompt", prompt);
-            instances.add(instance);
-
-            requestBody.set("instances", instances);
-
-            var params = mapper.createObjectNode();
-            params.put("sampleCount", 1);
-            requestBody.set("parameters", params);
-
-            // 최종 endpoint
-            String endpoint = String.format(
-                    "%s%s?key=%s",
-                    imageBaseUrl,
-                    imageUrl,
-                    apiKey
-            );
-
-            // WebClient 호출
-            String responseJson = imageWebClient.post()
-                    .uri(endpoint)
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
-
-            // 응답 파싱
-            var root = mapper.readTree(responseJson);
-            var predictions = root.path("predictions");
-
-            if (predictions.isArray() && predictions.size() > 0) {
-                String base64Image = predictions.get(0).path("bytesBase64Encoded").asText();
-                byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-
-                return s3Uploader.uploadByBytes(
-                        imageBytes,
-                        "thumbnail.png",
-                        "thumbnails",
-                        "image/png"
-                );
-            }
-            log.error("Imagen 응답에 predictions 없음: {}", responseJson);
-            return null;
-
-        } catch (Exception e) {
-            log.error("이미지 생성 실패", e);
-            return null;
-        }
+        return imageWebClient.post()
+                .uri(endpoint)
+                .bodyValue(requestBody)
+                .retrieve()
+                .bodyToMono(String.class)
+                .map(responseJson -> {
+                    try {
+                        var root = mapper.readTree(responseJson);
+                        var predictions = root.path("predictions");
+                        if (predictions.isArray() && predictions.size() > 0) {
+                            String base64Image = predictions.get(0).path("bytesBase64Encoded").asText();
+                            byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+                            return s3Uploader.uploadByBytes(imageBytes, "thumbnail.png", "thumbnails", "image/png");
+                        }
+                        log.error("Imagen 응답에 predictions 없음: {}", responseJson);
+                        return null;
+                    } catch (Exception e) {
+                        log.error("이미지 응답 파싱 실패", e);
+                        return null;
+                    }
+                })
+                .onErrorResume(e -> {
+                    log.error("이미지 생성 실패", e);
+                    return Mono.justOrEmpty((String) null);
+                });
     }
 
     private String shortenContent(String content, int maxLength) {
         if (content == null) return "";
         return content.length() > maxLength ? content.substring(0, maxLength) + "..." : content;
     }
-
 
     private String firstMessageText(String json) {
         try {
@@ -281,13 +244,11 @@ public class OpenAIServiceImpl implements OpenAIService {
         try {
             if (json == null) return "API로부터 응답이 없습니다.";
             var root = mapper.readTree(json);
-
             if (root.has("error")) {
                 String errorMessage = root.path("error").path("message").asText("알 수 없는 오류");
                 log.error("OpenAI API 에러: {}", errorMessage);
                 return "보고서 생성 중 API 오류가 발생했습니다: " + errorMessage;
             }
-
             var choice0 = root.path("choices").get(0);
             return choice0.path("message").path("content").asText("내용을 요약하지 못했습니다.");
         } catch (Exception e) {
