@@ -8,7 +8,7 @@ import { Farm } from "@/types/farm";
 import { FarmService } from "@/services/farmService";
 import { ScoreHistory } from "@/types/farm";
 
-export default function IntroPanel({ farm }: { farm: Farm }) {
+export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isMyFarm?: boolean }) {
   const [deadlineText, setDeadlineText] = useState<string>("");
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
 
@@ -100,6 +100,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
           scoreHistory={scoreHistory}
           selectedYear={new Date().getFullYear()}
           currentScore={farm?.total_score || 0}
+          createdAt={farm?.created_at}
         />
       </div>
 
@@ -114,7 +115,8 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         {/* Horse registry section */}
         <HorseRegistrySection 
           farmUuid={farm?.farmUuid || ""} 
-          onHorseRegistered={() => {}}
+          onHorseRegistered={0}
+          isMyFarm={isMyFarm}
         />
       </div>
     </section>

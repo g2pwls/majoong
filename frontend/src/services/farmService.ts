@@ -99,6 +99,7 @@ export class FarmService {
         month_total_amount: farm.monthTotalAmount,
         purpose_total_amount: farm.purposeTotalAmount,
         bookmarked: farm.bookmark || false, // 북마크 상태 추가
+        created_at: farm.createdAt, // 생성일 추가
       };
     } catch (error) {
       console.error('농장 정보 조회 실패:', error);
@@ -427,11 +428,11 @@ export class FarmService {
   static async registerFarmWithFormData(formData: FormData): Promise<FarmRegistrationResponse> {
     try {
       console.log('농장 정보 등록/수정 API 요청 (FormData):', {
-        url: '/api/v1/members/farmers/my-farm',
+        url: '/api/v1/members/farmers',
         baseURL: API_BASE_URL
       });
 
-      const response = await apiClient.post('/api/v1/members/farmers/my-farm', formData, {
+      const response = await apiClient.post('/api/v1/members/farmers', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

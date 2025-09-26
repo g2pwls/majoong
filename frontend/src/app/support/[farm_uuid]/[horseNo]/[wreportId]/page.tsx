@@ -1,3 +1,4 @@
+// src/app/support/[farm_uuid]/[horseNo]/[wreportId]/page.tsx
 "use client";
 
 import { use, useEffect, useState, useCallback } from "react";
@@ -99,7 +100,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-500">주간 보고서를 불러오는 중...</p>
@@ -110,7 +111,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <FileText className="w-8 h-8 text-red-500" />
@@ -128,7 +129,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
 
   if (!report) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
             <FileText className="w-8 h-8 text-gray-400" />
@@ -145,27 +146,28 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl p-6">
-      {/* 브레드크럼 */}
-       <Breadcrumbs items={[
-         { label: "목장후원", href: "/support" }, 
-         { label: farm?.farm_name || "농장", href: `/support/${farm_uuid}` },
-         { label: `말 ${horseNo}번`, href: `/support/${farm_uuid}/${horseNo}` },
-         { label: `주간 보고서 ${wreportId}` }
-       ]} />
+    <div className="mx-auto max-w-6xl px-1 p-8">
+      {/* 브레드크럼과 돌아가기 버튼 */}
+      <div className="flex items-center justify-between mb-4">
+        <Breadcrumbs items={[
+          { label: "목장후원", href: "/support" }, 
+          { label: farm?.farm_name || "농장", href: `/support/${farm_uuid}` },
+          { label: `말 ${horseNo}번`, href: `/support/${farm_uuid}/${horseNo}` },
+          { label: `주간 보고서 ${wreportId}` }
+        ]} />
+        
+        <Button 
+          onClick={() => router.back()} 
+          variant="outline" 
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          말 상세 페이지로 돌아가기
+        </Button>
+      </div>
 
       {/* 헤더 */}
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button 
-            onClick={() => router.back()} 
-            variant="outline" 
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            돌아가기
-          </Button>
-        </div>
         
          <div className="bg-white rounded-lg shadow-sm border px-3 py-3">
            <div className="flex items-center justify-between">

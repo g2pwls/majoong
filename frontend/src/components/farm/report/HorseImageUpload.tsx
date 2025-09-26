@@ -46,7 +46,7 @@ export default function HorseImageUpload({
   const [specialRemarks, setSpecialRemarks] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 농장 위치 조회
+  // 목장 위치 조회
   useEffect(() => {
     const fetchFarmLocation = async () => {
       try {
@@ -54,7 +54,7 @@ export default function HorseImageUpload({
         const location = await FarmService.getFarmLocation(farmUuid);
         setFarmLocation(location);
       } catch (error) {
-        console.error('농장 위치 조회 실패:', error);
+        console.error('목장 위치 조회 실패:', error);
       } finally {
         setIsLoadingLocation(false);
       }
@@ -93,7 +93,7 @@ export default function HorseImageUpload({
 
   // 업로드된 이미지 개수 확인 (전체 검사 버튼용)
   const getUploadedImageCount = () => {
-    const imageTypes = ['front', 'side', 'back'];
+    const imageTypes = ['front', 'side', 'back', 'barn'];
     return imageTypes.filter(type => imageData[horseNo]?.[type]).length;
   };
 
@@ -216,9 +216,9 @@ export default function HorseImageUpload({
       return;
     }
 
-    // 농장 위치가 로드되지 않았으면 대기
+    // 목장 위치가 로드되지 않았으면 대기
     if (!farmLocation) {
-      alert('농장 위치 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      alert('목장 위치 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
       return;
     }
 
@@ -248,7 +248,7 @@ export default function HorseImageUpload({
       const dateValidation = validateImageDate(imageData.date);
       console.log(`${imageType} 이미지 날짜 검증 결과:`, dateValidation);
 
-      // 농장 위치와 이미지 위치 거리 계산
+      // 목장 위치와 이미지 위치 거리 계산
       const distance = calculateDistance(
         farmLocation.latitude,
         farmLocation.longitude,
@@ -256,7 +256,7 @@ export default function HorseImageUpload({
         imageData.lon
       );
       
-      console.log('농장 위치:', farmLocation);
+      console.log('목장 위치:', farmLocation);
       console.log('이미지 위치:', { lat: imageData.lat, lon: imageData.lon });
       console.log('거리:', distance, '미터');
 
@@ -375,160 +375,104 @@ export default function HorseImageUpload({
 
   return (
     <div className="border p-4 rounded-lg bg-gray-100 mb-4">
-      <h3 className="text-lg font-semibold">{hrNm} ({horseNo})</h3>
-      
-      {/* 농장 위치 정보 표시 */}
-      <div className="mt-2 mb-4 p-3 bg-blue-50 rounded-lg">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-semibold">{hrNm} ({horseNo})</h3>
+        
+        {/* 목장 위치 정보 표시 */}
         <div className="text-sm text-gray-700">
           {isLoadingLocation ? (
-            <span className="text-blue-600">📍 농장 위치 정보를 불러오는 중...</span>
+            <span className="text-blue-600">📍 목장 위치 정보를 불러오는 중...</span>
           ) : farmLocation ? (
             <span className="text-green-600">
-              📍 농장 위치: 위도 {farmLocation.latitude.toFixed(6)}, 경도 {farmLocation.longitude.toFixed(6)}
+              📍 위도 {farmLocation.latitude.toFixed(6)}, 경도 {farmLocation.longitude.toFixed(6)}
             </span>
           ) : (
-            <span className="text-red-600">❌ 농장 위치 정보를 불러올 수 없습니다.</span>
+            <span className="text-red-600">❌ 목장 위치 정보를 불러올 수 없습니다.</span>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mt-4">
-        {["front", "side", "back"].map((view) => (
-          <div key={view} className="flex flex-col items-center">
-            <div
-              className={`w-70 h-50 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all ${
-                dragOverType === view ? 'border-blue-500 bg-blue-50' : ''
-              } ${imageData[horseNo]?.[view] ? 'border-solid' : ''} ${
-                verificationResults[view]?.isValid ? 'border-green-500' : 
-                verificationResults[view]?.isValid === false ? 'border-red-500' : ''
-              }`}
-              style={{
-                backgroundImage: `url(${imageData[horseNo]?.[view] || ''})`,
-                backgroundSize: 'contain',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }}
-              onClick={() => document.getElementById(`file-${horseNo}-${view}`)?.click()}
-              draggable={!!imageData[horseNo]?.[view]}
-              onDragStart={(e) => handleDragStart(e, view)}
-              onDragOver={(e) => handleDragOver(e, view)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => {
-                if (e.dataTransfer.files.length > 0) {
-                  handleFileDrop(e, view);
-                } else {
-                  handleDrop(e, view);
-                }
-              }}
-            >
-              {!imageData[horseNo]?.[view] && (
-                <div className="text-center">
-                  <span className="text-xs text-gray-600 block">클릭 또는 드래그하여</span>
-                  <span className="text-xs text-gray-600 block">업로드</span>
+       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+         {["front", "side", "back", "barn"].map((view) => (
+           <div key={view} className="flex flex-col items-center">
+             <div
+               className={`w-full max-w-60 h-40 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all ${
+                 dragOverType === view ? 'border-blue-500 bg-blue-50' : ''
+               } ${imageData[horseNo]?.[view] ? 'border-solid' : ''} ${
+                 verificationResults[view]?.isValid ? 'border-green-500' : 
+                 verificationResults[view]?.isValid === false ? 'border-red-500' : ''
+               }`}
+               style={{
+                 backgroundImage: `url(${imageData[horseNo]?.[view] || ''})`,
+                 backgroundSize: 'contain',
+                 backgroundPosition: 'center',
+                 backgroundRepeat: 'no-repeat',
+               }}
+               onClick={() => document.getElementById(`file-${horseNo}-${view}`)?.click()}
+               draggable={!!imageData[horseNo]?.[view]}
+               onDragStart={(e) => handleDragStart(e, view)}
+               onDragOver={(e) => handleDragOver(e, view)}
+               onDragLeave={handleDragLeave}
+               onDrop={(e) => {
+                 if (e.dataTransfer.files.length > 0) {
+                   handleFileDrop(e, view);
+                 } else {
+                   handleDrop(e, view);
+                 }
+               }}
+             >
+               {!imageData[horseNo]?.[view] && (
+                 <div className="text-center">
+                   <span className="text-xs text-gray-600 block">클릭 또는 드래그하여</span>
+                   <span className="text-xs text-gray-600 block">업로드</span>
+                 </div>
+               )}
+             </div>
+             <input
+               id={`file-${horseNo}-${view}`}
+               type="file"
+               accept="image/*"
+               onChange={(e) => handleFileInput(e, view)}
+               className="mt-2 hidden"
+             />
+             <label className="text-sm mt-2">
+               {view === "front" ? "전면" : 
+                view === "side" ? "좌측" : 
+                view === "back" ? "우측" : "마구간"}
+             </label>
+             
+              {/* 검증 결과 표시 */}
+              {verificationResults[view] && (
+                <div className={`text-xs mt-1 p-2 rounded ${
+                  verificationResults[view].isValid 
+                    ? 'bg-green-100 text-green-800' 
+                    : verificationResults[view].message.includes('⚠️')
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  <div className="whitespace-pre-line">{verificationResults[view].message}</div>
                 </div>
               )}
-            </div>
-            <input
-              id={`file-${horseNo}-${view}`}
-              type="file"
-              accept="image/*"
-              onChange={(e) => handleFileInput(e, view)}
-              className="mt-2 hidden"
-            />
-            <label className="text-sm mt-2">{view === "front" ? "전면" : view === "side" ? "좌측" : "우측"}</label>
-            
-             {/* 검증 결과 표시 */}
-             {verificationResults[view] && (
-               <div className={`text-xs mt-1 p-2 rounded ${
-                 verificationResults[view].isValid 
-                   ? 'bg-green-100 text-green-800' 
-                   : verificationResults[view].message.includes('⚠️')
-                   ? 'bg-yellow-100 text-yellow-800'
-                   : 'bg-red-100 text-red-800'
-               }`}>
-                 <div className="whitespace-pre-line">{verificationResults[view].message}</div>
-               </div>
-             )}
-          </div>
-        ))}
-      </div>
-
-       {/* 상단 3뷰 검사 버튼 */}
-       <div className="mt-3 flex justify-end">
-         <button 
-           onClick={() => verifyAllImages()}
-           disabled={isVerifyingAll || getUploadedImageCount() === 0}
-           className={`px-4 py-2 rounded disabled:bg-gray-400 ${
-             getUploadedImageCount() === 0 
-               ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-               : getUploadedImageCount() === 3 
-                 ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
-                 : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-           }`}
-         >
-           {isVerifyingAll ? '검사 중...' : `전체 검사 (${getUploadedImageCount()}/3)`}
-         </button>
+           </div>
+         ))}
        </div>
 
-      {/* Barn Image Upload */}
-      <div className="mt-6">
-        <label className="block text-sm font-medium mb-2">마구간</label>
-        <div
-          className={`w-full h-60 bg-gray-300 border-dashed border-2 flex items-center justify-center cursor-pointer transition-all ${
-            dragOverType === 'barn' ? 'border-blue-500 bg-blue-50' : ''
-          } ${imageData[horseNo]?.barn ? 'border-solid' : ''} ${
-            verificationResults['barn']?.isValid ? 'border-green-500' : 
-            verificationResults['barn']?.isValid === false ? 'border-red-500' : ''
-          }`}
-          style={{
-            backgroundImage: `url(${imageData[horseNo]?.barn || ''})`,
-            backgroundSize: 'contain',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
-          }}
-          onClick={() => document.getElementById(`file-${horseNo}-barn`)?.click()}
-          onDragOver={(e) => handleDragOver(e, 'barn')}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleFileDrop(e, 'barn')}
-        >
-          {!imageData[horseNo]?.barn && (
-            <div className="text-center">
-              <span className="text-sm text-gray-600 block">클릭 또는 드래그하여</span>
-              <span className="text-sm text-gray-600 block">업로드</span>
-            </div>
-          )}
+        {/* 전체 검사 버튼 */}
+        <div className="mt-3 flex justify-end">
+          <button 
+            onClick={() => verifyAllImages()}
+            disabled={isVerifyingAll || getUploadedImageCount() === 0}
+            className={`px-4 py-2 rounded disabled:bg-gray-400 ${
+              getUploadedImageCount() === 0 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : getUploadedImageCount() === 4 
+                  ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                  : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+            }`}
+          >
+            {isVerifyingAll ? '검사 중...' : `전체 검사 (${getUploadedImageCount()}/4)`}
+          </button>
         </div>
-        <input
-          id={`file-${horseNo}-barn`}
-          type="file"
-          accept="image/*"
-          onChange={(e) => handleFileInput(e, 'barn')}
-          className="mt-2 hidden"
-        />
-        
-         {/* 마구간 검증 결과 표시 */}
-         {verificationResults['barn'] && (
-           <div className={`text-xs mt-2 p-2 rounded ${
-             verificationResults['barn'].isValid 
-               ? 'bg-green-100 text-green-800' 
-               : verificationResults['barn'].message.includes('⚠️')
-               ? 'bg-yellow-100 text-yellow-800'
-               : 'bg-red-100 text-red-800'
-           }`}>
-             <div className="whitespace-pre-line">{verificationResults['barn'].message}</div>
-           </div>
-         )}
-        
-         <div className="mt-3 flex justify-end">
-           <button 
-             onClick={() => verifyLocation('barn')}
-             disabled={isVerifying['barn'] || !imageData[horseNo]?.barn}
-             className="px-4 py-2 bg-gray-200 rounded disabled:bg-gray-400 text-gray-500"
-           >
-             {isVerifying['barn'] ? '검사 중...' : '마구간 검사'}
-           </button>
-         </div>
-      </div>
 
       {/* Special Remarks */}
       <div className="mt-6">

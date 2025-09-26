@@ -10,6 +10,7 @@ interface TrustScoreChartProps {
   scoreHistory: ScoreHistory[];
   selectedYear: number;
   currentScore: number;
+  createdAt?: string; // 목장 생성일
 }
 
 // 점수에 따른 색상 결정
@@ -20,16 +21,41 @@ const getScoreColor = (score: number) => {
 };
 
 // 선 그래프용 데이터 변환 (년도별 전체 데이터)
-const getLineChartData = (scoreHistory: ScoreHistory[], selectedYear: number) => {
-  if (scoreHistory.length === 0) return [];
-  
+const getLineChartData = (scoreHistory: ScoreHistory[], selectedYear: number, createdAt?: string) => {
   // 1월부터 12월까지 모든 월의 데이터를 생성
   const monthlyData = Array.from({ length: 12 }, (_, index) => {
     const month = index + 1;
     const monthData = scoreHistory.find(item => item.month === month);
+    
+    // 신뢰도 데이터가 있으면 해당 점수 사용
+    if (monthData) {
+      return {
+        month: `${month}월`,
+        score: monthData.avgScore,
+        year: selectedYear
+      };
+    }
+    
+    // 신뢰도 데이터가 없고, 생성일이 있는 경우
+    if (createdAt) {
+      const createdDate = new Date(createdAt);
+      const createdYear = createdDate.getFullYear();
+      const createdMonth = createdDate.getMonth() + 1; // getMonth()는 0부터 시작
+      
+      // 생성된 년도와 월이 현재 선택된 년도와 월과 정확히 일치하는 경우에만 38.2 표시
+      if (createdYear === selectedYear && month === createdMonth) {
+        return {
+          month: `${month}월`,
+          score: 38.2,
+          year: selectedYear
+        };
+      }
+    }
+    
+    // 그 외의 경우는 null (데이터 없음)
     return {
       month: `${month}월`,
-      score: monthData ? monthData.avgScore : null,
+      score: null,
       year: selectedYear
     };
   });
@@ -37,8 +63,8 @@ const getLineChartData = (scoreHistory: ScoreHistory[], selectedYear: number) =>
   return monthlyData;
 };
 
-export default function TrustScoreChart({ scoreHistory, selectedYear, currentScore }: TrustScoreChartProps) {
-  const lineChartData = getLineChartData(scoreHistory, selectedYear);
+export default function TrustScoreChart({ scoreHistory, selectedYear, currentScore, createdAt }: TrustScoreChartProps) {
+  const lineChartData = getLineChartData(scoreHistory, selectedYear, createdAt);
 
   return (
     <Card>
@@ -47,7 +73,7 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
             <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 평균 변화</h4>
-            <span className="text-sm text-red-500 font-medium">기준 38°C</span>
+            <span className="text-sm text-red-500 font-medium">기준 38.2°C</span>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">현재 신뢰도</p>
@@ -57,10 +83,10 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
           </div>
         </div>
         
-        {scoreHistory.length > 0 ? (
+        {scoreHistory.length > 0 || (createdAt && lineChartData.some(item => item.score !== null)) ? (
           <div className="space-y-4">
             {/* 선 그래프 */}
-            <div className="h-64">
+            <div className="h-59">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={lineChartData}>
                   <CartesianGrid strokeDasharray="3 3" />

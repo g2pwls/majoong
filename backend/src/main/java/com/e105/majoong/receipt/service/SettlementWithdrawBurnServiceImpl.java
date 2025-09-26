@@ -166,9 +166,10 @@ public class SettlementWithdrawBurnServiceImpl implements SettlementWithdrawBurn
 
     // 사용금액 누적 + 성공 이력 저장
     farm.updateUsedAmount(krw);
-    Long balance = farm.getTotalDonation() - farm.getUsedAmount();
+    Long balanceKrw = farm.getTotalDonation() - farm.getUsedAmount();
+
     historyRepository.save(SettlementHistory.released(
-        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, releaseTxHash, balance, krw, tokenCount, receiptHistory.getId()));
+        farmUuid, req.getIdempotencyKey(), farmerWallet, vaultAddress, tokenCount, releaseTxHash, balanceKrw, krw, tokenCount, receiptHistory.getId()));
 
     // ── (5) 원화 출금 ────────────────────────────────────────────
     WithdrawResponseDto withdrawRes;

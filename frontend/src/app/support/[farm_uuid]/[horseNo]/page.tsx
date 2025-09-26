@@ -114,7 +114,7 @@ export default function HorseDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl p-6">
+      <div className="mx-auto max-w-6xl px-1 p-8">
         {/* 브레드크럼 */}
         <Breadcrumbs
           items={[
@@ -134,7 +134,7 @@ export default function HorseDetailPage({ params }: PageProps) {
                 className="flex items-center gap-2"
               >
                 <ArrowLeft className="h-4 w-4" />
-                목장으로 돌아가기
+                목장으로 가기
               </Button>
           </div>
         </div>
