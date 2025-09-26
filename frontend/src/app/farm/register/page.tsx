@@ -14,7 +14,7 @@ export default function FarmRegisterPage() {
     phoneNumber: '',
     address: '',
     openingDate: '',
-    area: 0,
+    area: '',
     description: '',
     profileImage: null,
   });
@@ -95,8 +95,8 @@ export default function FarmRegisterPage() {
       newErrors.openingDate = '개업일자를 입력해주세요.';
     }
 
-    if (!formData.area || formData.area <= 0) {
-      newErrors.area = '목장 면적을 올바르게 입력해주세요.';
+    if (!formData.area.trim()) {
+      newErrors.area = '목장 면적을 입력해주세요.';
     }
 
     if (!formData.description.trim()) {
@@ -251,17 +251,18 @@ export default function FarmRegisterPage() {
             {/* 면적 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                목장 면적 (평) <span className="text-red-500">*</span>
+                목장 면적 <span className="text-red-500">*</span>
               </label>
               <input
-                type="number"
-                step="0.1"
-                min="0"
+                type="text"
                 value={formData.area}
-                onChange={(e) => handleInputChange('area', parseFloat(e.target.value) || 0)}
-                placeholder="예: 1000"
+                onChange={(e) => handleInputChange('area', e.target.value)}
+                placeholder="예: 1000평, 3.3㎡ 등"
                 className={`w-full px-3 py-2 border ${errors.area ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
               />
+              <p className="mt-1 text-xs text-gray-500">
+                면적을 자유롭게 입력해주세요. (예: 1000평, 3.3㎡, 1000m² 등)
+              </p>
               {errors.area && (
                 <p className="mt-1 text-sm text-red-500">{errors.area}</p>
               )}
