@@ -1,9 +1,17 @@
+"use client";
+
 import Link from "next/link";
 
 export default function IntroPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full space-y-8 text-center">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* 구름 애니메이션 배경 */}
+      <div className="clouds">
+        <div className="clouds-1"></div>
+        <div className="clouds-3"></div>
+      </div>
+      
+      <div className="max-w-md w-full space-y-8 text-center relative z-10">
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             마중
@@ -33,6 +41,55 @@ export default function IntroPage() {
           </p>
         </div>
       </div>
+
+      <style jsx>{`
+        @import url('https://fonts.googleapis.com/css?family=Oswald');
+
+        /* Animation & keyframes */
+        @keyframes clouds-loop-1 {
+          to { background-position: -1000px 0; }
+        }
+
+        @keyframes clouds-loop-3 {
+          to { background-position: -1579px 0; }
+        }
+
+        /* 하늘색 그라데이션 배경 */
+        .min-h-screen {
+          background: linear-gradient(#8FD9FB, #82C8E5);
+        }
+
+        .clouds {
+          opacity: 0.9;
+          pointer-events: none;
+          position: absolute;
+          overflow: hidden;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 100%;
+        }  
+          
+        .clouds-1,
+        .clouds-3 {
+          background-repeat: repeat-x;
+          position: absolute;
+          top: 0;
+          right: 0;
+          left: 0;
+          height: 500px;
+        }
+
+        .clouds-1 {
+          background-image: url('https://s.cdpn.io/15514/clouds_2.png');
+          animation: clouds-loop-1 20s infinite linear;
+        }
+
+        .clouds-3 {
+          background-image: url('https://s.cdpn.io/15514/clouds_3.png');
+          animation: clouds-loop-3 17s infinite linear;
+        }
+      `}</style>
     </div>
   );
 }
