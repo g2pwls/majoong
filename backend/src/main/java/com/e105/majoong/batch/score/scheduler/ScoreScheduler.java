@@ -11,12 +11,14 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "jobs.scheduling", name = "enabled", havingValue = "true")
 public class ScoreScheduler {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private final JobLauncher jobLauncher;
