@@ -25,7 +25,7 @@ public class Horse extends BaseEntity {
     @Column(nullable = false, length = 25)
     private String horseName;
 
-    private LocalDate birth;
+    private String birth;
 
     @Column(length = 50)
     private String gender;
@@ -39,19 +39,19 @@ public class Horse extends BaseEntity {
     @Column(length = 50)
     private String countryOfOrigin;
 
-    private Integer raceCount;
+    private String raceCount;
 
-    private Integer firstPlaceCount;
+    private String firstPlaceCount;
 
-    private Integer secondPlaceCount;
+    private String secondPlaceCount;
 
-    private Long totalPrize;
+    private String totalPrize;
 
-    private LocalDate retiredDate;
+    private String retiredDate;
 
-    private LocalDate firstRaceDate;
+    private String firstRaceDate;
 
-    private LocalDate lastRaceDate;
+    private String lastRaceDate;
 
     @Column(nullable = false)
     private String profileImage;

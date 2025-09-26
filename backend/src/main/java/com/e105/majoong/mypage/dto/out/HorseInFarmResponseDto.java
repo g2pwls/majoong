@@ -14,13 +14,13 @@ public class HorseInFarmResponseDto {
     private String horseNumber;
     private String horseName;
     private String profileImage;
-    private LocalDate birth;
-    private Integer raceCount;
+    private String birth;
+    private String raceCount;
     private String gender;
     private String breed;
-    private Long totalPrize;
-    private LocalDate firstRaceDate;
-    private LocalDate lastRaceDate;
+    private String totalPrize;
+    private String firstRaceDate;
+    private String lastRaceDate;
 
     public static HorseInFarmResponseDto toDto(String farmName, Horse horse) {
         return HorseInFarmResponseDto.builder()

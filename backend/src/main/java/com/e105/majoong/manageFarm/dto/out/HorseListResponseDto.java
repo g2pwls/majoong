@@ -11,7 +11,7 @@ public class HorseListResponseDto {
     private String horseName;
     private String breed;
     private String gender;
-    private LocalDate birth;
+    private String birth;
     private String profileImage;
     private String horseNumber;
 
