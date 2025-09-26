@@ -30,6 +30,11 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
   const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
   const [selectedMonth, setSelectedMonth] = useState<number | 'all'>('all');
   
+  // 목장 정보와 동적 년도/월 범위
+  const [farmCreatedAt, setFarmCreatedAt] = useState<string | null>(null);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<number[]>([]);
+  
   // 상세 조회를 위한 상태
   const [expandedReceipts, setExpandedReceipts] = useState<Set<number>>(new Set());
   const [receiptDetails, setReceiptDetails] = useState<Map<number, ReceiptDetail>>(new Map());
@@ -53,7 +58,56 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     details: false
   });
   
-  
+  // 목장 정보 가져오기 및 년도/월 범위 설정
+  const fetchFarmInfo = useCallback(async () => {
+    try {
+      const farmInfo = await FarmService.getFarm(farmUuid);
+      if (farmInfo.created_at) {
+        setFarmCreatedAt(farmInfo.created_at);
+        
+        // 목장 생성일부터 현재까지의 년도 범위 생성
+        const createdDate = new Date(farmInfo.created_at);
+        const currentDate = new Date();
+        const years = [];
+        
+        for (let year = createdDate.getFullYear(); year <= currentDate.getFullYear(); year++) {
+          years.push(year);
+        }
+        setAvailableYears(years);
+        
+        // 현재 년도가 선택된 년도와 같으면 생성일 이후부터 현재 월까지, 아니면 1-12월
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+        const months = [];
+        
+        if (selectedYear === currentYear && createdDate.getFullYear() === currentYear) {
+          // 같은 년도면 생성일 이후부터 현재 월까지
+          for (let month = createdDate.getMonth() + 1; month <= currentMonth; month++) {
+            months.push(month);
+          }
+        } else if (selectedYear === createdDate.getFullYear()) {
+          // 생성년도면 생성일 이후부터 12월까지 (미래가 아닌 경우)
+          for (let month = createdDate.getMonth() + 1; month <= 12; month++) {
+            months.push(month);
+          }
+        } else if (selectedYear === currentYear) {
+          // 현재 년도면 1월부터 현재 월까지
+          for (let month = 1; month <= currentMonth; month++) {
+            months.push(month);
+          }
+        } else {
+          // 다른 년도면 1-12월
+          for (let month = 1; month <= 12; month++) {
+            months.push(month);
+          }
+        }
+        
+        setAvailableMonths(months);
+      }
+    } catch (error) {
+      console.error('목장 정보 조회 실패:', error);
+    }
+  }, [farmUuid, selectedYear]);
 
   // 기부금 사용 내역 조회 (선택된 월용) - 캐싱 적용
   const fetchDonationUsage = useCallback(async (year: number | 'all', month: number | 'all') => {
@@ -83,8 +137,10 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         const allReceipts: ReceiptHistory[] = [];
         const allMonthlyData: MonthlyDonationUsed[] = [];
         
-        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
-        for (let y = 2021; y <= 2025; y++) {
+        // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
           if (month === 'all') {
             // 전체 년도 + 전체 월 조회
             for (let m = 1; m <= 12; m++) {
@@ -212,8 +268,10 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         console.log('전체 년도 연간 기부금 사용 내역 조회 시작:', { farmUuid });
         const allMonthlyData: MonthlyDonationUsed[] = [];
         
-        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
-        for (let y = 2021; y <= 2025; y++) {
+        // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
           for (let month = 1; month <= 12; month++) {
             try {
               console.log(`${y}년 ${month}월 데이터 조회 중...`);
@@ -288,6 +346,9 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       setLoading(true);
       setError(null);
       
+      // 목장 정보 먼저 가져오기
+      await fetchFarmInfo();
+      
       // 항상 연간 데이터를 먼저 가져옴 (막대그래프용)
       await fetchYearlyData(selectedYear);
       
@@ -304,13 +365,48 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     };
 
     initializeData();
-  }, [farmUuid, selectedYear, selectedMonth, fetchDonationUsage, fetchYearlyData]);
+  }, [farmUuid, selectedYear, selectedMonth, fetchDonationUsage, fetchYearlyData, fetchFarmInfo]);
 
 
   const handleYearChange = (year: number | 'all') => {
     setSelectedYear(year);
     setCurrentPage(1); // 페이지 리셋
   };
+
+  // 년도 변경 시 월 범위 업데이트
+  useEffect(() => {
+    if (farmCreatedAt) {
+      const createdDate = new Date(farmCreatedAt);
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+      const months = [];
+      
+      if (selectedYear === currentYear && createdDate.getFullYear() === currentYear) {
+        // 같은 년도면 생성일 이후부터 현재 월까지
+        for (let month = createdDate.getMonth() + 1; month <= currentMonth; month++) {
+          months.push(month);
+        }
+      } else if (selectedYear === createdDate.getFullYear()) {
+        // 생성년도면 생성일 이후부터 12월까지 (미래가 아닌 경우)
+        for (let month = createdDate.getMonth() + 1; month <= 12; month++) {
+          months.push(month);
+        }
+      } else if (selectedYear === currentYear) {
+        // 현재 년도면 1월부터 현재 월까지
+        for (let month = 1; month <= currentMonth; month++) {
+          months.push(month);
+        }
+      } else {
+        // 다른 년도면 1-12월
+        for (let month = 1; month <= 12; month++) {
+          months.push(month);
+        }
+      }
+      
+      setAvailableMonths(months);
+    }
+  }, [selectedYear, farmCreatedAt]);
 
   const handleMonthChange = (month: number | 'all') => {
     setSelectedMonth(month);
@@ -530,10 +626,10 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
   // 원형 그래프용 데이터와 제목 결정
   const chartData = isAllSelected ? getAllDonationUsageData() : getSelectedMonthDonationUsageData();
   const chartTitle = selectedYear === 'all' 
-    ? '전체 기부금 사용 비율'
+    ? '기부금 사용 비율 (전체)'
     : isAllSelected
-      ? `${selectedYear}년 전체 기부금 사용 비율`
-      : `${selectedYear}년 ${selectedMonth}월 기부금 사용 비율`;
+      ? `기부금 사용 비율 (${selectedYear}년 전체)`
+      : `기부금 사용 비율 (${selectedYear}년 ${selectedMonth}월)`;
   const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
 
   // 상세 내역용 데이터 결정 (전체 선택 시 allYearData, 아니면 selectedMonthData)
@@ -580,10 +676,10 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
               <Receipt className="h-5 w-5 text-purple-600" />
               <h4 className="text-lg font-semibold">
                 {selectedYear === 'all' 
-                  ? '전체 기부금 사용 내역'
+                  ? '기부금 사용 상세 내역 (전체)'
                   : isAllSelected
-                    ? `${selectedYear}년 전체 기부금 사용 내역`
-                    : `${selectedYear}년 ${selectedMonth}월 기부금 사용 상세 내역`
+                    ? `기부금 사용 상세 내역 (${selectedYear}년 전체)`
+                    : `기부금 사용 상세 내역 (${selectedYear}년 ${selectedMonth}월)`
                 }
               </h4>
             </div>
@@ -595,11 +691,9 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                 className="px-3 py-1 border rounded-md text-sm"
               >
                 <option value="all">전체</option>
-                <option value={2025}>2025</option>
-                <option value={2024}>2024</option>
-                <option value={2023}>2023</option>
-                <option value={2022}>2022</option>
-                <option value={2021}>2021</option>
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
               </select>
               <select
                 value={selectedMonth}
@@ -607,18 +701,9 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                 className="px-3 py-1 border rounded-md text-sm"
               >
                 <option value="all">전체</option>
-                <option value={1}>1월</option>
-                <option value={2}>2월</option>
-                <option value={3}>3월</option>
-                <option value={4}>4월</option>
-                <option value={5}>5월</option>
-                <option value={6}>6월</option>
-                <option value={7}>7월</option>
-                <option value={8}>8월</option>
-                <option value={9}>9월</option>
-                <option value={10}>10월</option>
-                <option value={11}>11월</option>
-                <option value={12}>12월</option>
+                {availableMonths.map(month => (
+                  <option key={month} value={month}>{month}월</option>
+                ))}
               </select>
             </div>
           </div>
@@ -899,8 +984,8 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                 {selectedYear === 'all' 
                   ? '기부금 사용 내역이 없습니다.'
                   : isAllSelected
-                    ? `${selectedYear}년의 기부금 사용 내역이 없습니다.`
-                    : `${selectedYear}년 ${selectedMonth}월의 기부금 사용 내역이 없습니다.`
+                    ? `기부금 사용 내역이 없습니다. (${selectedYear}년)`
+                    : `기부금 사용 내역이 없습니다. (${selectedYear}년 ${selectedMonth}월)`
                 }
               </p>
             </div>

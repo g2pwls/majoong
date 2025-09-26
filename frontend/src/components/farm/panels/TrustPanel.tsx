@@ -22,6 +22,62 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null); // null이면 전체, 숫자면 해당 월
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  
+  // 목장 정보와 동적 년도/월 범위
+  const [farmCreatedAt, setFarmCreatedAt] = useState<string | null>(null);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<number[]>([]);
+
+  // 목장 정보 가져오기 및 년도/월 범위 설정
+  const fetchFarmInfo = useCallback(async () => {
+    try {
+      const farmInfo = await FarmService.getFarm(farmUuid);
+      if (farmInfo.created_at) {
+        setFarmCreatedAt(farmInfo.created_at);
+        
+        // 목장 생성일부터 현재까지의 년도 범위 생성
+        const createdDate = new Date(farmInfo.created_at);
+        const currentDate = new Date();
+        const years = [];
+        
+        for (let year = createdDate.getFullYear(); year <= currentDate.getFullYear(); year++) {
+          years.push(year);
+        }
+        setAvailableYears(years);
+        
+        // 현재 년도가 선택된 년도와 같으면 생성일 이후부터 현재 월까지, 아니면 1-12월
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+        const months = [];
+        
+        if (selectedYear === currentYear && createdDate.getFullYear() === currentYear) {
+          // 같은 년도면 생성일 이후부터 현재 월까지
+          for (let month = createdDate.getMonth() + 1; month <= currentMonth; month++) {
+            months.push(month);
+          }
+        } else if (selectedYear === createdDate.getFullYear()) {
+          // 생성년도면 생성일 이후부터 12월까지 (미래가 아닌 경우)
+          for (let month = createdDate.getMonth() + 1; month <= 12; month++) {
+            months.push(month);
+          }
+        } else if (selectedYear === currentYear) {
+          // 현재 년도면 1월부터 현재 월까지
+          for (let month = 1; month <= currentMonth; month++) {
+            months.push(month);
+          }
+        } else {
+          // 다른 년도면 1-12월
+          for (let month = 1; month <= 12; month++) {
+            months.push(month);
+          }
+        }
+        
+        setAvailableMonths(months);
+      }
+    } catch (error) {
+      console.error('목장 정보 조회 실패:', error);
+    }
+  }, [farmUuid, selectedYear]);
 
   // 신뢰도 내역 조회 (월별 평균)
   const fetchScoreHistory = useCallback(async (year: number | 'all', month?: number) => {
@@ -34,8 +90,10 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
         console.log('전체 년도 신뢰도 내역 조회 시작:', { farmUuid });
         const allScoreHistory: ScoreHistory[] = [];
         
-        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
-        for (let y = 2021; y <= 2025; y++) {
+        // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
           try {
             console.log(`${y}년 신뢰도 내역 조회 중...`);
             const response = await FarmService.getScoreHistory(farmUuid, y, month);
@@ -77,8 +135,10 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
         console.log('전체 년도 신뢰도 목록 조회 시작:', { farmUuid });
         const allScoreHistoryList: ScoreHistoryItem[] = [];
         
-        // 2021년부터 2025년까지 각 년도의 데이터를 가져옴
-        for (let y = 2021; y <= 2025; y++) {
+        // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
           try {
             console.log(`${y}년 신뢰도 목록 조회 중...`);
             const response = await FarmService.getScoreHistoryList(farmUuid, y, month);
@@ -111,9 +171,16 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
 
   // 년도 변경 시 그래프 데이터와 상세 내역 조회
   useEffect(() => {
-    fetchScoreHistory(selectedYear);
-    fetchScoreHistoryList(selectedYear, selectedMonth || undefined);
-  }, [farmUuid, selectedYear, fetchScoreHistory, fetchScoreHistoryList, selectedMonth]);
+    const initializeData = async () => {
+      // 목장 정보 먼저 가져오기
+      await fetchFarmInfo();
+      // 신뢰도 내역 조회
+      await fetchScoreHistory(selectedYear);
+      await fetchScoreHistoryList(selectedYear, selectedMonth || undefined);
+    };
+    
+    initializeData();
+  }, [farmUuid, selectedYear, fetchScoreHistory, fetchScoreHistoryList, selectedMonth, fetchFarmInfo]);
 
   // 월 변경 시 상세 내역만 다시 조회
   useEffect(() => {
@@ -129,6 +196,41 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
     setSelectedMonth(null); // 년도 변경 시 월 선택 초기화
     setCurrentPage(1); // 년도 변경 시 첫 페이지로 리셋
   };
+
+  // 년도 변경 시 월 범위 업데이트
+  useEffect(() => {
+    if (farmCreatedAt) {
+      const createdDate = new Date(farmCreatedAt);
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+      const months = [];
+      
+      if (selectedYear === currentYear && createdDate.getFullYear() === currentYear) {
+        // 같은 년도면 생성일 이후부터 현재 월까지
+        for (let month = createdDate.getMonth() + 1; month <= currentMonth; month++) {
+          months.push(month);
+        }
+      } else if (selectedYear === createdDate.getFullYear()) {
+        // 생성년도면 생성일 이후부터 12월까지 (미래가 아닌 경우)
+        for (let month = createdDate.getMonth() + 1; month <= 12; month++) {
+          months.push(month);
+        }
+      } else if (selectedYear === currentYear) {
+        // 현재 년도면 1월부터 현재 월까지
+        for (let month = 1; month <= currentMonth; month++) {
+          months.push(month);
+        }
+      } else {
+        // 다른 년도면 1-12월
+        for (let month = 1; month <= 12; month++) {
+          months.push(month);
+        }
+      }
+      
+      setAvailableMonths(months);
+    }
+  }, [selectedYear, farmCreatedAt]);
 
   const handleMonthChange = (month: number | null) => {
     setSelectedMonth(month);
@@ -262,11 +364,9 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
               className="px-3 py-1 border rounded-md text-sm"
             >
               <option value="all">전체</option>
-              <option value={2025}>2025</option>
-              <option value={2024}>2024</option>
-              <option value={2023}>2023</option>
-              <option value={2022}>2022</option>
-              <option value={2021}>2021</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
             </select>
             <select
               value={selectedMonth || ''}
@@ -274,18 +374,9 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
               className="px-3 py-1 border rounded-md text-sm"
             >
               <option value="">전체</option>
-              <option value={1}>1월</option>
-              <option value={2}>2월</option>
-              <option value={3}>3월</option>
-              <option value={4}>4월</option>
-              <option value={5}>5월</option>
-              <option value={6}>6월</option>
-              <option value={7}>7월</option>
-              <option value={8}>8월</option>
-              <option value={9}>9월</option>
-              <option value={10}>10월</option>
-              <option value={11}>11월</option>
-              <option value={12}>12월</option>
+              {availableMonths.map(month => (
+                <option key={month} value={month}>{month}월</option>
+              ))}
             </select>
           </div>
         </div>
