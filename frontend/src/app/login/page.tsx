@@ -35,7 +35,7 @@ export default function LoginPage() {
   if (error) {
     return (
       <SkyBackground>
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="text-red-500 text-xl mb-4">⚠️</div>
             <p className="text-white mb-4">{error}</p>
@@ -56,7 +56,7 @@ export default function LoginPage() {
   // 일반 로그인 UI
   return (
     <SkyBackground>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <h2 className="mt-6 text-3xl font-extrabold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
