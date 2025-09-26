@@ -160,6 +160,7 @@ public class FarmController {
     }
 
     @GetMapping("/recommend")
+    @Operation(summary = "바로 기부 페이지 추천 농장 조회")
     public BaseResponse<List<FarmRecommendRequestDto>> getRecommendFarm() {
         YearMonth yearMonth = YearMonth.now(ZoneId.of("Asia/Seoul"));
         return new BaseResponse<>(farmRecommendationService.recommendFarm(yearMonth));

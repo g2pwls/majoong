@@ -1,7 +1,11 @@
 package com.e105.majoong.farm.service;
 
+import com.e105.majoong.common.entity.BaseResponseStatus;
+import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
+import com.e105.majoong.common.model.farmer.Farmer;
+import com.e105.majoong.common.model.farmer.FarmerRepository;
 import com.e105.majoong.farm.dto.out.FarmRecommendRequestDto;
 import com.e105.majoong.farm.dto.out.RecentStateDto;
 import com.e105.majoong.farm.util.FarmCacheUtil;
@@ -28,6 +32,7 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
     private final FarmCacheUtil farmCacheUtil;
     private final DonationLimitFilterService donationLimitFilterService;
     private final FarmRepository farmRepository;
+    private final FarmerRepository farmerRepository;
 
     @Override
     public List<FarmRecommendRequestDto> recommendFarm(YearMonth yearMonth) {
@@ -134,8 +139,11 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
             shows.put(chosenFarm.getFarmUuid(), updatedShows);
             last.put(chosenFarm.getFarmUuid(), nowMs);
 
+            String memberUuid = chosenFarm.getMemberUuid();
+            Farmer farmer = farmerRepository.findByMemberUuid(memberUuid).orElseThrow(
+                    () -> new BaseException(BaseResponseStatus.NO_EXIST_FARMER));
             //topK 리스트에 추가
-            topK.add(FarmRecommendRequestDto.toDto(chosenFarm));
+            topK.add(FarmRecommendRequestDto.toDto(chosenFarm, farmer.getName()));
             String chosenFarmUuid = chosenFarm.getFarmUuid();
             //다음 라운드에서 중복 추천되지 않도록 후보군에서 제거
             pool.removeIf(farm -> Objects.equals(farm.getFarmUuid(), chosenFarmUuid));

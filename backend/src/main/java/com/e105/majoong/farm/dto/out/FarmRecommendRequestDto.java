@@ -13,8 +13,10 @@ public class FarmRecommendRequestDto {
     private Double totalScore;
     private String address;
     private String description;
+    private String farmerName;
+    private int horseCount;
 
-    public static FarmRecommendRequestDto toDto(Farm farm) {
+    public static FarmRecommendRequestDto toDto(Farm farm, String farmerName) {
         return FarmRecommendRequestDto.builder()
                 .farmUuid(farm.getFarmUuid())
                 .profileImage(farm.getProfileImage())
@@ -22,6 +24,8 @@ public class FarmRecommendRequestDto {
                 .address(farm.getAddress())
                 .description(farm.getDescription())
                 .totalScore(farm.getTotalScore())
+                .farmerName(farmerName)
+                .horseCount(farm.getHorseCount())
                 .build();
     }
 }
