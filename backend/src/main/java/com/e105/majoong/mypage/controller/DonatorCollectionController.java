@@ -3,7 +3,6 @@ package com.e105.majoong.mypage.controller;
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.mypage.dto.in.DonatorCardCreateDto;
-import com.e105.majoong.mypage.dto.out.BookmarkResponseDto;
 import com.e105.majoong.mypage.dto.out.HorseInFarmResponseDto;
 import com.e105.majoong.mypage.service.DonatorCollectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
