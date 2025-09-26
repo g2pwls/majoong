@@ -192,7 +192,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
            </div>
          </div>
       </div>
-
+ 
       {/* 보고서 내용 */}
       <div className="space-y-6">
         {/* 이미지 섹션 */}
