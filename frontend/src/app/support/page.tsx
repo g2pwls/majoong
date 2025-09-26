@@ -66,7 +66,7 @@ const FarmCard: React.FC<{
 
   return (
     <Link href={`/support/${farm.id}`} className="block">
-      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer p-0">
+      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out hover:rotate-0 hover:-translate-y-3 hover:scale-101 cursor-pointer p-0 will-change-transform">
         <div className="flex flex-col lg:flex-row lg:items-stretch lg:justify-between h-auto lg:h-58">
           {/* 왼쪽: 이미지 (패딩 없이 꽉 차게, 고정 크기) */}
           <div className="relative lg:w-1/3 h-48 sm:h-56 lg:h-full">
@@ -439,7 +439,7 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen">
       <main className="mx-auto max-w-6xl px-1 pb-16">
-        <div className="py-8 pb-5">
+        <div className="py-4">
           <Breadcrumbs items={[
             { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
           ]} />

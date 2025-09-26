@@ -135,20 +135,11 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   // farm_uuid prop을 사용
 
   return (
-    <div className="mx-auto max-w-6xl px-1 p-8">
+    <div className="mx-auto max-w-6xl px-1 p-4">
       {/* 브레드크럼과 버튼들 */}
       <div className="flex items-center justify-between">
         <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
         <div className="flex gap-2">
-          {/* 기부하기 버튼 - 기부자이고 농부가 아닌 경우에만 표시 */}
-          {isDonator() && !isFarmer() && (
-            <Link 
-              href={`/support/${farm_uuid}/donate`}
-              className="bg-green-500 text-white py-1 px-4 rounded-md hover:bg-green-600 transition-colors"
-            >
-              기부하기
-            </Link>
-          )}
           {/* 목장 정보 수정 버튼 - 내 목장인 경우에만 표시 */}
           {isMyFarm && (
             <Link 
@@ -186,7 +177,12 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} />
+          <FarmTabs 
+            value={tab} 
+            onChange={onChangeTab} 
+            farmUuid={farm_uuid}
+            showDonateButton={isDonator() && !isFarmer()}
+          />
           <div className="mt-4.5">
             {tab === "intro" && <IntroPanel farm={farm} isMyFarm={false} />}
             {tab === "horses" && <HorsesPanel farmUuid={farm_uuid} isMyFarm={isMyFarm} />}
