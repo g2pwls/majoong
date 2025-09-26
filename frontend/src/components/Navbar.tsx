@@ -2,6 +2,7 @@
 
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -113,6 +114,32 @@ export default function Navbar() {
       setShowFarmRegistrationModal(true);
     }
   };
+
+  // ESC 키로 모달 닫기
+  React.useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showFarmRegistrationModal) {
+        setShowFarmRegistrationModal(false);
+      }
+    };
+
+    if (showFarmRegistrationModal) {
+      document.addEventListener('keydown', handleEscape);
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [showFarmRegistrationModal]);
+
+  // 모달이 열릴 때 body 스크롤 제어
+  React.useEffect(() => {
+    if (showFarmRegistrationModal) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [showFarmRegistrationModal]);
 
   // intro 페이지에서는 네브바를 표시하지 않음
   if (pathname === '/intro') {
@@ -241,8 +268,14 @@ export default function Navbar() {
 
       {/* 목장 등록 모달 - Portal을 사용하여 body에 직접 렌더링 */}
       {showFarmRegistrationModal && typeof window !== 'undefined' && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
+          onClick={() => setShowFarmRegistrationModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center">
               <div className="text-2xl mb-4">🚜</div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">

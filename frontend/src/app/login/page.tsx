@@ -37,13 +37,13 @@ export default function LoginPage() {
       <SkyBackground>
         <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="text-red-500 text-xl mb-4">⚠️</div>
-            <p className="text-white mb-4">{error}</p>
+            <div className="text-red-500 text-xl mb-3">⚠️</div>
+            <p className="text-white mb-3">{error}</p>
             <button
               onClick={() => {
                 setError(null);
               }}
-              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
             >
               다시 시도
             </button>
@@ -57,17 +57,17 @@ export default function LoginPage() {
   return (
     <SkyBackground>
       <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+        <div className="max-w-md w-full space-y-4">
           <div className="text-center">
-            <h2 className="mt-6 text-3xl font-extrabold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+            <h2 className="text-2xl font-extrabold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
               로그인
             </h2>
-            <p className="mt-2 text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+            <p className="mt-1 text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
               카카오톡으로 간편하게 로그인하세요
             </p>
           </div>
           
-          <div className="mt-8 space-y-6">
+          <div className="mt-4 space-y-4">
             <div className="flex justify-center">
               <button
                 onClick={handleKakaoLogin}

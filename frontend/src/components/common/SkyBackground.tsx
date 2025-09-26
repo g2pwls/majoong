@@ -50,7 +50,6 @@ export default function SkyBackground({ children, className = '' }: SkyBackgroun
         .content {
           position: relative;
           z-index: 10;
-          padding: 20px;
         }
           
         .clouds {
