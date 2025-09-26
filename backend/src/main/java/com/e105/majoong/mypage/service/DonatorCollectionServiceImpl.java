@@ -4,6 +4,7 @@ import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
 import com.e105.majoong.common.model.collection.CollectionCard;
 import com.e105.majoong.common.model.collection.CollectionCardRepository;
+import com.e105.majoong.common.model.collection.CollectionCardRepositoryCustom;
 import com.e105.majoong.common.model.donator.DonatorRepository;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.model.farm.FarmRepository;
@@ -25,6 +26,7 @@ public class DonatorCollectionServiceImpl implements DonatorCollectionService {
     private final HorseRepository horseRepository;
     private final FarmRepository farmRepository;
     private final CollectionCardRepository collectionRepository;
+    private final CollectionCardRepositoryCustom collectionCardRepositoryCustom;
 
     @Override
     public List<HorseInFarmResponseDto> getHorsesByDonator(String memberUuid, String farmUuid) {
@@ -44,16 +46,8 @@ public class DonatorCollectionServiceImpl implements DonatorCollectionService {
         if (!donatorRepository.existsByMemberUuid(memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_EXIST_DONATOR);
         }
-        Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
-                () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
-        List<CollectionCard> cards = collectionRepository.findByMemberUuid(memberUuid);
-        String farmName = farm.getFarmName();
-        return cards.stream().map(card -> horseRepository.findByHorseNumberAndDeletedAtIsNull(card.getHorseNumber())
-                        .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_HORSE)))
-                .filter(horse -> horse.getFarm().equals(farm))
-                .map(horse -> HorseInFarmResponseDto.toDto(farmName, horse))
-                .toList();
+        return collectionCardRepositoryCustom.getCollectionList(memberUuid, farmUuid);
     }
 
     @Override

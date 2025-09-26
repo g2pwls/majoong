@@ -28,9 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "CollectionCard API", description = "카드 collection API")
 public class DonatorCollectionController {
     private final DonatorCollectionService donatorCollectionService;
-    //농장에 있는 말 목록 조회
-    //회원 카드 목록 조회
-    //회원 카드 저장
+
     @GetMapping("/farms/{farmUuid}")
     @Operation(summary = "기부 후 농장에 있는 말 목록 조회")
     public BaseResponse<List<HorseInFarmResponseDto>> getHorsesByDonator(@AuthenticationPrincipal CustomUserDetails user,
