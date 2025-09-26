@@ -177,7 +177,7 @@ export function MonthlyBarChart({ data, title }: MonthlyBarChartProps) {
                 tick={{ fontSize: 12 }}
                 axisLine={{ stroke: '#e5e7eb' }}
                 tickLine={{ stroke: '#e5e7eb' }}
-                tickFormatter={(value) => `${(value / 100).toFixed(0)}원`}
+                tickFormatter={(value) => `${(value / 100).toFixed(0)}K`}
               />
               <Tooltip 
                 formatter={(value: number) => [`${value.toLocaleString()}원`, '사용금액']}
