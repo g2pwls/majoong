@@ -19,9 +19,13 @@ export default function PaymentMethodSelector({
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-3">
           <Button
-            variant="default"
-            className="h-12 bg-yellow-400 hover:bg-yellow-500 text-white cursor-default"
-            disabled
+            variant={paymentMethod === 'kakao' ? 'default' : 'outline'}
+            onClick={() => onPaymentMethodChange('kakao')}
+            className={`h-12 ${
+              paymentMethod === 'kakao'
+                ? 'bg-yellow-400 hover:bg-yellow-500 text-white'
+                : 'border-yellow-400 text-yellow-600 hover:bg-yellow-50'
+            } transition-colors`}
           >
             카카오페이
           </Button>

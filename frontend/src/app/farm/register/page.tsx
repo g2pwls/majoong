@@ -143,150 +143,179 @@ export default function FarmRegisterPage() {
         {/* 헤더 */}
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">목장 등록</h1>
-          <p className="text-gray-600">목장 정보를 등록하여 마중 서비스를 시작해보세요</p>
+          <p className="text-gray-600">목장을 등록하여 마중 서비스를 시작해보세요</p>
         </div>
 
         {/* 등록 폼 */}
         <div className="bg-white rounded-lg shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* 프로필 이미지 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                목장 프로필 이미지
+            {/* 대표 사진 */}
+            <div className="flex items-start space-x-4">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+                목장 대표 사진
               </label>
-              <div className="flex items-center space-x-4">
-                {formData.profileImage ? (
-                  <div className="relative">
-                    <img
-                      src={URL.createObjectURL(formData.profileImage)}
-                      alt="목장 프로필"
-                      className="w-24 h-24 object-cover rounded-lg border border-gray-300"
+              <div className="flex-1">
+                <div className="flex items-start space-x-4">
+                  {formData.profileImage ? (
+                    <div className="relative">
+                      <img
+                        src={URL.createObjectURL(formData.profileImage)}
+                        alt="목장 프로필"
+                        className="w-24 h-24 object-cover rounded-lg border border-gray-300"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-24 h-24 bg-gray-200 rounded-lg border border-gray-300 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="flex flex-col justify-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      className="hidden"
                     />
                     <button
                       type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
                     >
-                      ×
+                      이미지 선택
                     </button>
+                    <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일 (최대 5MB)</p>
                   </div>
-                ) : (
-                  <div className="w-24 h-24 bg-gray-200 rounded-lg border border-gray-300 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                )}
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
-                  >
-                    이미지 선택
-                  </button>
-                  <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일 (최대 5MB)</p>
                 </div>
               </div>
             </div>
 
             {/* 연락처 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex items-start space-x-4">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                 연락처 <span className="text-red-500">*</span>
               </label>
-              <input
-                type="tel"
-                value={formData.phoneNumber}
-                onChange={(e) => handlePhoneNumberChange(e.target.value)}
-                placeholder="010-1234-5678"
-                maxLength={13}
-                className={`w-full px-3 py-2 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
-              {errors.phoneNumber && (
-                <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
-              )}
+              <div className="flex-1">
+                <input
+                  type="tel"
+                  value={formData.phoneNumber}
+                  onChange={(e) => handlePhoneNumberChange(e.target.value)}
+                  placeholder="010-1234-5678"
+                  maxLength={13}
+                  className={`w-full px-3 py-2 border ${errors.phoneNumber ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                {errors.phoneNumber && (
+                  <p className="mt-1 text-sm text-red-500">{errors.phoneNumber}</p>
+                )}
+              </div>
             </div>
 
             {/* 주소 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex items-start space-x-4">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                 목장 주소 <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.address}
-                onChange={(e) => handleInputChange('address', e.target.value)}
-                placeholder="예: 제주특별자치도 제주시 한림읍 협재리 123"
-                className={`w-full px-3 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
-              {errors.address && (
-                <p className="mt-1 text-sm text-red-500">{errors.address}</p>
-              )}
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={formData.address}
+                  onChange={(e) => handleInputChange('address', e.target.value)}
+                  placeholder="예: 제주특별자치도 제주시 한림읍 협재리 123"
+                  className={`w-full px-3 py-2 border ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                {errors.address && (
+                  <p className="mt-1 text-sm text-red-500">{errors.address}</p>
+                )}
+              </div>
             </div>
 
             {/* 개업일자 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex items-start space-x-4">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                 개업일자 <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                value={formData.openingDate}
-                onChange={(e) => handleInputChange('openingDate', e.target.value)}
-                className={`w-full px-3 py-2 border ${errors.openingDate ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
-              {errors.openingDate && (
-                <p className="mt-1 text-sm text-red-500">{errors.openingDate}</p>
-              )}
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={formData.openingDate}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/[^0-9-]/g, ''); // 숫자와 하이픈만 허용
+                    
+                    // 하이픈 자동 추가
+                    if (value.length >= 5 && value.charAt(4) !== '-') {
+                      value = value.slice(0, 4) + '-' + value.slice(4);
+                    }
+                    if (value.length >= 8 && value.charAt(7) !== '-') {
+                      value = value.slice(0, 7) + '-' + value.slice(7);
+                    }
+                    
+                    // 10자리로 제한 (YYYY-MM-DD)
+                    value = value.slice(0, 10);
+                    
+                    handleInputChange('openingDate', value);
+                  }}
+                  placeholder="예: 2024-01-01"
+                  maxLength={10}
+                  className={`w-full px-3 py-2 border ${errors.openingDate ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                {errors.openingDate && (
+                  <p className="mt-1 text-sm text-red-500">{errors.openingDate}</p>
+                )}
+              </div>
             </div>
 
             {/* 면적 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex items-start space-x-4">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                 목장 면적 <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={formData.area}
-                onChange={(e) => handleInputChange('area', e.target.value)}
-                placeholder="예: 1000평, 3.3㎡ 등"
-                className={`w-full px-3 py-2 border ${errors.area ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                면적을 자유롭게 입력해주세요. (예: 1000평, 3.3㎡, 1000m² 등)
-              </p>
-              {errors.area && (
-                <p className="mt-1 text-sm text-red-500">{errors.area}</p>
-              )}
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={formData.area}
+                  onChange={(e) => handleInputChange('area', e.target.value)}
+                  placeholder="예: 1000"
+                  className={`w-full px-3 py-2 border ${errors.area ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  목장의 면적을 제곱미터(m²)로 입력해주세요. (예: 3.3㎡, 1000m² 등)
+                </p>
+                {errors.area && (
+                  <p className="mt-1 text-sm text-red-500">{errors.area}</p>
+                )}
+              </div>
             </div>
 
             {/* 목장 소개 */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="flex items-start space-x-4">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
                 목장 소개 <span className="text-red-500">*</span>
               </label>
-              <textarea
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                placeholder="목장의 특징, 사육하는 말의 종류, 목장 운영 철학 등을 자유롭게 소개해주세요."
-                rows={5}
-                className={`w-full px-3 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none`}
-              />
-              <div className="flex justify-between items-center mt-1">
-                {errors.description && (
-                  <p className="text-sm text-red-500">{errors.description}</p>
-                )}
-                <p className="text-sm text-gray-500 ml-auto">
-                  {formData.description.length}/500자
-                </p>
+              <div className="flex-1">
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  placeholder="목장의 특징, 사육하는 말의 종류, 목장 운영 철학 등을 자유롭게 소개해주세요."
+                  rows={5}
+                  className={`w-full px-3 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none`}
+                />
+                <div className="flex justify-between items-center mt-1">
+                  {errors.description && (
+                    <p className="text-sm text-red-500">{errors.description}</p>
+                  )}
+                  <p className="text-sm text-gray-500 ml-auto">
+                    {formData.description.length}/500자
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -324,7 +353,7 @@ export default function FarmRegisterPage() {
               <p className="font-medium mb-1">목장 등록 안내</p>
               <ul className="space-y-1 text-blue-700">
                 <li>• 목장 등록 후에도 정보를 수정할 수 있습니다.</li>
-                <li>• 프로필 이미지는 목장을 대표하는 사진을 업로드해주세요.</li>
+                <li>• 대표 사진은 미리보기 이미지로 사용됩니다다.</li>
                 <li>• 등록된 정보는 기부자들에게 공개됩니다.</li>
                 <li>• 목장 등록 완료 후 마이페이지에서 상세 관리가 가능합니다.</li>
               </ul>

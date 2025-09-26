@@ -181,7 +181,7 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/mypage"
-                className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
+                className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200"
               >
                 {userName ? `${userName}님` : ''}
               </Link>
@@ -237,7 +237,7 @@ export default function Navbar() {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/mypage"
-                    className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
+                    className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200"
                     onClick={() => setOpen(false)}
                   >
                     {userName ? `${userName}님` : ''}
@@ -277,12 +277,11 @@ export default function Navbar() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center">
-              <div className="text-2xl mb-4">🚜</div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 목장을 등록해주세요
               </h3>
               <p className="text-gray-600 mb-6">
-                나의 목장 기능을 사용하려면 먼저 목장을 등록해야 합니다.
+                목장 등록 후 이용할 수 있는 메뉴입니다.
               </p>
               <div className="flex gap-3 justify-center">
                 <button
@@ -298,7 +297,7 @@ export default function Navbar() {
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  목장 등록하기
+                  목장 등록
                 </button>
               </div>
             </div>
