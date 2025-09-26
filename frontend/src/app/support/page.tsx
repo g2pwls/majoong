@@ -124,14 +124,14 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[90px] text-sm sm:text-base"
+                    className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[120px] text-sm sm:text-base"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      window.location.href = isDonator() ? `/support/${farm.id}/donate` : '/login';
+                      window.location.href = `/support/${farm.id}/donate`;
                     }}
                   >
-                  기부하기
+                  이 목장에 기부하기
                 </Button>
             )}
                 <div className="flex gap-2 overflow-x-auto scrollbar-hide">
