@@ -4,6 +4,18 @@ import { Star } from "lucide-react";
 // import { addFarmBookmark, removeFarmBookmark } from "@/services/apiService"; // 사용하지 않으므로 주석 처리
 import { isDonator } from "@/services/authService";
 
+// 안전장치 추가(숫자 아님 → 렌더 생략)
+const TempBadge: React.FC<{ temp?: number }> = ({ temp }) => {
+  const n = Number(temp);
+  if (!Number.isFinite(n)) return null;
+  const color = n >= 60 ? "bg-green-500" : n >= 45 ? "bg-blue-400" : n >= 38 ? "bg-yellow-400" : "bg-red-500";
+  return (
+    <div className={`absolute left-3 top-3 rounded-full px-2 py-1 text-xs font-semibold text-white ${color}`}>
+      {n.toFixed(1)}°C
+    </div>
+  );
+};
+
 type Props = {
   farm_name: string;        // 농장명
   total_score: number;      // 신뢰도
@@ -52,9 +64,8 @@ export default function FarmInfo({
     <section className={`rounded-xl bg-white shadow-sm border p-3 ${className}`}>
       {/* 헤더: 토글 가능 */}
       {showHeader && (
-        <div className="mb-4 flex items-baseline gap-3">
+        <div className="mb-4 flex items-baseline justify-between">
           <h1 className="text-3xl font-extrabold tracking-tight">{farm_name}</h1>
-          <span className="text-xl text-gray-800">{fmtNum(total_score)}</span>
           {/* 즐겨찾기 버튼 */}
           {isDonator() && farm_uuid && onBookmarkToggle && (
             <button 
@@ -81,7 +92,7 @@ export default function FarmInfo({
 
       {/* 대표 이미지 */}
       {image_url && (
-        <div className="rounded-lg overflow-hidden bg-gray-100">
+        <div className="relative rounded-lg overflow-hidden bg-gray-100">
           <Image
             src={image_url}
             alt={`${farm_name} 대표 이미지`}
@@ -89,6 +100,7 @@ export default function FarmInfo({
             height={192}
             className="w-full h-48 object-cover"
           />
+          <TempBadge temp={total_score} />
         </div>
       )}
 

@@ -658,11 +658,22 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       />
 
       {/* 2. 원형 그래프와 테이블 */}
-      <DonationUsageChart 
-        data={chartData}
-        totalAmount={totalAmount}
-        title={chartTitle}
-      />
+      {loadingStates.monthly ? (
+        <Card>
+          <CardContent className="px-4 py-6">
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">기부금 사용 비율을 불러오는 중...</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <DonationUsageChart 
+          data={chartData}
+          totalAmount={totalAmount}
+          title={chartTitle}
+        />
+      )}
 
       {/* 3. 날짜 선택 가능한 상세 내역 */}
       <Card>
@@ -704,10 +715,10 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
             </div>
           </div>
           
-          {loadingStates.details ? (
+          {loadingStates.monthly ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">상세 내역을 불러오는 중...</p>
+              <p className="text-gray-600">기부금 사용 상세 내역을 불러오는 중...</p>
             </div>
           ) : error ? (
             <div className="text-center py-8">

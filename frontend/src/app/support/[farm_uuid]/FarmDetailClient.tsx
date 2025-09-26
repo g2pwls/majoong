@@ -136,20 +136,9 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
   return (
     <div className="mx-auto max-w-6xl px-1 p-4">
-      {/* 브레드크럼과 버튼들 */}
+      {/* 브레드크럼 */}
       <div className="flex items-center justify-between">
         <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
-        <div className="flex gap-2">
-          {/* 목장 정보 수정 버튼 - 내 목장인 경우에만 표시 */}
-          {isMyFarm && (
-            <Link 
-              href={`/support/${farm_uuid}/edit`}
-              className="bg-gray-500 text-white py-1 px-4 rounded-md hover:bg-gray-600 transition-colors"
-            >
-              목장 정보 수정
-            </Link>
-          )}
-        </div>
       </div>
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
@@ -182,6 +171,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             onChange={onChangeTab} 
             farmUuid={farm_uuid}
             showDonateButton={isDonator() && !isFarmer()}
+            showEditButton={isMyFarm}
           />
           <div className="mt-4.5">
             {tab === "intro" && <IntroPanel farm={farm} isMyFarm={false} />}
