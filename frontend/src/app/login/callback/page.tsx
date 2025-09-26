@@ -19,8 +19,8 @@ export default function OAuthCallbackPage() {
         const response = await signInWithSession();
         console.log('OAuth callback response:', response);
 
-        // JWT 토큰 저장 (email 정보 포함)
-        saveTokens(response.accessToken, response.refreshToken, response.tempAccessToken, response.email);
+        // JWT 토큰 저장 (email, role 정보 포함)
+        saveTokens(response.accessToken, response.refreshToken, response.tempAccessToken, response.email, response.role);
         
         // 회원가입 여부에 따른 리다이렉트
         if (response.signUp) {
@@ -28,9 +28,15 @@ export default function OAuthCallbackPage() {
           console.log('New user, redirecting to signup page');
           router.push('/signup');
         } else {
-          // 기존 회원 - 홈페이지로 이동
-          console.log('Existing user, redirecting to home page');
-          router.push('/');
+          // 기존 회원 - role에 따른 리다이렉트
+          if (response.role === 'FARMER') {
+            console.log('Existing farmer, redirecting to dashboard page');
+            router.push('/dashboard');
+          } else {
+            // DONATOR 또는 기타
+            console.log('Existing donator, redirecting to home page');
+            router.push('/');
+          }
         }
       } catch (error) {
         console.error('OAuth callback 처리 오류:', error);

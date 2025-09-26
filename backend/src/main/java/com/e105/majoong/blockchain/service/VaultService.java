@@ -48,20 +48,13 @@ public class VaultService {
   // Vault 생성/조회
   // ===================================================================================
 
-  /** 이미 있으면 반환, 없으면 체인에 생성 후 upsert */
-  @Transactional
-  public FarmVault getOrCreateVault(BigInteger farmId, String owner, String memberUuid) {
-    final String farmIdHex = toHex256(farmId);
-    return farmVaultRepository.findByFarmId(farmIdHex)
-        .orElseGet(() -> createVaultAndPersist(farmId, owner, memberUuid));
-  }
 
   /** 체인에 Vault 생성 → vaultOf로 주소 조회 → DB upsert */
   @Transactional
-  public FarmVault createVaultAndPersist(BigInteger farmId, String owner, String memberUuid) {
-    final String farmIdHex = toHex256(farmId);
+  public FarmVault createVaultAndPersist(BigInteger keccakKey, String owner, String memberUuid) {
+    final String keccakKeyHex = toHex256(keccakKey);
 
-    Optional<FarmVault> exists = farmVaultRepository.findByFarmId(farmIdHex);
+    Optional<FarmVault> exists = farmVaultRepository.findByKeccakKey(keccakKeyHex);
     if (exists.isPresent()) return exists.get();
 
     try {
@@ -69,17 +62,15 @@ public class VaultService {
       final String factory = chainProps.getFactoryAddress();
       if (!isValidAddress(factory)) throw new IllegalArgumentException("Invalid FACTORY_ADDRESS: " + factory);
       if (!isValidAddress(owner))   throw new IllegalArgumentException("Invalid ownerAddress: " + owner);
-      if (farmId == null || farmId.signum() < 0) throw new IllegalArgumentException("Invalid farmId: " + farmId);
-
       // 팩토리 코드 존재 확인 (주소 오타/네트워크 불일치 조기 발견)
       String code = web3j.ethGetCode(factory, DefaultBlockParameterName.LATEST).send().getCode();
       if (code == null || "0x".equalsIgnoreCase(code))
         throw new IllegalStateException("Factory address has no code: " + factory);
 
-      // createVault(farmId, owner) 인코딩
+      // createVault(keccakKey, owner) 인코딩
       Function fn = new Function(
           "createVault",
-          List.of(new Uint256(farmId), new Address(owner)),
+          List.of(new Uint256(keccakKey), new Address(owner)),
           Collections.emptyList()
       );
       String data = FunctionEncoder.encode(fn);
@@ -106,15 +97,15 @@ public class VaultService {
       TransactionReceipt receipt = waitForReceipt(txHash);
       log.info("[VaultFactory.createVault] mined block={}, status={}", receipt.getBlockNumber(), receipt.isStatusOK());
 
-      // vaultOf(farmId) 조회로 실제 vault 주소 확인
-      String vaultAddress = callVaultOf(farmId);
+      // vaultOf(keccakKey) 조회로 실제 vault 주소 확인
+      String vaultAddress = callVaultOf(keccakKey);
       if (!isValidAddress(vaultAddress))
         throw new IllegalStateException("Factory returned invalid vault address: " + vaultAddress);
 
       // DB upsert
       FarmVault fv = farmVaultRepository.findByMemberUuid(memberUuid)
           .orElse(FarmVault.builder().memberUuid(memberUuid).build());
-      fv.updateFarmId(farmIdHex);
+      fv.updateKeccakKey(keccakKeyHex);
       fv.updateVaultAddress(vaultAddress);
       fv.updateDeployTxHash(txHash);
       fv.updateStatus(FarmVault.Status.ACTIVE);
@@ -126,34 +117,9 @@ public class VaultService {
     }
   }
 
-  @Transactional(readOnly = true)
-  public Optional<FarmVault> findByFarmId(BigInteger farmId) {
-    return farmVaultRepository.findByFarmId(toHex256(farmId));
-  }
-
   // ===================================================================================
   // RELEASE (정산 출금)
   // ===================================================================================
-
-  /**
-   * 기존 서비스 호출 호환용 오버로드.
-   * FarmVault는 farmer가 immutable로 고정되어 있으므로, 실제 컨트랙트 호출은 amount만 넘긴다.
-   * @param vaultAddress 금고 컨트랙트 주소
-   * @param to           (무시됨) 컨트랙트 내부 farmer로 전송
-   * @param amountWei    전송량(wei 단위, 18 decimals)
-   * @return txHash
-   */
-  @Transactional
-  public String release(String vaultAddress, String to, BigInteger amountWei) {
-    // 'to'는 FarmVault 컨트랙트에서 사용하지 않지만, 호출부 시그니처 호환을 위해 남겨둔다.
-    if (!isValidAddress(vaultAddress)) {
-      throw new IllegalArgumentException("Invalid vaultAddress: " + vaultAddress);
-    }
-    if (amountWei == null || amountWei.signum() <= 0) {
-      throw new IllegalArgumentException("Invalid amountWei: " + amountWei);
-    }
-    return release(vaultAddress, amountWei);
-  }
 
   /**
    * 실제 컨트랙트 시그니처에 맞는 구현: release(uint256 amount)
@@ -213,16 +179,72 @@ public class VaultService {
       throw new RuntimeException("Vault release failed", e);
     }
   }
+  /**
+   * Vault 컨트랙트에 박힌 farmer 주소 조회
+   */
+  public String getOnchainFarmer(String vaultAddress) throws Exception {
+    if (!isValidAddress(vaultAddress)) {
+      throw new IllegalArgumentException("Invalid vault address: " + vaultAddress);
+    }
 
+    // Solidity: function farmer() public view returns (address)
+    Function viewFn = new Function(
+        "farmer",
+        Collections.emptyList(),
+        List.of(new TypeReference<Address>() {})
+    );
+
+    EthCall call = web3j.ethCall(
+        Transaction.createEthCallTransaction(
+            admin.getAddress(), vaultAddress, FunctionEncoder.encode(viewFn)
+        ),
+        DefaultBlockParameterName.LATEST
+    ).send();
+
+    if (call.hasError()) {
+      throw new RuntimeException("farmer() call error: " + call.getError().getMessage());
+    }
+
+    List<Type> out = FunctionReturnDecoder.decode(call.getValue(), viewFn.getOutputParameters());
+    if (out == null || out.isEmpty()) {
+      throw new IllegalStateException("farmer() decode failed (empty output)");
+    }
+
+    return ((Address) out.get(0)).getValue();
+  }
+  
+  /**
+   * Vault 컨트랙트에 있는 토큰 잔액 조회
+   */
+  public BigInteger getVaultTokenBalanceWei(String vaultAddress) throws Exception {
+    Function f = new Function(
+        "tokenBalance",
+        java.util.List.of(),
+        java.util.List.of(new TypeReference<Uint256>() {})
+    );
+    String data = FunctionEncoder.encode(f);
+
+    EthCall resp = web3j.ethCall(
+        Transaction.createEthCallTransaction(null, vaultAddress, data),
+        DefaultBlockParameterName.LATEST
+    ).send();
+
+    if (resp.isReverted()) {
+      throw new IllegalStateException("tokenBalance() reverted: " + resp.getRevertReason());
+    }
+    java.util.List<Type> out = FunctionReturnDecoder.decode(resp.getValue(), f.getOutputParameters());
+    if (out.isEmpty()) throw new IllegalStateException("Empty tokenBalance() output");
+    return (BigInteger) out.get(0).getValue();
+  }
   // ===================================================================================
   // VIEW & UTIL
   // ===================================================================================
 
-  /** factory.vaultOf(farmId) */
-  private String callVaultOf(BigInteger farmId) throws Exception {
+  /** factory.vaultOf(keccakKey) */
+  private String callVaultOf(BigInteger keccakKey) throws Exception {
     Function view = new Function(
         "vaultOf",
-        List.of(new Uint256(farmId)),
+        List.of(new Uint256(keccakKey)),
         List.of(new TypeReference<Address>() {})
     );
     EthCall call = web3j.ethCall(

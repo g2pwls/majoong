@@ -16,6 +16,7 @@ import com.e105.majoong.finance.service.FinApiServiceImpl;
 import com.e105.majoong.common.model.donator.DonatorRepository;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
 import com.e105.majoong.common.model.oAuthMember.OauthMemberRepository;
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -129,15 +130,13 @@ public class AuthService {
       var account = finApiService.createDemandDepositAccount(finMember.getUserKey());
       farmer.updateFinAccount(finMember.getUserKey(), account.getRec().getAccountNo());
 
-      farmerRepository.save(farmer);
+      var keccakKey = toUint256FromMemberUuid(memberUuid);
 
-      // 3) farmId 계산 (임시: memberUuid → keccak → uint256)
-      var farmId = toUint256FromMemberUuid(memberUuid);
-
-      // 4) Vault 생성(관리자 서명) + DB 저장(farm_vaults)
-      var fv = vaultService.createVaultAndPersist(farmId, created.address(), memberUuid);
+      // 3) Vault 생성(관리자 서명) + DB 저장(farm_vaults)
+      var fv = vaultService.createVaultAndPersist(keccakKey, farmer.getWalletAddress(), memberUuid);
       log.info("Vault created & persisted: memberUuid={}, farmId={}, vault={}, tx={}",
-          memberUuid, farmId, fv.getVaultAddress(), fv.getDeployTxHash());
+          memberUuid, keccakKey, fv.getVaultAddress(), fv.getDeployTxHash());
+
 
     } else if ("donator".equalsIgnoreCase(req.getRole().name())) {
       // 1) 기본 정보 저장
@@ -191,12 +190,51 @@ public class AuthService {
     return AuthSignInResponseDto.ofRefresh(memberUuid, newAccess, newRefresh, Role.valueOf(role.toUpperCase()));
   }
 
-  /** memberUuid 문자열을 keccak 해시로 uint256 변환 (임시 구현) */ //todo
-  private static java.math.BigInteger toUint256FromMemberUuid(String memberUuid) {
+  private static BigInteger toUint256FromMemberUuid(String memberUuid) {
     if (memberUuid == null || memberUuid.isBlank()) {
       throw new IllegalArgumentException("memberUuid is required for farmer");
     }
     String hex = Numeric.cleanHexPrefix(Hash.sha3String(memberUuid));
-    return new java.math.BigInteger(hex, 16);
+    byte[] bytes = Numeric.hexStringToByteArray(hex);
+    return new BigInteger(1, bytes); // 1 → 양수로 간주
+  }
+
+  @Transactional
+  public AuthSignInResponseDto qrLogin(String token) {
+    String memberUuid = (String) redisService.get("qr:" + token);
+    if (memberUuid == null) {
+      throw new BaseException(BaseResponseStatus.TOKEN_NOT_VALID);
+    }
+
+    OauthMember oauth = memberRepository.findByMemberUuid(memberUuid)
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_SIGN_IN));
+
+    String email;
+    if (oauth.getRole() == Role.FARMER) {
+      // Farmer 테이블 조회
+      Farmer farmer = farmerRepository.findByMemberUuid(memberUuid)
+              .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_SIGN_IN));
+      email = farmer.getEmail();
+    } else if (oauth.getRole() == Role.DONATOR) {
+      // Donator 테이블 조회
+      Donator donator = donatorRepository.findByMemberUuid(memberUuid)
+              .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_SIGN_IN));
+      email = donator.getEmail();
+    } else {
+      throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
+    }
+
+    String accessToken = jwtTokenProvider.generateAccessToken(memberUuid, oauth.getRole().name());
+    String refreshToken = jwtTokenProvider.generateRefreshToken(memberUuid, oauth.getRole().name());
+    long ttlSec = TimeUnit.MILLISECONDS.toSeconds(jwtTokenProvider.getRefreshExpireTime());
+    redisService.set("rt:" + memberUuid, refreshToken, ttlSec);
+
+    return AuthSignInResponseDto.ofLogin(
+            memberUuid,
+            accessToken,
+            refreshToken,
+            email,
+            oauth.getRole()
+    );
   }
 }

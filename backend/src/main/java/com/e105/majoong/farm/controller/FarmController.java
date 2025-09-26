@@ -7,8 +7,11 @@ import com.e105.majoong.farm.service.*;
 import com.e105.majoong.report.dto.out.MonthlyReportDetailResponseDto;
 import com.e105.majoong.report.dto.out.MonthlyReportListResponseDto;
 import com.e105.majoong.report.service.MonthlyReportService;
+import com.e105.majoong.score.service.ScoreService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,6 +31,7 @@ public class FarmController {
     private final HorseService horseService;
     private final DonationUsageService donationUsageService;
     private final ScoreService scoreService;
+    private final FarmRecommendationService farmRecommendationService;
 
     @GetMapping
     @Operation(summary = "목장 키워드로 농장 목록 조회")
@@ -46,9 +50,12 @@ public class FarmController {
     @GetMapping("/{farmUuid}")
     @Operation(summary = "목장 상세의 목장 소개 조회")
     public BaseResponse<FarmDetailResponseDto> getFarmDetail(
-            @PathVariable String farmUuid
+            @PathVariable String farmUuid,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        return new BaseResponse<>(farmService.getFarmDetail(farmUuid));
+        String memberUuid = (user != null) ? user.getMemberUuid() : null;
+
+        return new BaseResponse<>(farmService.getFarmDetail(farmUuid, memberUuid));
     }
 
     @GetMapping("/{farmUuid}/monthly-reports/{reportId}")
@@ -119,7 +126,7 @@ public class FarmController {
     @Operation(summary = "말 상세 정보 및 주간 보고서 목록 조회")
     public BaseResponse<HorseDetailResponseDto> getHorseDetail(
             @PathVariable String farmUuid,
-            @PathVariable Long horseNumber,
+            @PathVariable String horseNumber,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
@@ -136,10 +143,10 @@ public class FarmController {
         return new BaseResponse<>(result);
     }
 
-    @GetMapping("horses/{horseNum}/weekly-reports/{horseStateId}")
+    @GetMapping("/horses/{horseNum}/weekly-reports/{horseStateId}")
     @Operation(summary = "말 주간 보고서 상세 조회")
     public BaseResponse<HorseWeeklyReportDetailResponseDto> getWeeklyReportDetail(
-            @PathVariable Long horseNum,
+            @PathVariable String horseNum,
             @PathVariable Long horseStateId
     ) {
         return new BaseResponse<>(horseService.getWeeklyReportDetail(horseNum, horseStateId));
@@ -149,6 +156,13 @@ public class FarmController {
     @Operation(summary = "내 목장 조회")
     public BaseResponse<FarmDetailResponseDto> getMyFarm(@AuthenticationPrincipal CustomUserDetails user) {
         return new BaseResponse<>(farmService.getMyFarm(user.getMemberUuid()));
+    }
+
+    @GetMapping("/recommend")
+    @Operation(summary = "바로 기부 페이지 추천 농장 조회")
+    public BaseResponse<List<FarmRecommendResponseDto>> getRecommendFarm() {
+        YearMonth yearMonth = YearMonth.now(ZoneId.of("Asia/Seoul"));
+        return new BaseResponse<>(farmRecommendationService.recommendFarm(yearMonth));
     }
 }
 

@@ -11,20 +11,20 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class HorseInfoUpdateDto {
     private String farmUuid;
-    private Long horseNumber;
+    private String horseNumber;
     private String horseName;
-    private LocalDate birth;
+    private String birth;
     private String gender;
     private String color;
     private String breed;
     private String countryOfOrigin;
-    private Integer raceCount;
-    private Integer firstPlaceCount;
-    private Integer secondPlaceCount;
-    private Long totalPrize;
-    private LocalDate retiredDate;
-    private LocalDate firstRaceDate;
-    private LocalDate lastRaceDate;
+    private String raceCount;
+    private String firstPlaceCount;
+    private String secondPlaceCount;
+    private String totalPrize;
+    private String retiredDate;
+    private String firstRaceDate;
+    private String lastRaceDate;
     private MultipartFile profileImage;
 
     public Horse toEntity(Farm farm, String image) {

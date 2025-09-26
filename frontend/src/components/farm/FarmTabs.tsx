@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-export type FarmTabValue = "intro" | "newsletter" | "donations" | "trust";
+export type FarmTabValue = "intro" | "horses" | "newsletter" | "donations" | "trust";
 
 export type TabItem = {
   value: FarmTabValue;
@@ -14,11 +14,13 @@ type Props = {
   onChange: (next: FarmTabValue) => void;
   items?: TabItem[];                   // 탭 목록 (미지정 시 기본 4개)
   className?: string;
-  farmUuid?: string;                  // 농장 UUID (기부하기 버튼 링크용)
+  farmUuid?: string;                   // 기부하기 버튼을 위한 farmUuid
+  showDonateButton?: boolean;          // 기부하기 버튼 표시 여부
 };
 
 const DEFAULT_ITEMS: TabItem[] = [
-  { value: "intro",      label: "목장 소개",        panelId: "panel-intro" },
+  { value: "intro",      label: "목장 홈",        panelId: "panel-intro" },
+  { value: "horses",     label: "말 목록",        panelId: "panel-horses" },
   { value: "newsletter", label: "월간 소식지",      panelId: "panel-newsletter" },
   { value: "donations",  label: "기부금 사용 내역", panelId: "panel-donations" },
   { value: "trust",      label: "신뢰도 내역",      panelId: "panel-trust" },
@@ -30,15 +32,16 @@ export default function FarmTabs({
   items = DEFAULT_ITEMS,
   className = "",
   farmUuid,
+  showDonateButton = false,
 }: Props) {
   return (
     <div className={`border-b border-gray-200 ${className}`}>
-      <nav
-        className="-mb-px flex gap-6 items-center justify-between" // Added justify-between and items-center
-        role="tablist"
-        aria-label="Farm Tabs"
-      >
-        <div className="flex gap-6">
+      <div className="flex items-center justify-between">
+        <nav
+          className="-mb-px flex gap-6"
+          role="tablist"
+          aria-label="Farm Tabs"
+        >
           {items.map((it) => {
             const active = value === it.value;
             return (
@@ -49,7 +52,7 @@ export default function FarmTabs({
                 aria-selected={active}
                 aria-controls={it.panelId}
                 className={[
-                  "whitespace-nowrap border-b-2 px-1 pb-3 text-sm font-medium transition-colors focus:outline-none focus-visible:ring",
+                  "whitespace-nowrap border-b-2 px-1 pb-2 mt-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring",
                   active
                     ? "border-black text-black"
                     : "border-transparent text-gray-500 hover:text-black hover:border-gray-300",
@@ -60,15 +63,18 @@ export default function FarmTabs({
               </button>
             );
           })}
-        </div>
-        {/* Donate Button */}
-        <Link 
-          href={farmUuid ? `/support/${farmUuid}/donate` : "/donate"}
-          className="ml-4 bg-green-500 text-white py-1.5 px-4 rounded-md hover:bg-green-600 transition-colors"
-        >
-          기부하기
-        </Link>
-      </nav>
+        </nav>
+        
+        {/* 기부하기 버튼 */}
+        {showDonateButton && farmUuid && (
+          <Link 
+            href={`/support/${farmUuid}/donate`}
+            className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+          >
+            기부하기
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

@@ -58,7 +58,36 @@ public class Farm extends BaseEntity {
 
     private String profileImage;
 
+    //실패시 NPE 방지
     public void updateTotalDonation(Long amount) {
-        this.totalDonation += amount;
+        long delta = (amount == null ? 0L : amount);
+        long base = (this.totalDonation == null ? 0L : this.totalDonation);
+        this.totalDonation = base + delta;
+    }
+
+    public void updateUsedAmount(Long amount) {
+        long delta = (amount == null ? 0L : amount);
+        long base = (this.usedAmount == null ? 0L : this.usedAmount);
+        this.usedAmount = base + delta;
+    }
+
+    public void updateTotalScore(Double totalScore) {
+        this.totalScore = totalScore;
+    }
+
+    public void updateFarmName(String farmName) {
+        this.farmName = farmName;
+    }
+
+    public void updatePhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
     }
 }

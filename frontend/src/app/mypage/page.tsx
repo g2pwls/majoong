@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getTokens } from '@/services/authService';
+import { getTokens, getUserRole, debugTokenStatus } from '@/services/authService';
+import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
+import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/user';
 
 // 탭 컴포넌트들 (추후 구현)
 import DonorProfile from '@/components/mypage/DonorProfile';
@@ -21,7 +23,7 @@ type UserRole = 'DONATOR' | 'FARMER' | 'ADMIN';
 interface TabConfig {
   id: string;
   label: string;
-  component: React.ComponentType;
+  component: React.ComponentType<Record<string, unknown>>;
 }
 
 export default function MyPage() {
@@ -29,19 +31,53 @@ export default function MyPage() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
   const [isLoading, setIsLoading] = useState(true);
+  const [farmerInfo, setFarmerInfo] = useState<FarmerInfoResponse['result'] | null>(null);
+  const [donatorInfo, setDonatorInfo] = useState<DonatorInfoResponse['result'] | null>(null);
 
   useEffect(() => {
-    // 로그인 상태 확인
-    const tokens = getTokens();
-    if (!tokens.accessToken) {
-      router.push('/login');
-      return;
-    }
+    const loadUserData = async () => {
+      try {
+        // 토큰 상태 디버깅
+        debugTokenStatus();
+        
+        // 로그인 상태 확인
+        const tokens = getTokens();
+        if (!tokens.accessToken && !tokens.tempAccessToken) {
+          console.log('❌ 로그인 토큰이 없음, 로그인 페이지로 이동');
+          router.push('/login');
+          return;
+        }
 
-    // TODO: 실제 사용자 역할을 API에서 가져와야 함
-    // 현재는 임시로 DONATOR로 설정
-    setUserRole('DONATOR');
-    setIsLoading(false);
+        // 사용자 역할 확인
+        const role = getUserRole();
+        if (!role) {
+          console.error('사용자 역할을 찾을 수 없습니다.');
+          router.push('/login');
+          return;
+        }
+
+        console.log('✅ 사용자 역할 확인:', role);
+        setUserRole(role as UserRole);
+
+        // 역할에 따른 정보 조회
+        if (role === 'FARMER') {
+          console.log('🔍 목장주 정보 조회 시작');
+          const farmerData = await getFarmerInfo();
+          setFarmerInfo(farmerData.result);
+        } else if (role === 'DONATOR') {
+          console.log('🔍 기부자 정보 조회 시작');
+          const donatorData = await getDonatorInfo();
+          setDonatorInfo(donatorData.result);
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        console.error('사용자 데이터 로드 오류:', error);
+        setIsLoading(false);
+      }
+    };
+
+    loadUserData();
   }, [router]);
 
   // 역할별 탭 설정
@@ -50,13 +86,13 @@ export default function MyPage() {
       case 'DONATOR':
         return [
           { id: 'profile', label: '회원 정보', component: DonorProfile },
+          { id: 'favorites', label: '즐겨찾는 목장', component: DonorFavoriteFarms },
           { id: 'support', label: '후원 내역', component: DonorSupportHistory },
-          { id: 'favorites', label: '즐겨찾는 농장', component: DonorFavoriteFarms },
         ];
       case 'FARMER':
         return [
           { id: 'profile', label: '회원 정보', component: FarmerProfile },
-          { id: 'farm', label: '나의 목장', component: FarmerMyFarm },
+          { id: 'farm', label: '목장 정보', component: FarmerMyFarm },
           { id: 'support', label: '후원 내역', component: FarmerSupportHistory },
         ];
       case 'ADMIN':
@@ -92,15 +128,10 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">마이페이지</h1>
-          <p className="mt-2 text-gray-600">
-            {userRole === 'DONATOR' && '기부자'}
-            {userRole === 'FARMER' && '목장주'}
-            {userRole === 'ADMIN' && '관리자'}
-          </p>
         </div>
 
         {/* 탭 네비게이션 */}
@@ -124,7 +155,16 @@ export default function MyPage() {
 
         {/* 탭 컨텐츠 */}
         <div className="bg-white rounded-lg shadow">
-          {ActiveComponent && <ActiveComponent />}
+          {ActiveComponent && (() => {
+            // 사용자 역할에 따라 적절한 props 전달
+            if (userRole === 'FARMER') {
+              return <ActiveComponent farmerInfo={farmerInfo} userRole={userRole} />;
+            } else if (userRole === 'DONATOR') {
+              return <ActiveComponent donatorInfo={donatorInfo} userRole={userRole} />;
+            } else {
+              return <ActiveComponent userRole={userRole} />;
+            }
+          })()}
         </div>
       </div>
     </div>

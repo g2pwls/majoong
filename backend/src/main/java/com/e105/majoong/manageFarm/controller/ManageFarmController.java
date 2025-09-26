@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,6 +49,15 @@ public class ManageFarmController {
         return new BaseResponse<>();
     }
 
+    @DeleteMapping(value = "members/farmers/my-farm/horses/{horseNumber}")
+    @Operation(summary = "말 삭제")
+    public BaseResponse<Void> deleteHorse(@AuthenticationPrincipal CustomUserDetails user,
+                                          @PathVariable String horseNumber,
+                                          @RequestParam String farmUuid) {
+        manageFarmService.softDeleteHorse(user.getMemberUuid(), horseNumber, farmUuid);
+        return new BaseResponse<>();
+    }
+
     @GetMapping("members/farmers/my-farm/horses")
     @Operation(summary = "말 목록 조회")
     public BaseResponse<List<HorseListResponseDto>> getHorseList(@AuthenticationPrincipal CustomUserDetails user,
@@ -65,7 +75,7 @@ public class ManageFarmController {
     @Operation(summary = "말 관리 상태 업로드(content는 필수 값 아님)")
     public Mono<BaseResponse<String>> reportHorseState(@AuthenticationPrincipal CustomUserDetails user,
                                                        @PathVariable String farmUuid,
-                                                       @PathVariable Long horseNumber,
+                                                       @PathVariable String horseNumber,
                                                        @ModelAttribute ReportHorseStatusDto dto) {
 
         return manageFarmService.reportHorseState(user.getMemberUuid(), farmUuid, horseNumber, dto)

@@ -17,7 +17,7 @@ public class DonationResponseDto {
     ) {
         return DonationResponseDto.builder()
                 .totalCoin(totalCoin)
-                .totalAmount(totalCoin*1000)
+                .totalAmount(totalCoin*100)
                 .donationHistory(donationHistory)
                 .build();
     }

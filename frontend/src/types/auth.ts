@@ -7,6 +7,7 @@ export interface LoginResponse {
   tempAccessToken: string;
   memberUuid: string;
   email: string;
+  role: string; // 'DONATOR' 또는 'FARMER'
 }
 
 export interface SignupCompleteRequest {
@@ -23,5 +24,30 @@ export interface SignupCompleteResponse {
   isSuccess: boolean;
   message: string;
   code: number;
-  result: unknown;
+  result: {
+    accessToken: string;
+    refreshToken: string;
+    tempAccessToken: string;
+    memberUuid: string;
+    email: string;
+    role: string; // 'DONATOR' 또는 'FARMER'
+    signUp: boolean;
+  };
 }
+
+// Refresh Token 요청 타입
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+// Refresh Token 응답 타입
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+  tempAccessToken: string;
+  memberUuid: string;
+  email: string;
+  role: string; // 'DONATOR' 또는 'FARMER'
+  signUp: boolean;
+}
+

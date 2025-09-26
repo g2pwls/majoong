@@ -7,20 +7,20 @@ public final class TokenUnits {
 
   private TokenUnits() {}
 
-  /** 1000원 단위 정책 검증: 최소 krwPerToken 이상, krwPerToken 배수 */
+  /** 100원 단위 정책 검증: 최소 krwPerToken 이상, krwPerToken 배수 */
   public static void assertKrwIsValid(long krw, long krwPerToken) {
     if (krw < krwPerToken) {
-      throw new IllegalArgumentException("최소 기부 금액은 " + krwPerToken + "원입니다.");
+      throw new IllegalArgumentException("최소 금액은 " + krwPerToken + "원입니다.");
     }
     if (krw % krwPerToken != 0) {
-      throw new IllegalArgumentException(krwPerToken + "원 단위로만 기부 가능합니다.");
+      throw new IllegalArgumentException(krwPerToken + "원 단위로만 가능합니다.");
     }
   }
 
   /** KRW → 정수 MARON 토큰 개수 (정책 검증 포함) */
   public static long krwToMaronTokensExact(long krw, long krwPerToken) {
     assertKrwIsValid(krw, krwPerToken);
-    return krw / krwPerToken;  // ex) 5000원, 1000원/토큰 → 5
+    return krw / krwPerToken;  // ex) 5000원,100원/토큰 → 50
   }
 
   /** 정수 MARON 토큰 개수 → 최소단위(wei) */

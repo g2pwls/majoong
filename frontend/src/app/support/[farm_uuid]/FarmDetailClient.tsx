@@ -3,19 +3,20 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import FarmInfo from "@/components/farm/FarmInfo";
 import FarmTabs, { FarmTabValue } from "@/components/farm/FarmTabs";
 import IntroPanel from "@/components/farm/panels/IntroPanel";
+import HorsesPanel from "@/components/farm/panels/HorsesPanel";
 import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { getFarm, Farm } from "@/services/apiService";
+import { getFarm, Farm, addFarmBookmark, removeFarmBookmark, isMyFarm as checkIsMyFarm } from "@/services/apiService";
+import { isDonator, isFarmer, getUserRole } from "@/services/authService";
 
-const TABS: FarmTabValue[] = ["intro", "newsletter", "donations", "trust"];
+const TABS: FarmTabValue[] = ["intro", "horses", "newsletter", "donations", "trust"];
 
 export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   const router = useRouter();
@@ -26,6 +27,9 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
   const [tab, setTab] = useState<FarmTabValue>(
     (searchParams.get("tab") as FarmTabValue) || "intro"
   );
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const [isMyFarm, setIsMyFarm] = useState(false);
 
   // URL → 탭 동기화
   useEffect(() => {
@@ -41,6 +45,27 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         const data = await getFarm(farm_uuid);
         console.log('농장 상세 데이터:', data);
         if (mounted) setFarm(data);
+        
+        // 내 목장인지 확인
+        if (isFarmer()) {
+          try {
+            const isMyFarmResult = await checkIsMyFarm(farm_uuid);
+            if (mounted) setIsMyFarm(isMyFarmResult);
+          } catch (error) {
+            console.error('내 목장 확인 실패:', error);
+            if (mounted) setIsMyFarm(false);
+          }
+        }
+        
+        // 즐겨찾기 상태 확인 (localStorage 우선, 없으면 API 응답 사용)
+        if (isDonator()) {
+          const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+          const isBookmarkedFromStorage = bookmarkedFarms.includes(farm_uuid);
+          const isBookmarkedFromAPI = data.bookmarked || false;
+          
+          // localStorage에 데이터가 있으면 그것을 사용, 없으면 API 응답 사용
+          if (mounted) setIsBookmarked(isBookmarkedFromStorage || isBookmarkedFromAPI);
+        }
       } catch (e) {
         console.error('농장 상세 조회 실패:', e);
       } finally {
@@ -52,6 +77,20 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     };
   }, [farm_uuid]);
 
+  // localStorage 변경 감지하여 즐겨찾기 상태 동기화
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'bookmarkedFarms' && e.newValue) {
+        const bookmarkedFarms = JSON.parse(e.newValue);
+        const isBookmarkedFromStorage = bookmarkedFarms.includes(farm_uuid);
+        setIsBookmarked(isBookmarkedFromStorage);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [farm_uuid]);
+
   const onChangeTab = (next: FarmTabValue) => {
     setTab(next);
     const sp = new URLSearchParams(window.location.search);
@@ -59,32 +98,65 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     router.replace(`?${sp.toString()}`);
   };
 
-  if (loading) return <div className="p-6">로딩 중…</div>;
+  // 즐겨찾기 토글 핸들러
+  const handleBookmarkToggle = async (farmUuid: string) => {
+    if (!isDonator()) return;
+    
+    setBookmarkLoading(true);
+    
+    try {
+      if (isBookmarked) {
+        await removeFarmBookmark(farmUuid);
+        setIsBookmarked(false);
+        // localStorage에서 즐겨찾기 상태 제거
+        const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+        const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
+        localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
+      } else {
+        await addFarmBookmark(farmUuid);
+        setIsBookmarked(true);
+        // localStorage에 즐겨찾기 상태 추가
+        const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+        if (!bookmarkedFarms.includes(farmUuid)) {
+          bookmarkedFarms.push(farmUuid);
+          localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarms));
+        }
+      }
+    } catch (error) {
+      console.error('즐겨찾기 토글 실패:', error);
+    } finally {
+      setBookmarkLoading(false);
+    }
+  };
+
+  if (loading) return <div className="">로딩 중…</div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
-  const farmId = farm.id;
-  
-  // farmId가 없으면 에러 표시
-  if (!farmId) {
-    return <div className="p-6">농장 ID를 찾을 수 없습니다.</div>;
-  }
+  // farm_uuid prop을 사용
 
   return (
-    <div className="mx-auto max-w-7xl p-6">
-      {/* 브레드크럼 */}
-      <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+    <div className="mx-auto max-w-6xl px-1 p-4">
+      {/* 브레드크럼과 버튼들 */}
+      <div className="flex items-center justify-between">
+        <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+        <div className="flex gap-2">
+          {/* 목장 정보 수정 버튼 - 내 목장인 경우에만 표시 */}
+          {isMyFarm && (
+            <Link 
+              href={`/support/${farm_uuid}/edit`}
+              className="bg-gray-500 text-white py-1 px-4 rounded-md hover:bg-gray-600 transition-colors"
+            >
+              목장 정보 수정
+            </Link>
+          )}
+        </div>
+      </div>
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
-      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
-        {/* 왼쪽: 타이틀(바깥) + 카드(헤더 숨김) */}
-        <aside className="lg:sticky lg:top-6 self-start">
-          {/* 바깥 헤더 */}
-          <div className="mb-3 flex items-baseline gap-3">
-            <h1 className="text-3xl font-extrabold tracking-tight">{farm.farm_name}</h1>
-            <span className="text-xl text-gray-800">{farm.total_score.toFixed(1)}°C</span>
-          </div>
-
-          {/* 카드: 헤더 숨김 */}
+      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-[290px_1fr]">
+        {/* 왼쪽: 카드(헤더 포함) */}
+        <aside className="lg:sticky lg:top-20 self-start">
+          {/* 카드: 헤더 포함 (즐겨찾기 버튼 포함) */}
           <FarmInfo
             farm_name={farm.farm_name}
             total_score={farm.total_score}
@@ -94,26 +166,29 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             farm_phone={farm.farm_phone}
             area={farm.area}
             horse_count={farm.horse_count}
-            showHeader={false}   // ✅ 카드 내부 헤더 비표시
-            className="mt-4"
+            showHeader={true}   // ✅ 카드 내부 헤더 표시 (즐겨찾기 버튼 포함)
+            farm_uuid={farm_uuid}
+            isBookmarked={isBookmarked}
+            onBookmarkToggle={handleBookmarkToggle}
+            bookmarkLoading={bookmarkLoading}
+            className=""
           />
-          <div className="flex justify-end">
-            <Link href={`/support/${farmId}/edit`}>
-            <Button className="mt-2 whitespace-nowrap">
-              목장 정보 수정
-            </Button>
-            </Link>
-          </div>
         </aside>
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} farmUuid={farmId} />
+          <FarmTabs 
+            value={tab} 
+            onChange={onChangeTab} 
+            farmUuid={farm_uuid}
+            showDonateButton={isDonator() && !isFarmer()}
+          />
           <div className="mt-4.5">
-            {tab === "intro" && <IntroPanel farm={farm} />}
-            {tab === "newsletter" && <NewsletterPanel farmId={farmId} />}
-            {tab === "donations" && <DonationPanel farmId={farmId} />}
-            {tab === "trust" && <TrustPanel farmId={farmId} currentScore={farm.total_score} />}
+            {tab === "intro" && <IntroPanel farm={farm} isMyFarm={false} />}
+            {tab === "horses" && <HorsesPanel farmUuid={farm_uuid} isMyFarm={isMyFarm} />}
+            {tab === "newsletter" && <NewsletterPanel farmUuid={farm_uuid} />}
+            {tab === "donations" && <DonationPanel farmUuid={farm_uuid} />}
+            {tab === "trust" && <TrustPanel farmUuid={farm_uuid} currentScore={farm.total_score} />}
           </div>
         </section>
       </div>

@@ -1,14 +1,16 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReportDetail } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Star, FileText, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, Star, FileText } from "lucide-react";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { getFarm, Farm } from "@/services/apiService";
+import { getUserRole } from "@/services/authService";
 
 type PageProps = { 
   params: Promise<{ 
@@ -27,7 +29,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
 
   // 농장 정보 조회
-  const fetchFarm = async () => {
+  const fetchFarm = useCallback(async () => {
     try {
       const data = await getFarm(farm_uuid);
       console.log('농장 정보 조회 성공:', data);
@@ -35,10 +37,10 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     } catch (e) {
       console.error('농장 정보 조회 실패:', e);
     }
-  };
+  }, [farm_uuid]);
 
   // 월간 보고서 상세 조회
-  const fetchReportDetail = async () => {
+  const fetchReportDetail = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -54,16 +56,16 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [farm_uuid, reportId]);
 
   useEffect(() => {
     fetchFarm();
     fetchReportDetail();
-  }, [farm_uuid, reportId]);
+  }, [fetchFarm, fetchReportDetail]);
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto  p-6">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">월간 보고서를 불러오는 중...</p>
@@ -74,7 +76,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <p className="text-red-600 mb-4">{error}</p>
           <Button 
@@ -90,7 +92,7 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
   if (!report || !farm) {
     return (
-      <div className="mx-auto max-w-7xl p-6">
+      <div className="mx-auto max-w-6xl p-6">
         <div className="text-center py-8">
           <p className="text-gray-500">보고서를 찾을 수 없습니다.</p>
         </div>
@@ -98,13 +100,12 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
     );
   }
 
-  const farmId = farm.id;
 
   return (
-    <div className="mx-auto max-w-7xl p-6">
+    <div className="mx-auto max-w-6xl px-0 p-4">
       {/* 브레드크럼 */}
       <Breadcrumbs items={[
-        { label: "목장후원", href: "/support" }, 
+        { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
         { label: farm.farm_name, href: `/support/${farm_uuid}` },
         { label: "월간 소식지", href: `/support/${farm_uuid}?tab=newsletter` },
         { label: `${report.year}년 ${report.month}월 보고서` }
@@ -147,9 +148,11 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
               {/* 썸네일 이미지 */}
               {report.thumbnail && (
                 <div className="mb-6">
-                  <img
+                  <Image
                     src={report.thumbnail}
                     alt={`${report.year}년 ${report.month}월 보고서 썸네일`}
+                    width={800}
+                    height={600}
                     className="w-full max-w-2xl mx-auto rounded-lg shadow-md"
                   />
                 </div>
@@ -176,12 +179,6 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
                     <Calendar className="h-4 w-4" />
                     <span>생성일: {new Date(report.createdAt).toLocaleDateString('ko-KR')}</span>
                   </div>
-                  {report.updatedAt !== report.createdAt && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      <span>수정일: {new Date(report.updatedAt).toLocaleDateString('ko-KR')}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </CardContent>

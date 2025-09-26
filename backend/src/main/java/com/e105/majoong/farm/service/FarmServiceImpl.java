@@ -1,5 +1,6 @@
 package com.e105.majoong.farm.service;
 
+import com.e105.majoong.common.model.donationHistory.DonationHistoryRepository;
 import com.e105.majoong.common.model.farm.Farm;
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
@@ -13,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,7 @@ public class FarmServiceImpl implements FarmService {
     private final BookmarkRepository bookmarkRepository;
     private final HorseRepository horseRepository;
     private final MyScoreRepository myScoreRepository;
+    private final DonationHistoryRepository donationHistoryRepository;
 
     @Override
     public Page<FarmListResponseDto> searchFarms(String farmName, int page, int size, String memberUuid) {
@@ -41,7 +44,7 @@ public class FarmServiceImpl implements FarmService {
                 isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
             }
 
-            List<FarmHorseResponseDto> horseList = horseRepository.findByFarm(farm).stream()
+            List<FarmHorseResponseDto> horseList = horseRepository.findByFarmAndDeletedAtIsNull(farm).stream()
                     .map(FarmHorseResponseDto::toDto)
                     .collect(Collectors.toList());
 
@@ -50,11 +53,11 @@ public class FarmServiceImpl implements FarmService {
     }
 
     @Override
-    public FarmDetailResponseDto getFarmDetail(String farmUuid) {
+    public FarmDetailResponseDto getFarmDetail(String farmUuid, String memberUuid) {
         Farm farm = farmRepository.findByFarmUuid(farmUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
-        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
+        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmIdAndDeletedAtIsNull(farm.getId())
                 .stream()
                 .map(FarmHorseDetailResponseDto::toDto)
                 .collect(Collectors.toList());
@@ -64,9 +67,19 @@ public class FarmServiceImpl implements FarmService {
                 .map(MonthlyScoreResponseDto::toDto)
                 .collect(Collectors.toList());
 
-        long monthTotalAmount = 0L; // TODO: 블록체인 미구현으로, 실제 합계 로직으로 교체 필요
+        LocalDate now = LocalDate.now();
+        long monthTotalAmount = donationHistoryRepository.getMonthlyTotalDonation(
+                farmUuid,
+                now.getYear(),
+                now.getMonthValue()
+        ) * 100;
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
+        boolean isBookmark = false;
+        if (memberUuid != null && !memberUuid.isBlank()) {
+            isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
+        }
+
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, isBookmark);
     }
 
     @Override
@@ -74,7 +87,7 @@ public class FarmServiceImpl implements FarmService {
         Farm farm = farmRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MY_FARM));
 
-        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
+        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmIdAndDeletedAtIsNull(farm.getId())
                 .stream()
                 .map(FarmHorseDetailResponseDto::toDto)
                 .collect(Collectors.toList());
@@ -84,8 +97,14 @@ public class FarmServiceImpl implements FarmService {
                 .map(MonthlyScoreResponseDto::toDto)
                 .collect(Collectors.toList());
 
-        long monthTotalAmount = 0L; // TODO: 블록체인 연동 후 교체
+        LocalDate now = LocalDate.now();
+        long monthTotalAmount = donationHistoryRepository.getMonthlyTotalDonation(
+                farm.getFarmUuid(),
+                now.getYear(),
+                now.getMonthValue()
+        ) * 100;
+        boolean bookmarked = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount);
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, bookmarked);
     }
 }

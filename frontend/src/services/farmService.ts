@@ -3,8 +3,9 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { Farm, Horse, HorseDetailResponse, MonthlyReportResponse, DonationUsageResponse, ScoreHistoryResponse, ScoreHistoryListResponse, MonthlyReportDetailResponse, FarmRegistrationRequest, FarmRegistrationResponse, ReceiptDetailResponse } from '@/types/farm';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-
+// const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+console.log(API_BASE_URL)
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -85,6 +86,7 @@ export class FarmService {
       const farm = response.data.result;
       return {
         id: farm.farmUuid,
+        farmUuid: farm.farmUuid,
         farm_name: farm.farmName,
         address: farm.address,
         name: farm.ownerName,
@@ -94,6 +96,10 @@ export class FarmService {
         farm_phone: farm.phoneNumber,
         area: farm.area,
         description: farm.description,
+        month_total_amount: farm.monthTotalAmount,
+        purpose_total_amount: farm.purposeTotalAmount,
+        bookmarked: farm.bookmark || false, // 북마크 상태 추가
+        created_at: farm.createdAt, // 생성일 추가
       };
     } catch (error) {
       console.error('농장 정보 조회 실패:', error);
@@ -155,20 +161,20 @@ export class FarmService {
   // 말 정보 등록
   static async registerHorse(horseData: {
     farmUuid: string;
-    horseNumber: number;
+    horseNumber: string;
     horseName: string;
     birth: string;
     gender: string;
-    color: string;
+    color: string | null;
     breed: string;
-    countryOfOrigin: string;
-    raceCount: number;
-    firstPlaceCount: number;
-    secondPlaceCount: number;
-    totalPrize: number;
-    retiredDate?: string;
-    firstRaceDate?: string;
-    lastRaceDate?: string;
+    countryOfOrigin: string | null;
+    raceCount: number | null;
+    firstPlaceCount: number | null;
+    secondPlaceCount: number | null;
+    totalPrize: number | null;
+    retiredDate?: string | null;
+    firstRaceDate?: string | null;
+    lastRaceDate?: string | null;
     profileImage?: File;
   }): Promise<void> {
     const formData = new FormData();
@@ -179,13 +185,13 @@ export class FarmService {
     formData.append('horseName', horseData.horseName);
     formData.append('birth', horseData.birth); // YYYY-MM-DD 형식
     formData.append('gender', horseData.gender);
-    formData.append('color', horseData.color);
+    formData.append('color', horseData.color || '');
     formData.append('breed', horseData.breed);
-    formData.append('countryOfOrigin', horseData.countryOfOrigin);
-    formData.append('raceCount', horseData.raceCount.toString());
-    formData.append('firstPlaceCount', horseData.firstPlaceCount.toString());
-    formData.append('secondPlaceCount', horseData.secondPlaceCount.toString());
-    formData.append('totalPrize', horseData.totalPrize.toString());
+    formData.append('countryOfOrigin', horseData.countryOfOrigin || '');
+    formData.append('raceCount', horseData.raceCount?.toString() || '0');
+    formData.append('firstPlaceCount', horseData.firstPlaceCount?.toString() || '0');
+    formData.append('secondPlaceCount', horseData.secondPlaceCount?.toString() || '0');
+    formData.append('totalPrize', horseData.totalPrize?.toString() || '0');
     
     // 선택적 필드 추가
     if (horseData.retiredDate) {
@@ -206,8 +212,16 @@ export class FarmService {
         farmUuid: horseData.farmUuid,
         horseNumber: horseData.horseNumber,
         horseName: horseData.horseName,
-        hasProfileImage: !!horseData.profileImage
+        hasProfileImage: !!horseData.profileImage,
+        profileImageName: horseData.profileImage?.name,
+        profileImageSize: horseData.profileImage?.size
       });
+
+      // FormData 내용 확인
+      console.log('FormData contents:');
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
 
       const response = await apiClient.post('/api/v1/members/farmers/my-farm/horses', formData, {
         headers: {
@@ -232,12 +246,25 @@ export class FarmService {
         data: axiosError.response?.data,
         config: axiosError.config
       });
+      
+      // 백엔드에서 보낸 에러 메시지가 있다면 표시
+      if (axiosError.response?.data && typeof axiosError.response.data === 'object') {
+        const errorData = axiosError.response.data as { message?: string; result?: string };
+        console.error('백엔드 에러 상세:', errorData);
+        if (errorData.message) {
+          throw new Error(`말 등록 실패: ${errorData.message}`);
+        }
+        if (errorData.result) {
+          throw new Error(`말 등록 실패: ${errorData.result}`);
+        }
+      }
+      
       throw error;
     }
   }
 
   // 말 상세 정보 조회
-  static async getHorseDetail(farmUuid: string, horseNumber: number, year: number, month: number): Promise<HorseDetailResponse> {
+  static async getHorseDetail(farmUuid: string, horseNumber: string, year: number, month: number): Promise<HorseDetailResponse> {
     try {
       const response = await apiClient.get(`/api/v1/farms/${farmUuid}/horses/${horseNumber}`, {
         params: { year, month },
@@ -306,6 +333,7 @@ export class FarmService {
       throw error;
     }
   }
+
 
   // 신뢰도 내역 조회
   static async getScoreHistory(farmUuid: string, year: number, month?: number): Promise<ScoreHistoryResponse> {
@@ -400,11 +428,11 @@ export class FarmService {
   static async registerFarmWithFormData(formData: FormData): Promise<FarmRegistrationResponse> {
     try {
       console.log('농장 정보 등록/수정 API 요청 (FormData):', {
-        url: '/api/v1/members/farmers/my-farm',
+        url: '/api/v1/members/farmers',
         baseURL: API_BASE_URL
       });
 
-      const response = await apiClient.post('/api/v1/members/farmers/my-farm', formData, {
+      const response = await apiClient.post('/api/v1/members/farmers', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -530,6 +558,201 @@ export class FarmService {
       return response.data;
     } catch (error) {
       console.error('기부금 사용 내역 상세 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 관리 상태 업로드
+  static async uploadHorseManagementStatus(
+    farmUuid: string,
+    horseNumber: string,
+    data: {
+      frontImage?: File;
+      leftSideImage?: File;
+      rightSideImage?: File;
+      stableImage?: File;
+      content?: string;
+    }
+  ): Promise<void> {
+    try {
+      console.log('말 관리 상태 업로드 API 요청:', {
+        farmUuid,
+        horseNumber,
+        hasFrontImage: !!data.frontImage,
+        hasLeftSideImage: !!data.leftSideImage,
+        hasRightSideImage: !!data.rightSideImage,
+        hasStableImage: !!data.stableImage,
+        hasContent: !!data.content
+      });
+
+      const formData = new FormData();
+      
+      if (data.frontImage) {
+        formData.append('frontImage', data.frontImage);
+      }
+      if (data.leftSideImage) {
+        formData.append('leftSideImage', data.leftSideImage);
+      }
+      if (data.rightSideImage) {
+        formData.append('rightSideImage', data.rightSideImage);
+      }
+      if (data.stableImage) {
+        formData.append('stableImage', data.stableImage);
+      }
+      if (data.content) {
+        formData.append('content', data.content);
+      }
+
+      // 먼저 GET 요청으로 엔드포인트 존재 여부 확인
+      try {
+        const testResponse = await apiClient.get(`/api/v1/members/farms/${farmUuid}/horses/${horseNumber}`);
+        console.log('GET 테스트 응답:', testResponse.status);
+      } catch (testError) {
+        console.log('GET 테스트 실패:', testError);
+      }
+
+      const response = await apiClient.post(
+        `/api/v1/members/farms/${farmUuid}/horses/${horseNumber}`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 30000, // 30초로 늘림
+        }
+      );
+
+      console.log('말 관리 상태 업로드 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('말 관리 상태 업로드 실패:', error);
+      
+      // Axios 에러인 경우 더 자세한 정보 로깅
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { 
+          response?: { 
+            data?: unknown; 
+            status?: number; 
+            statusText?: string;
+            headers?: unknown;
+          }; 
+          config?: unknown;
+          message?: string;
+        };
+        
+        console.error('Axios 에러 상세:', {
+          status: axiosError.response?.status,
+          statusText: axiosError.response?.statusText,
+          data: axiosError.response?.data,
+          headers: axiosError.response?.headers,
+          message: axiosError.message,
+          config: axiosError.config
+        });
+      }
+      
+      throw error;
+    }
+  }
+
+  // 주간 보고서 조회 (말 상세 페이지용)
+  static async getHorseWeeklyReports(
+    farmUuid: string, 
+    horseNumber: string, 
+    year?: number, 
+    month?: number
+  ): Promise<HorseDetailResponse> {
+    try {
+      console.log('주간 보고서 조회 API 요청:', {
+        farmUuid,
+        horseNumber,
+        year,
+        month
+      });
+
+      const params: { year?: number; month?: number } = {};
+      if (year) params.year = year;
+      if (month) params.month = month;
+
+      const response = await apiClient.get(
+        `/api/v1/farms/${farmUuid}/horses/${horseNumber}`,
+        { params }
+      );
+
+      console.log('주간 보고서 조회 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('주간 보고서 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 주간 보고서 상세 조회
+  static async getHorseWeeklyReportDetail(horseNum: number, horseStateId: number) {
+    try {
+      console.log('말 주간 보고서 상세 조회 API 호출:', {
+        horseNum,
+        horseStateId
+      });
+
+      const response = await apiClient.get(
+        `/api/v1/farms/horses/${horseNum}/weekly-reports/${horseStateId}`
+      );
+
+      console.log('말 주간 보고서 상세 조회 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('말 주간 보고서 상세 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 말 삭제
+  static async deleteHorse(farmUuid: string, horseNumber: string): Promise<void> {
+    try {
+      console.log('말 삭제 API 요청:', {
+        farmUuid,
+        horseNumber
+      });
+
+      const response = await apiClient.delete(
+        `/api/v1/members/farmers/my-farm/horses/${horseNumber}`,
+        {
+          params: { farmUuid }
+        }
+      );
+
+      console.log('말 삭제 API 응답:', {
+        status: response.status,
+        data: response.data,
+      });
+      
+      if (!response.data.isSuccess) {
+        throw new Error(`API 호출 실패: ${response.data.message}`);
+      }
+    } catch (error) {
+      console.error('말 삭제 실패:', error);
       throw error;
     }
   }

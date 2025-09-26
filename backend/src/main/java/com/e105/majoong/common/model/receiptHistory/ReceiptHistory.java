@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "receipt_history")
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@EntityListeners(AuditingEntityListener.class)
 public class ReceiptHistory {
 
     @Id
@@ -50,5 +52,15 @@ public class ReceiptHistory {
 
     @Column(nullable = false)
     private Long categoryId;
+
+    @Column(nullable=false, unique=true)
+    private String idempotencyKey;
+
+    @Column(nullable=false, unique=true)
+    private String approvalNumber;
+
+    public void updateCategoryId(Long categoryId){ this.categoryId = categoryId; }
+    public void updateSummary(String aiSummary){ this.aiSummary = aiSummary; }
+    public void updateContent(String content){ this.content = content; }
 }
 

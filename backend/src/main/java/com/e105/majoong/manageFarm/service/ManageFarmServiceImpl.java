@@ -1,6 +1,9 @@
 package com.e105.majoong.manageFarm.service;
 
+import com.e105.majoong.ai.OpenAIService;
 import com.e105.majoong.common.model.farm.Farm;
+import com.e105.majoong.common.model.farmVault.FarmVault;
+import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
 import com.e105.majoong.common.model.farmer.Farmer;
 import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.entity.BaseResponseStatus;
@@ -16,8 +19,10 @@ import com.e105.majoong.manageFarm.dto.out.GeoDto;
 import com.e105.majoong.manageFarm.dto.out.HorseListResponseDto;
 import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.common.model.farmer.FarmerRepository;
+import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,7 +30,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
@@ -43,6 +50,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     private final S3Uploader s3Uploader;
     private final HorseStateRepository horseStateRepository;
     private final TransactionTemplate txTemplate;
+    private final FarmVaultRepository farmVaultRepository;
     //test
     private final OpenAIService openAIService;
 
@@ -51,16 +59,19 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     private static final String HORSE_STATE_DIR = "horse/state";
 
     @Override
+    @Transactional
     public String updateFarm(String memberUuid, FarmInfoCreateDto updateDto) {
         Farmer farmer = farmerRepository.findByMemberUuid(memberUuid).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_USER));
-
+        FarmVault farmVault = farmVaultRepository.findByMemberUuid(memberUuid).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM_VAULT));
         double[] geo = geoCoding.getCoordinates(updateDto.getAddress());
         double latitude = geo[0];
         double longitude = geo[1];
         try {
             String imageUrl = s3Uploader.upload(updateDto.getProfileImage(), FARM_IMAGE_DIR);
             Farm farm = farmRepository.save(updateDto.toEntity(farmer, latitude, longitude, imageUrl));
+            farmVault.updateFarmUuid(farm.getFarmUuid());
             return farm.getFarmUuid();
         } catch (IOException e) {
             throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
@@ -68,16 +79,37 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     }
 
     @Override
+    @Transactional
     public void updateHorse(String memberUuid, HorseInfoUpdateDto updateDto) {
         Farm farm = farmRepository.findByFarmUuid(updateDto.getFarmUuid()).orElseThrow(
                 () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+        if (!farm.getMemberUuid().equals(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
         try {
             String imageUrl = s3Uploader.upload(updateDto.getProfileImage(), HORSE_IMAGE_DIR);
             horseRepository.save(updateDto.toEntity(farm, imageUrl));
-
+            farmRepository.incrementHorseCount(farm.getFarmUuid());
         } catch (IOException e) {
             throw new BaseException(BaseResponseStatus.S3_UPLOAD_FAILED);
         }
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteHorse(String memberUuid, String horseNumber, String farmUuid) {
+        Farm farm = farmRepository.findByFarmUuid(farmUuid).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+        if (!farm.getMemberUuid().equals(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
+        Horse horse = horseRepository.findByHorseNumber(horseNumber).orElseThrow(
+                () -> new BaseException(BaseResponseStatus.NO_EXIST_HORSE));
+        if (horse.getDeletedAt() != null) {
+            throw new BaseException(BaseResponseStatus.IS_DELETED_HORSE);
+        }
+        horse.updateDeletedAt(LocalDateTime.now());
+        farmRepository.decrementHorseCount(farmUuid);
     }
 
     @Override
@@ -87,7 +119,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
         if (!farm.getMemberUuid().equals(memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
         }
-        List<Horse> horses = horseRepository.findByFarm(farm);
+        List<Horse> horses = horseRepository.findByFarmAndDeletedAtIsNull(farm);
         return horses.stream().map(HorseListResponseDto::toDto).toList();
     }
 
@@ -108,7 +140,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
     }
 
     @Override
-    public Mono<String> reportHorseState(String memberUuid, String farmUuid, Long horseNumber,
+    public Mono<String> reportHorseState(String memberUuid, String farmUuid, String horseNumber,
                                          ReportHorseStatusDto dto) {
         /*
          * 블로킹 코드를 비동기로 실행(블로킹 코드: 이 요청을 처리하기 위해 현재 작업을 차단하는 코드)
@@ -120,7 +152,7 @@ public class ManageFarmServiceImpl implements ManageFarmService {
             if (!farm.getMemberUuid().equals(memberUuid)) {
                 throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
             }
-            if (!horseRepository.existsByHorseNumber(horseNumber)) {
+            if (!horseRepository.existsByHorseNumberAndDeletedAtIsNull(horseNumber)) {
                 throw new BaseException(BaseResponseStatus.NO_EXIST_HORSE);
             }
             return farm;

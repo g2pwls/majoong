@@ -2,6 +2,7 @@ package com.e105.majoong.mypage.service;
 
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
+import com.e105.majoong.common.model.bookmark.Bookmark;
 import com.e105.majoong.common.model.bookmark.BookmarkRepository;
 import com.e105.majoong.common.model.bookmark.BookmarkRepositoryCustom;
 import com.e105.majoong.common.model.donationHistory.DonationHistoryRepository;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DonatorMyPageServiceImpl implements DonatorMyPageService {
 
-    private final DonationHistoryRepositoryCustom donationHistoryRepositoryCustom;
     private final DonationHistoryRepository donationHistoryRepository;
     private final DonatorRepository donatorRepository;
     private final BookmarkRepositoryCustom bookmarkRepositoryCustom;
@@ -35,10 +35,9 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
     public DonationResponseDto getDonationHistoryByPage(
             String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate) {
         if (!donatorRepository.existsByMemberUuid(memberUuid)) {
-            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+            throw new BaseException(BaseResponseStatus.NO_EXIST_DONATOR);
         }
-        return donationHistoryRepositoryCustom
-                .findDonationHistoryByPage(memberUuid, page, size, startDate, endDate);
+        return donationHistoryRepository.findDonationHistoryByPage(memberUuid, page, size, startDate, endDate);
     }
 
     @Override
@@ -57,10 +56,23 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
         if (!farmRepository.existsByFarmUuid(farmUuid)) {
             throw new BaseException(BaseResponseStatus.INVALID_FARM_UUID);
         }
-        if (bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid)){
+        if (bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farmUuid)) {
             throw new BaseException(BaseResponseStatus.DUPLICATED_BOOKMARK);
         }
         bookmarkRepository.save(BookmarkRequestDto.toEntity(memberUuid, farmUuid));
+    }
+
+    @Override
+    public void deleteBookmarks(String memberUuid, String farmUuid) {
+        if (!donatorRepository.existsByMemberUuid(memberUuid)) {
+            throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
+        }
+        if (!farmRepository.existsByFarmUuid(farmUuid)) {
+            throw new BaseException(BaseResponseStatus.INVALID_FARM_UUID);
+        }
+        Bookmark bookmark = bookmarkRepository.findByMemberUuidAndFarmUuid(memberUuid, farmUuid)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.DUPLICATED_BOOKMARK));
+        bookmarkRepository.delete(bookmark);
     }
 
     @Override
@@ -68,9 +80,7 @@ public class DonatorMyPageServiceImpl implements DonatorMyPageService {
         if (!donationHistoryRepository.existsByIdAndDonatorUuid(donationHistoryId, memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_ACCESS_AUTHORITY);
         }
-
-        return donationHistoryRepositoryCustom.findDonationHistoryDetail(memberUuid, donationHistoryId);
+        return donationHistoryRepository.findDonationHistoryDetail(memberUuid, donationHistoryId);
     }
-
 
 }

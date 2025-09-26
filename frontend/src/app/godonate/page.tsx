@@ -1,63 +1,57 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shuffle } from "lucide-react";
+import { startKakaoPay } from "@/services/paymentService";
+import { getRecommendFarms, RecommendFarm } from "@/services/apiService";
+import DonationForm from "@/components/donation/DonationForm";
+import FarmCarousel3D from "@/components/farm/FarmCarousel3D";
 
-interface FarmData {
-  id: string;
-  farm_name: string;
-  total_score: number;
-  name: string;
-  address: string;
-  farm_phone: string;
-  area: number;
-  horse_count: number;
-  image_url: string;
-}
+// Farm 인터페이스는 apiService에서 import하여 사용
 
-const predefinedAmounts = [1000, 5000, 10000, 20000, 30000, 50000];
 
 export default function GoDonatePage() {
-  const [topFarms, setTopFarms] = useState<FarmData[]>([]);
-  const [selectedFarm, setSelectedFarm] = useState<FarmData | null>(null);
+  const [recommendFarms, setRecommendFarms] = useState<RecommendFarm[]>([]);
+  const [selectedFarm, setSelectedFarm] = useState<RecommendFarm | null>(null);
   const [selectedAmount, setSelectedAmount] = useState<number>(0);
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [showAmountWarning, setShowAmountWarning] = useState(false);
+  const [isCustomInputActive, setIsCustomInputActive] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
   useEffect(() => {
-    const fetchTopFarms = async () => {
+    const fetchRecommendFarms = async () => {
       try {
-        const response = await fetch('/api/farms/all');
-        if (response.ok) {
-          const data = await response.json();
-          // 신뢰도 순으로 정렬하고 상위 5개 선택
-          const sortedFarms = data.sort((a: FarmData, b: FarmData) => b.total_score - a.total_score);
-          const top5 = sortedFarms.slice(0, 5);
-          setTopFarms(top5);
-          if (top5.length > 0) {
-            setSelectedFarm(top5[0]);
-          }
+        console.log('추천 목장 조회 시작');
+        const farms = await getRecommendFarms();
+        console.log('추천 목장 조회 성공:', farms);
+        
+        setRecommendFarms(farms);
+        if (farms.length > 0) {
+          setSelectedFarm(farms[0]);
         }
       } catch (error) {
-        console.error("농장 정보를 가져오는데 실패했습니다:", error);
+        console.error("추천 목장 정보를 가져오는데 실패했습니다:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchTopFarms();
+    fetchRecommendFarms();
   }, []);
 
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
+    setShowCustomInput(false);
+    setShowAmountWarning(false);
+    setIsCustomInputActive(false);
   };
 
   const handleCustomAmountChange = (value: string) => {
@@ -68,11 +62,15 @@ export default function GoDonatePage() {
     const numValue = parseInt(value.replace(/,/g, ""), 10);
 
     if (!isNaN(numValue)) {
-      // 1000 단위로 자동 내림
-      const rounded = Math.floor(numValue / 1000) * 1000;
+      // 100 단위로 자동 내림
+      const rounded = Math.floor(numValue / 100) * 100;
       setSelectedAmount(rounded);
+      
+      // 100원 단위로 딱 떨어지지 않는 경우 경고 표시
+      setShowAmountWarning(numValue > 0 && numValue !== rounded);
     } else {
       setSelectedAmount(0);
+      setShowAmountWarning(false);
     }
   };
 
@@ -80,34 +78,84 @@ export default function GoDonatePage() {
     return amount.toLocaleString();
   };
 
-  const handleDonate = () => {
-    if (selectedAmount > 0 && selectedFarm) {
-      setShowConfirmModal(true);
-    } else {
-      alert("기부 금액을 선택해주세요.");
+  const handleCustomInputClick = () => {
+    setIsCustomInputActive(true);
+    setSelectedAmount(0);
+    setCustomAmount("");
+    setShowAmountWarning(false);
+    setShowCustomInput(false);
+  };
+
+  const handleCustomInputBlur = () => {
+    // 입력이 완료되면 버튼 모드로 돌아감
+    if (customAmount === "") {
+      setIsCustomInputActive(false);
     }
   };
 
-  const handleConfirmDonate = () => {
-    // TODO: 실제 기부 처리 로직 구현
-    console.log(`${selectedFarm?.farm_name}에 ${formatAmount(selectedAmount)}원 기부 완료`);
-    setShowConfirmModal(false);
-    // 기부 완료 후 처리 (예: 성공 페이지로 이동)
+  const handleCustomInputKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      setIsCustomInputActive(false);
+    }
+    if (e.key === 'Escape') {
+      setCustomAmount("");
+      setIsCustomInputActive(false);
+      setShowAmountWarning(false);
+    }
   };
 
-  const handleCancelDonate = () => {
-    setShowConfirmModal(false);
+
+  const handlePaymentMethodChange = (method: 'kakao') => {
+    setPaymentMethod(method);
   };
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % topFarms.length);
-    setSelectedFarm(topFarms[(currentSlide + 1) % topFarms.length]);
+  const handleDonateClick = () => {
+    if (selectedAmount > 0) {
+      setShowConfirmPopup(true);
+    } else {
+      alert('후원 금액을 선택해주세요.');
+    }
   };
 
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + topFarms.length) % topFarms.length);
-    setSelectedFarm(topFarms[(currentSlide - 1 + topFarms.length) % topFarms.length]);
+  const handleConfirmDonation = async () => {
+    try {
+      setShowConfirmPopup(false);
+      
+      if (!selectedFarm || selectedAmount <= 0) {
+        alert('기부 정보가 올바르지 않습니다.');
+        return;
+      }
+
+      // 카카오페이 결제 시작 API 호출
+      await startKakaoPay({
+        totalPrice: selectedAmount.toString(),
+        farmUuid: selectedFarm.farmUuid
+      });
+
+      console.log('카카오페이 결제 시작:', { 
+        farmName: selectedFarm.farmName, 
+        amount: selectedAmount,
+        farmUuid: selectedFarm.farmUuid 
+      });
+    } catch (error) {
+      console.error('카카오페이 결제 시작 오류:', error);
+      alert('결제 시작에 실패했습니다. 다시 시도해주세요.');
+    }
   };
+
+  // 랜덤 목장 선택 함수
+  const handleRandomSelect = () => {
+    if (recommendFarms.length > 0) {
+      const randomIndex = Math.floor(Math.random() * recommendFarms.length);
+      const randomFarm = recommendFarms[randomIndex];
+      setSelectedFarm(randomFarm);
+      
+      console.log('랜덤 선택된 농장:', randomFarm.farmName);
+    }
+  };
+
+  // 미사용 함수들 제거됨 - 현재 handleConfirmDonation으로 대체됨
+
 
   // ESC 키로 모달 닫기
   useEffect(() => {
@@ -138,10 +186,10 @@ export default function GoDonatePage() {
     );
   }
 
-  if (!topFarms.length) {
+  if (!recommendFarms.length) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-red-500">농장 정보를 찾을 수 없습니다.</div>
+        <div className="text-lg text-red-500">추천 목장 정보를 찾을 수 없습니다.</div>
       </div>
     );
   }
@@ -156,268 +204,57 @@ export default function GoDonatePage() {
             <h1 className="text-4xl font-bold text-gray-900 mb-2">바로기부</h1>
             <div className="w-37 h-1 bg-gray-300"></div>
           </div>
-          <p className="text-lg text-gray-600 ml-5">
-            말리부가 선정한 신뢰도 TOP5 농장에 바로 기부해 보세요!
-          </p>
         </div>
 
         {/* 기부 폼 */}
         <Card className="bg-white border border-gray-200 p-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 왼쪽: 농장 캐러셀 */}
+            {/* 왼쪽: 목장 선택 */}
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-0">농장 선택</h2>
-              
-              {/* 3D 원형 캐러셀 컨테이너 */}
-              <div className="relative h-[400px] flex items-center justify-center mb-0" style={{ perspective: '1000px' }}>
-                {/* 회전하는 3D 원형 컨테이너 */}
-                <div
-                  className="absolute w-full h-full transition-transform duration-500 ease-in-out"
-                  style={{
-                    transform: `rotateY(${-currentSlide * (360 / topFarms.length)}deg)`,
-                    transformStyle: 'preserve-3d',
-                  }}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">농장 선택</h2>
+                <Button
+                  onClick={handleRandomSelect}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50"
                 >
-                  {/* 3D 원형 배치된 카드들 */}
-                  {topFarms.map((farm, index) => {
-                    const angle = (index * 360) / topFarms.length; // 각 카드의 원형 위치 각도
-                    const radius = 200; // 3D 원의 반지름
-                    
-                    // 현재 슬라이드 기준으로 상대적 위치 계산
-                    let relativeIndex = index - currentSlide;
-                    if (relativeIndex > topFarms.length / 2) {
-                      relativeIndex -= topFarms.length;
-                    } else if (relativeIndex < -topFarms.length / 2) {
-                      relativeIndex += topFarms.length;
-                    }
-                    
-                    const absRelativeIndex = Math.abs(relativeIndex);
-                    
-                    // 카드 크기와 투명도 설정
-                    let scale = 0.8;
-                    let opacity = 1;
-                    let zIndex = 10;
-                    
-                    if (absRelativeIndex === 0) { // 중앙 카드
-                      scale = 0.85;
-                      opacity = 1;
-                      zIndex = 10;
-                    } else if (absRelativeIndex === 1) { // 양쪽 카드
-                      scale = 0.8;
-                      opacity = 0.8;
-                      zIndex = 9;
-                    } else if (absRelativeIndex === 2) { // 뒤쪽 카드
-                      scale = 0.6;
-                      opacity = 0.6;
-                      zIndex = 8;
-                    } else { // 숨겨진 카드
-                      scale = 0.4;
-                      opacity = 0;
-                      zIndex = 1;
-                    }
-                    
-                    return (
-                      <div
-                        key={farm.id}
-                        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out"
-                        style={{
-                          transform: `rotateY(${angle}deg) translateZ(${radius}px) scale(${scale})`,
-                          zIndex: zIndex,
-                          opacity: opacity,
-                          pointerEvents: absRelativeIndex > 2 ? 'none' : 'auto',
-                          backfaceVisibility: 'hidden',
-                        }}
-                        onClick={() => {
-                          setCurrentSlide(index);
-                          setSelectedFarm(farm);
-                        }}
-                      >
-                        <div 
-                          className={`relative w-64 h-85 rounded-lg overflow-hidden shadow-lg cursor-pointer ${
-                            absRelativeIndex === 0 
-                              ? 'ring-4 ring-green-500 ring-opacity-50' 
-                              : 'border-2 border-gray-200'
-                          }`}
-                        >
-                          <Image
-                            src={farm.image_url}
-                            alt={`${farm.farm_name} 프로필 이미지`}
-                            width={256}
-                            height={160}
-                            className="w-full h-40 object-cover"
-                          />
-                          
-                          {/* 카드 내용 */}
-                          <div className="p-3 bg-white flex flex-col">
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">{farm.farm_name}</h3>
-                            <div className="text-sm text-gray-600 space-y-1 flex-grow">
-                              <p>신뢰도: {farm.total_score}°C</p>
-                              <p>농장주: {farm.name}</p>
-                              <p className="truncate">주소: {farm.address}</p>
+                  <Shuffle className="h-4 w-4" />
+                  랜덤 선택
+                </Button>
                             </div>
                             
-                            {/* 자세히 버튼 */}
-                            <div className="mt-2 pt-2 border-t border-gray-200">
-                              <Link 
-                                href={`/support/${farm.id}`}
-                                className="block w-full text-center bg-blue-500 hover:bg-blue-600 text-white py-2 px-3 rounded-md text-sm font-medium transition-colors"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                목장 구경가기
-                              </Link>
-                            </div>
-                          </div>
-                          
-                          {/* 선택 표시 */}
-                          {absRelativeIndex === 0 && (
-                            <div className="absolute top-2 right-2 bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold">
-                              ✓
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* 캐러셀 네비게이션 버튼 */}
-              <div className="flex justify-center space-x-4">
-                <button
-                  onClick={prevSlide}
-                  className="bg-white hover:bg-gray-50 rounded-full p-3 shadow-lg border"
-                >
-                  <ChevronLeft className="h-6 w-6" />
-                </button>
-                <button
-                  onClick={nextSlide}
-                  className="bg-white hover:bg-gray-50 rounded-full p-3 shadow-lg border"
-                >
-                  <ChevronRight className="h-6 w-6" />
-                </button>
-              </div>
-
-              {/* 캐러셀 인디케이터 */}
-              <div className="flex justify-center space-x-2">
-                {topFarms.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => {
-                      setCurrentSlide(index);
-                      setSelectedFarm(topFarms[index]);
-                    }}
-                    className={`w-3 h-3 rounded-full transition-colors ${
-                      index === currentSlide ? 'bg-green-500' : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                  />
-                ))}
-              </div>
+              {/* 3D 캐러셀 */}
+              <FarmCarousel3D
+                farms={recommendFarms}
+                selectedFarm={selectedFarm}
+                onFarmSelect={setSelectedFarm}
+              />
             </div>
 
-            {/* 오른쪽: 금액 선택 */}
-            <div className="space-y-6">
-              <h3 className="text-xl font-semibold text-gray-900">금액 선택</h3>
-              
-              {/* 미리 정의된 금액 버튼들 */}
-              <div className="grid grid-cols-3 gap-3">
-                {predefinedAmounts.map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={selectedAmount === amount ? "default" : "outline"}
-                    onClick={() => handleAmountSelect(amount)}
-                    className={`h-12 ${
-                      selectedAmount === amount
-                        ? "bg-green-500 hover:bg-green-600 text-white"
-                        : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                  >
-                    {formatAmount(amount)}원
-                  </Button>
-                ))}
-              </div>
-
-              {/* 직접 입력 */}
-              <div className="space-y-2 flex flex-row items-center justify-end mb-0">
-                <label className="text-sm font-medium text-gray-700 mr-5">직접 입력</label>
-                <div className="flex items-center space-x-2">
-                  <Input
-                    type="text"
-                    value={customAmount}
-                    onChange={(e) => handleCustomAmountChange(e.target.value)}
-                    placeholder="금액을 입력하세요"
-                    className="flex-1"
-                  />
-                  <span className="text-gray-600">원</span>
-                </div>
-              </div>
-              <span className="text-gray-600 flex justify-end mb-5">(1000원 단위로 기부 가능)</span>
-
-              {/* 기부 금액 표시 */}
-              <div className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-medium text-gray-700">기부 금액:</span>
-                  <span className="text-2xl font-bold text-gray-900">
-                    {selectedAmount > 0 ? formatAmount(selectedAmount) : "0"}원
-                  </span>
-                </div>
-              </div>
-
-              {/* 기부하기 버튼 */}
-              <div className="flex justify-end">
-                <Button
-                  onClick={handleDonate}
-                  className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 text-lg"
-                  disabled={selectedAmount <= 0 || !selectedFarm}
-                >
-                  기부하기
-                </Button>
-              </div>
-            </div>
+            {/* 오른쪽: 후원 정보 */}
+            <DonationForm
+              selectedAmount={selectedAmount}
+              customAmount={customAmount}
+              showAmountWarning={showAmountWarning}
+              isCustomInputActive={isCustomInputActive}
+              paymentMethod={paymentMethod}
+              showConfirmPopup={showConfirmPopup}
+              selectedFarm={selectedFarm}
+              onAmountSelect={handleAmountSelect}
+              onCustomAmountChange={handleCustomAmountChange}
+              onCustomInputClick={handleCustomInputClick}
+              onCustomInputBlur={handleCustomInputBlur}
+              onCustomInputKeyDown={handleCustomInputKeyDown}
+              onPaymentMethodChange={handlePaymentMethodChange}
+              onDonateClick={handleDonateClick}
+              onConfirmDonation={handleConfirmDonation}
+              onCloseConfirmPopup={() => setShowConfirmPopup(false)}
+              formatAmount={formatAmount}
+            />
           </div>
         </Card>
       </div>
-
-      {/* 기부 확인 모달 */}
-      {showConfirmModal && selectedFarm && (
-        <div 
-          className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50"
-          onClick={handleCancelDonate}
-        >
-          <div 
-            className="bg-white rounded-lg p-8 max-w-md w-full mx-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">기부 확인</h3>
-              <div className="mb-6">
-                <p className="text-lg text-gray-700 mb-2">
-                  <span className="font-semibold">{selectedFarm.farm_name}</span>에
-                </p>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatAmount(selectedAmount)}원
-                </p>
-                <p className="text-lg text-gray-700 mt-2">기부하시겠습니까?</p>
-              </div>
-              
-              <div className="flex space-x-4">
-                <Button
-                  onClick={handleCancelDonate}
-                  variant="outline"
-                  className="flex-1 py-3"
-                >
-                  취소
-                </Button>
-                <Button
-                  onClick={handleConfirmDonate}
-                  className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3"
-                >
-                  기부하기
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

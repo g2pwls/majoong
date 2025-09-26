@@ -1,6 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { getMyFarm, updateFarmInfo } from '@/services/userService';
+import { MyFarmResponse, FarmUpdateRequest } from '@/types/user';
 
 interface FarmInfo {
   id: string;
@@ -16,46 +20,158 @@ interface FarmInfo {
 }
 
 export default function FarmerMyFarm() {
+  const router = useRouter();
   const [farmInfo, setFarmInfo] = useState<FarmInfo | null>(null);
+  const [myFarmData, setMyFarmData] = useState<MyFarmResponse['result'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedInfo, setEditedInfo] = useState({
     name: '',
     description: ''
   });
+  const [editedPhoneNumber, setEditedPhoneNumber] = useState('');
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // TODO: 실제 API에서 목장 정보를 가져와야 함
-    // 현재는 임시 데이터 사용
-    const mockData: FarmInfo = {
-      id: '1',
-      name: '행복한 목장',
-      description: '자연친화적인 목장에서 건강한 가축을 키우고 있습니다. 지속가능한 농업을 실천하며, 후원자분들과 함께 성장하고 있습니다.',
-      location: '강원도 평창군',
-      totalSupport: 5000000,
-      supportCount: 150,
-      status: 'active',
-      createdAt: '2024-01-01',
-      lastUpdated: '2024-01-15'
+    const fetchMyFarm = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getMyFarm();
+        
+        if (response.isSuccess && response.result) {
+          const farmData = response.result;
+          
+          // API 응답 데이터 저장
+          setMyFarmData(farmData);
+          
+          // 기존 FarmInfo 인터페이스에 맞춰 변환
+          const farmInfo: FarmInfo = {
+            id: farmData.farmUuid,
+            name: farmData.farmName,
+            description: farmData.description,
+            location: farmData.address,
+            imageUrl: farmData.profileImage,
+            totalSupport: farmData.monthTotalAmount,
+            supportCount: 0, // API에서 제공되지 않는 필드
+            status: 'active',
+            createdAt: '', // API에서 제공되지 않는 필드
+            lastUpdated: '' // API에서 제공되지 않는 필드
+          };
+          
+          setFarmInfo(farmInfo);
+          setEditedInfo({
+            name: farmData.farmName,
+            description: farmData.description
+          });
+          setEditedPhoneNumber(farmData.phoneNumber);
+        }
+      } catch (error) {
+        console.error('목장 정보 조회 오류:', error);
+      } finally {
+        setIsLoading(false);
+      }
     };
-    
-    setFarmInfo(mockData);
-    setEditedInfo({
-      name: mockData.name,
-      description: mockData.description
-    });
-    setIsLoading(false);
+
+    fetchMyFarm();
   }, []);
 
-  const handleSave = () => {
-    // TODO: 실제 API 호출
-    setFarmInfo(prev => prev ? {
-      ...prev,
-      name: editedInfo.name,
-      description: editedInfo.description,
-      lastUpdated: new Date().toISOString().split('T')[0]
-    } : null);
-    setIsEditing(false);
+  // 전화번호 포맷팅 함수
+  const formatPhoneNumber = (value: string): string => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 3) {
+      return numbers;
+    } else if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    } else {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
+    }
+  };
+
+  // 전화번호 입력 핸들러
+  const handlePhoneNumberChange = (value: string) => {
+    const formattedValue = formatPhoneNumber(value);
+    setEditedPhoneNumber(formattedValue);
+  };
+
+  // 이미지 선택 핸들러
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('이미지 파일만 업로드할 수 있습니다.');
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert('파일 크기는 5MB 이하여야 합니다.');
+        return;
+      }
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  // 이미지 제거 핸들러
+  const handleRemoveImage = () => {
+    setSelectedImage(null);
+    if (imagePreview && imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      console.log('목장 정보 저장 시작');
+      
+      const updateData: FarmUpdateRequest = {
+        farmName: editedInfo.name,
+        phoneNumber: editedPhoneNumber,
+        description: editedInfo.description,
+        image: selectedImage
+      };
+      
+      const response = await updateFarmInfo(updateData);
+      
+      if (response.isSuccess) {
+        // 성공 시 로컬 상태 업데이트
+        setFarmInfo(prev => prev ? {
+          ...prev,
+          name: editedInfo.name,
+          description: editedInfo.description,
+          lastUpdated: new Date().toISOString().split('T')[0]
+        } : null);
+        
+        if (myFarmData) {
+          setMyFarmData(prev => prev ? {
+            ...prev,
+            farmName: editedInfo.name,
+            phoneNumber: editedPhoneNumber,
+            description: editedInfo.description,
+            profileImage: imagePreview || prev.profileImage
+          } : null);
+        }
+        
+        alert('목장 정보가 성공적으로 수정되었습니다.');
+        setIsEditing(false);
+        
+        // 이미지 미리보기 URL 정리
+        if (imagePreview && imagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(imagePreview);
+        }
+        setSelectedImage(null);
+        setImagePreview(null);
+      } else {
+        alert(`목장 정보 수정에 실패했습니다.\n${response.message}`);
+      }
+    } catch (error) {
+      console.error('목장 정보 수정 오류:', error);
+      alert('목장 정보 수정 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -63,28 +179,21 @@ export default function FarmerMyFarm() {
       name: farmInfo?.name || '',
       description: farmInfo?.description || ''
     });
+    setEditedPhoneNumber(myFarmData?.phoneNumber || '');
+    
+    // 이미지 미리보기 정리
+    if (imagePreview && imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsEditing(false);
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">활성</span>;
-      case 'inactive':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">비활성</span>;
-      case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">검토중</span>;
-      default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{status}</span>;
+  const handleFarmNameClick = () => {
+    if (myFarmData?.farmUuid) {
+      router.push(`/support/${myFarmData.farmUuid}`);
     }
-  };
-
-  const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR');
   };
 
   if (isLoading) {
@@ -117,136 +226,219 @@ export default function FarmerMyFarm() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">나의 목장</h2>
-        {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            정보 수정
-          </button>
-        )}
-      </div>
-      
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        {/* 목장 상태 */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">목장 상태:</span>
-            {getStatusBadge(farmInfo.status)}
-          </div>
-          <span className="text-sm text-gray-500">
-            마지막 수정: {formatDate(farmInfo.lastUpdated)}
-          </span>
-        </div>
+      <div className="space-y-6">
+        {/* 기본 정보 섹션 */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h3>
+          <div className="space-y-6">
+            {/* 목장명 (편집 가능) */}
+            <div className="flex items-center">
+              <label className="w-40 text-sm font-medium text-gray-700">
+                목장명
+              </label>
+              <div className="flex-1 ml-4 flex items-center gap-3">
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={editedInfo.name}
+                    onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="목장명을 입력하세요"
+                  />
+                ) : (
+                  <div 
+                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={handleFarmNameClick}
+                    title="목장 상세 페이지로 이동"
+                  >
+                    {myFarmData?.farmName}
+                  </div>
+                )}
+                {!isEditing && (
+                  <button
+                    onClick={() => router.push(`/support/${myFarmData?.farmUuid}`)}
+                    className="px-3 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-sm"
+                  >
+                    내 목장 가기
+                  </button>
+                )}
+              </div>
+            </div>
 
-        {/* 목장명 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            목장명
-          </label>
-          {isEditing ? (
-            <input
-              type="text"
-              value={editedInfo.name}
-              onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="목장명을 입력하세요"
-            />
-          ) : (
-            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-              {farmInfo.name}
+            {/* 대표 사진 (편집 가능) */}
+            <div className="flex items-start">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+                대표 사진
+              </label>
+              <div className="flex-1 ml-4">
+                {isEditing ? (
+                  <div className="space-y-3">
+                    {(imagePreview || myFarmData?.profileImage) && (
+                      <div className="border border-gray-200 rounded-lg p-2 bg-gray-50 relative">
+                        <Image
+                          src={imagePreview || myFarmData?.profileImage || ''}
+                          alt={editedInfo.name || '목장 대표 사진'}
+                          width={800}
+                          height={400}
+                          className="w-full h-auto object-contain rounded-lg"
+                        />
+                        {imagePreview && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveImage}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden"
+                        id="farm-image-upload"
+                      />
+                      <label
+                        htmlFor="farm-image-upload"
+                        className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md text-sm hover:bg-gray-50 transition-colors"
+                      >
+                        이미지 선택
+                      </label>
+                      <p className="text-xs text-gray-500 mt-1">JPG, PNG 파일 (최대 5MB)</p>
+                    </div>
+                  </div>
+                ) : (
+                  myFarmData?.profileImage ? (
+                    <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+                      <Image
+                        src={myFarmData.profileImage}
+                        alt={farmInfo?.name || '목장 대표 사진'}
+                        width={800}
+                        height={400}
+                        className="w-full h-auto object-contain rounded-lg"
+                      />
+                    </div>
+                  ) : (
+                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-500">
+                      대표 사진이 없습니다
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* 연락처 (편집 가능) */}
+            <div className="flex items-center">
+              <label className="w-40 text-sm font-medium text-gray-700">
+                연락처
+              </label>
+              <div className="flex-1 ml-4">
+                {isEditing ? (
+                  <input
+                    type="tel"
+                    value={editedPhoneNumber}
+                    onChange={(e) => handlePhoneNumberChange(e.target.value)}
+                    placeholder="010-1234-5678"
+                    maxLength={13}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                ) : (
+                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                    {myFarmData?.phoneNumber}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 목장 설명 (편집 가능) */}
+            <div className="flex items-start">
+              <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+                목장 설명
+              </label>
+              <div className="flex-1 ml-4">
+                {isEditing ? (
+                  <textarea
+                    value={editedInfo.description}
+                    onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    placeholder="목장에 대한 설명을 입력하세요"
+                  />
+                ) : (
+                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                    {myFarmData?.description || '목장 설명이 없습니다.'}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 주소 (읽기 전용) */}
+            <div className="flex items-center">
+              <label className="w-40 text-sm font-medium text-gray-700">
+                주소
+              </label>
+              <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
+                {myFarmData?.address}
+              </div>
+            </div>
+
+            {/* 면적 (읽기 전용) */}
+            <div className="flex items-center">
+              <label className="w-40 text-sm font-medium text-gray-700">
+                면적
+              </label>
+              <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
+                {myFarmData?.area}m²
+              </div>
+            </div>
+          </div>
+          
+          {/* 정보 수정 버튼 */}
+          {!isEditing && (
+            <div className="pt-4 flex justify-end">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                정보 수정
+              </button>
+            </div>
+          )}
+          
+          {/* 편집 버튼들 */}
+          {isEditing && (
+            <div className="flex gap-2 pt-4 justify-end">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className={`px-4 py-2 text-white rounded-md transition-colors flex items-center ${
+                  isSaving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isSaving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    저장 중...
+                  </>
+                ) : (
+                  '저장'
+                )}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                취소
+              </button>
             </div>
           )}
         </div>
-
-        {/* 목장 설명 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            목장 설명
-          </label>
-          {isEditing ? (
-            <textarea
-              value={editedInfo.description}
-              onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
-              rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="목장에 대한 설명을 입력하세요"
-            />
-          ) : (
-            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-              {farmInfo.description}
-            </div>
-          )}
-        </div>
-
-        {/* 목장 위치 */}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            목장 위치
-          </label>
-          <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-            {farmInfo.location}
-          </div>
-        </div>
-
-        {/* 통계 정보 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-              </svg>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-blue-600">총 후원금</p>
-                <p className="text-lg font-semibold text-blue-900">{formatAmount(farmInfo.totalSupport)}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-green-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-green-600">후원자 수</p>
-                <p className="text-lg font-semibold text-green-900">{farmInfo.supportCount}명</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="flex items-center">
-              <svg className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-purple-600">등록일</p>
-                <p className="text-lg font-semibold text-purple-900">{formatDate(farmInfo.createdAt)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* 편집 버튼들 */}
-        {isEditing && (
-          <div className="flex gap-2 pt-4 border-t border-gray-200">
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              저장
-            </button>
-            <button
-              onClick={handleCancel}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
-            >
-              취소
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="mt-8 p-4 bg-blue-50 rounded-lg">

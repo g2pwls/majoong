@@ -60,4 +60,8 @@ public class Farmer extends BaseEntity {
         this.userKey = userKey;
         this.accountNo = accountNo;
     }
+
+    public void updateFarmName(String farmName) {
+        this.farmName = farmName;
+    }
 }
