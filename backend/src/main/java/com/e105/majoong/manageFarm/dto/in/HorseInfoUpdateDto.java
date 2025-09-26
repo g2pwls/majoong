@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class HorseInfoUpdateDto {
     private String farmUuid;
-    private Long horseNumber;
+    private String horseNumber;
     private String horseName;
     private LocalDate birth;
     private String gender;

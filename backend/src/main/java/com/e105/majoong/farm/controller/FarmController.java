@@ -121,7 +121,7 @@ public class FarmController {
     @Operation(summary = "말 상세 정보 및 주간 보고서 목록 조회")
     public BaseResponse<HorseDetailResponseDto> getHorseDetail(
             @PathVariable String farmUuid,
-            @PathVariable Long horseNumber,
+            @PathVariable String horseNumber,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
@@ -141,7 +141,7 @@ public class FarmController {
     @GetMapping("horses/{horseNum}/weekly-reports/{horseStateId}")
     @Operation(summary = "말 주간 보고서 상세 조회")
     public BaseResponse<HorseWeeklyReportDetailResponseDto> getWeeklyReportDetail(
-            @PathVariable Long horseNum,
+            @PathVariable String horseNum,
             @PathVariable Long horseStateId
     ) {
         return new BaseResponse<>(horseService.getWeeklyReportDetail(horseNum, horseStateId));

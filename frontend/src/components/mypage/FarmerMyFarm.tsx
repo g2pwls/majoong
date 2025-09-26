@@ -127,12 +127,20 @@ export default function FarmerMyFarm() {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-900">나의 목장</h2>
         {!isEditing && (
-          <button
-            onClick={() => setIsEditing(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-          >
-            정보 수정
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => window.open(`/support/${myFarmData?.farmUuid}`, '_blank')}
+              className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+            >
+              내 목장 보기
+            </button>
+            <button
+              onClick={() => setIsEditing(true)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              정보 수정
+            </button>
+          </div>
         )}
       </div>
       
@@ -144,8 +152,8 @@ export default function FarmerMyFarm() {
               src={myFarmData.profileImage}
               alt={farmInfo.name}
               width={800}
-              height={192}
-              className="w-full h-48 object-cover rounded-lg"
+              height={400}
+              className="w-full h-auto object-contain rounded-lg bg-gray-50"
             />
           </div>
         )}

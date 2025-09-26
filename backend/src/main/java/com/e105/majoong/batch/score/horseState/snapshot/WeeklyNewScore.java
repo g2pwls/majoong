@@ -13,10 +13,10 @@ public class WeeklyNewScore implements Serializable {
     private Double lastScore;
     private int delta;
     private Double newScore;
-    private List<Long> horseNumber;
+    private List<String> horseNumber;
 
     public static WeeklyNewScore toSnapshot(
-            Double lastScore, int delta, Double newScore, List<Long> horseNumber) {
+            Double lastScore, int delta, Double newScore, List<String> horseNumber) {
         return WeeklyNewScore.builder()
                 .lastScore(lastScore)
                 .delta(delta)

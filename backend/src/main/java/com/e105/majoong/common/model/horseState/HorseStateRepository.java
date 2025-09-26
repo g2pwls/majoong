@@ -17,11 +17,11 @@ public interface HorseStateRepository extends JpaRepository<HorseState, Long> {
           AND hs.uploadedAt BETWEEN :start AND :end
     """)
     List<HorseState> findByHorseAndFarmAndPeriod(
-            @Param("horseNumber") Long horseNumber,
+            @Param("horseNumber") String horseNumber,
             @Param("farmUuid") String farmUuid,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
 
-    Optional<HorseState> findByIdAndHorseNumber(Long id, Long horseNumber);
+    Optional<HorseState> findByIdAndHorseNumber(Long id, String horseNumber);
 }

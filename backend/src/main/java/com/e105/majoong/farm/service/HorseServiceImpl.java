@@ -42,7 +42,7 @@ public class HorseServiceImpl implements HorseService {
     }
 
     @Override
-    public HorseDetailResponseDto getHorseDetail(String farmUuid, Long horseNumber, Integer year, Integer month) {
+    public HorseDetailResponseDto getHorseDetail(String farmUuid, String horseNumber, Integer year, Integer month) {
         LocalDate now = LocalDate.now();
         int targetYear = (year != null) ? year : now.getYear();
         int targetMonth = (month != null) ? month : now.getMonthValue();
@@ -72,7 +72,7 @@ public class HorseServiceImpl implements HorseService {
     }
 
     @Override
-    public HorseWeeklyReportDetailResponseDto getWeeklyReportDetail(Long horseNumber, Long horseStateId) {
+    public HorseWeeklyReportDetailResponseDto getWeeklyReportDetail(String horseNumber, Long horseStateId) {
         HorseState state = horseStateRepository.findByIdAndHorseNumber(horseStateId, horseNumber)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_HORSE_STATE));
 

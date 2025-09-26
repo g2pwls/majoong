@@ -7,7 +7,7 @@ import lombok.Getter;
 @Getter
 @Builder
 public class HorseImageDto {
-    private Long horseNumber;
+    private String horseNumber;
     private String frontImage;
     private String leftSideImage;
     private String rightSideImage;

@@ -62,14 +62,15 @@ public class DonateService {
 
     // 5) 누적: DB는 “원화 금액” 기준
     farm.updateTotalDonation(krw);   // 토큰 개수 대신 원화 금액 누적
-
+    Long balance = farm.getTotalDonation() - farm.getUsedAmount();
     // 6) donation_history 저장 (farmUuid + tx_hash)
     DonationHistory h = req.toEntity(
         farm.getFarmUuid(),
         farm.getMemberUuid(),
         memberUuid,
         txHash,
-        tokenCount
+        tokenCount,
+        balance
     );
     historyRepo.save(h);
 

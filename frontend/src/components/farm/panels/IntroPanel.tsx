@@ -113,7 +113,7 @@ export default function IntroPanel({ farm }: { farm: Farm }) {
         
         {/* Horse registry section */}
         <HorseRegistrySection 
-          farmUuid={farm?.id || ""} 
+          farmUuid={farm?.farmUuid || ""} 
           onHorseRegistered={() => {}}
         />
       </div>

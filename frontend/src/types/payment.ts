@@ -13,8 +13,9 @@ export interface KakaoPayReadyResponse {
   message: string;
   code: number;
   result: {
-    tid: string;                    // 결제 고유 번호
-    next_redirect_pc_url: string;  // PC용 결제 페이지 URL
+    tid: string;                        // 결제 고유 번호
+    next_redirect_pc_url: string;      // PC용 결제 페이지 URL
+    next_redirect_mobile_url: string;  // 모바일용 결제 페이지 URL
   };
 }
 

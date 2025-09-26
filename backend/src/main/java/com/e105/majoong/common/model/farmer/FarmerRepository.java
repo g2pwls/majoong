@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface FarmerRepository extends JpaRepository<Farmer, Long> {
     Optional<Farmer> findByMemberUuid(String memberUuid);
 
+    boolean existsByMemberUuid(String memberUuid);
+
     @Query("SELECT f.email FROM Farmer f WHERE f.memberUuid = :memberUuid")
     Optional<String> findEmailByMemberUuid(@Param("memberUuid") String memberUuid);
 

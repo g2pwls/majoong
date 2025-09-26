@@ -46,6 +46,14 @@ public class SettlementHistory extends BaseEntity {
   @Column(name = "fail_reason")
   private String failReason;
 
+  private Long balance;
+
+  private Long withdrawAmount; //won
+
+  private Long withdrawToken; //token
+
+  private Long receiptHistoryId;
+
   /** DTO 의존 제거: 필요한 값만 받아서 엔티티 생성 */
   public static SettlementHistory toEntity(
       String farmUuid,
@@ -55,7 +63,10 @@ public class SettlementHistory extends BaseEntity {
       Long releasedAmount,
       String status,
       String txHash,
-      String failReason
+      String failReason,
+      Long balance,
+      Long withdrawAmount,
+      Long receiptHistoryId
   ) {
     return SettlementHistory.builder()
         .evidenceId(evidenceId)
@@ -66,6 +77,9 @@ public class SettlementHistory extends BaseEntity {
         .txHash(txHash)
         .status(status)
         .failReason(failReason)
+        .balance(balance)
+        .withdrawAmount(withdrawAmount)
+        .receiptHistoryId(receiptHistoryId)
         .build();
   }
 
@@ -76,9 +90,14 @@ public class SettlementHistory extends BaseEntity {
       String farmerWallet,
       String vaultAddress,
       Long releasedAmount,
-      String txHash
+      String txHash,
+      Long balance,
+      Long withdrawAmount,
+      Long receiptHistoryId
   ) {
-    return toEntity(farmUuid, evidenceId, farmerWallet, vaultAddress, releasedAmount, "RELEASED", txHash, null);
+    return toEntity(farmUuid, evidenceId, farmerWallet,
+            vaultAddress, releasedAmount, "RELEASED",
+            txHash, null, balance, withdrawAmount, receiptHistoryId);
   }
 
   /** 실패 케이스 편의 생성자 */
@@ -88,8 +107,13 @@ public class SettlementHistory extends BaseEntity {
       String farmerWallet,
       String vaultAddress,
       Long releasedAmount,
-      String failReason
+      String failReason,
+      Long balance,
+      Long withdrawAmount,
+      Long receiptHistoryId
   ) {
-    return toEntity(farmUuid, evidenceId, farmerWallet, vaultAddress, releasedAmount, "FAILED", null, failReason);
+    return toEntity(farmUuid, evidenceId, farmerWallet,
+            vaultAddress, releasedAmount, "FAILED",
+            null, failReason, balance, withdrawAmount, receiptHistoryId);
   }
 }

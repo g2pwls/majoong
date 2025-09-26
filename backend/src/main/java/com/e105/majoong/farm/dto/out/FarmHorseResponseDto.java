@@ -8,7 +8,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class FarmHorseResponseDto {
-    private Long horseNumber;
+    private String horseNumber;
     private String profileImage;
     private String horseName;
 

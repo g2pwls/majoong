@@ -15,16 +15,16 @@ public interface HorseRepository extends JpaRepository<Horse, Long> {
 
     Page<Horse> findByHorseNameContaining(String horseName, Pageable pageable);
 
-    List<Horse> findByFarmId(Long farmId);
+    List<Horse> findByFarmIdAndDeletedAtIsNull(Long farmId);
 
-    Optional<Horse> findByHorseNumberAndFarm_FarmUuid(Long horseNumber, String farmUuid);
+    Optional<Horse> findByHorseNumberAndFarm_FarmUuid(String horseNumber, String farmUuid);
 
-    Optional<Horse> findByHorseNumber(Long horseNumber);
+    Optional<Horse> findByHorseNumber(String horseNumber);
 
-    boolean existsByHorseNumberAndDeletedAtIsNull(Long horseNumber);
+    boolean existsByHorseNumberAndDeletedAtIsNull(String horseNumber);
 
     List<Horse> findByFarmAndDeletedAtIsNull(Farm farm);
 
-    Optional<Horse> findByHorseNumberAndDeletedAtIsNull(Long horseNumber);
+    Optional<Horse> findByHorseNumberAndDeletedAtIsNull(String horseNumber);
 
 }

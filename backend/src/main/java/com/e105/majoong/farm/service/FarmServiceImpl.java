@@ -44,7 +44,7 @@ public class FarmServiceImpl implements FarmService {
                 isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
             }
 
-            List<FarmHorseResponseDto> horseList = horseRepository.findByFarm(farm).stream()
+            List<FarmHorseResponseDto> horseList = horseRepository.findByFarmAndDeletedAtIsNull(farm).stream()
                     .map(FarmHorseResponseDto::toDto)
                     .collect(Collectors.toList());
 
@@ -57,7 +57,7 @@ public class FarmServiceImpl implements FarmService {
         Farm farm = farmRepository.findByFarmUuid(farmUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
 
-        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
+        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmIdAndDeletedAtIsNull(farm.getId())
                 .stream()
                 .map(FarmHorseDetailResponseDto::toDto)
                 .collect(Collectors.toList());
@@ -84,7 +84,7 @@ public class FarmServiceImpl implements FarmService {
         Farm farm = farmRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MY_FARM));
 
-        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmId(farm.getId())
+        List<FarmHorseDetailResponseDto> horseDtos = horseRepository.findByFarmIdAndDeletedAtIsNull(farm.getId())
                 .stream()
                 .map(FarmHorseDetailResponseDto::toDto)
                 .collect(Collectors.toList());

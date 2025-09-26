@@ -9,5 +9,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class HorseWithHorseStatusDto {
     private String farmUuid;
-    private Long horseNumber;
+    private String horseNumber;
 }

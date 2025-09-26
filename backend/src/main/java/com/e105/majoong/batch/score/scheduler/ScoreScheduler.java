@@ -42,8 +42,9 @@ public class ScoreScheduler {
 
     @Scheduled(cron = "0 5 0 * * *", zone = "Asia/Seoul")
     public void runDailyJob() {
+        LocalDate target = LocalDate.now(KST).minusDays(1);
         JobParameters params = new JobParametersBuilder()
-                .addString("targetDate", LocalDate.now(KST).toString())
+                .addString("targetDate", target.toString())
                 .addLong("time", System.currentTimeMillis())
                 .toJobParameters();
 
