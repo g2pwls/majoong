@@ -48,4 +48,10 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/qr-login")
+    @Operation(summary = "QR 자동 로그인")
+    public BaseResponse<AuthSignInResponseDto> qrLogin(@RequestParam String token) {
+        AuthSignInResponseDto result = authService.qrLogin(token);
+        return new BaseResponse<>(result);
+    }
 }

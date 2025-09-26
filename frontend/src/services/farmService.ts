@@ -99,6 +99,7 @@ export class FarmService {
         month_total_amount: farm.monthTotalAmount,
         purpose_total_amount: farm.purposeTotalAmount,
         bookmarked: farm.bookmark || false, // 북마크 상태 추가
+        created_at: farm.createdAt, // 생성일 추가
       };
     } catch (error) {
       console.error('농장 정보 조회 실패:', error);

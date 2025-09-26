@@ -16,6 +16,7 @@ export interface Farm {
   purpose_total_amount?: number; // 목표 모금액
   member_uuid?: string; // 목장 소유자 UUID
   bookmarked?: boolean; // 즐겨찾기 상태
+  created_at?: string; // 목장 생성일
 }
 
 export interface FarmUpdateRequest {

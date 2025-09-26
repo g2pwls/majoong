@@ -84,46 +84,42 @@ export default function HorsesPanel({ farmUuid, isMyFarm = false }: Props) {
       
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {horses.map((horse) => (
-          <div
+          <Link
             key={horse.id ?? horse.horseNo}
-            className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group relative"
+            href={`/support/${farmUuid}/${horse.horseNo}`}
+            className="block bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 group relative"
           >
-            <Link
-              href={`/support/${farmUuid}/${horse.horseNo}`}
-              className="block hover:scale-105 transition-transform duration-300"
-            >
-              {horse.image ? (
-                <Image
-                  src={horse.image}
-                  alt={horse.hrNm ?? "말 이미지"}
-                  width={300}
-                  height={200}
-                  className="w-full h-48 object-cover bg-gray-50 group-hover:scale-110 transition-transform duration-300"
-                />
-              ) : (
-                <div className="w-full h-48 bg-gray-50 flex items-center justify-center text-gray-400 text-sm group-hover:bg-gray-100 transition-colors duration-300">
-                  이미지 없음
-                </div>
-              )}
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{horse.hrNm || "이름 없음"}</h3>
-                </div>
-                <div className="space-y-1 text-sm text-gray-600">
-                  <p>마번: {horse.horseNo}</p>
-                  {horse.birthDt && (
-                    <p>생년월일: {horse.birthDt}</p>
-                  )}
-                  {horse.breed && (
-                    <p>품종: {horse.breed}</p>
-                  )}
-                  {horse.sex && (
-                    <p>성별: {horse.sex}</p>
-                  )}
-                </div>
+            {horse.image ? (
+              <Image
+                src={horse.image}
+                alt={horse.hrNm ?? "말 이미지"}
+                width={300}
+                height={200}
+                className="w-full h-48 object-cover bg-gray-50 group-hover:scale-110 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-48 bg-gray-50 flex items-center justify-center text-gray-400 text-sm group-hover:bg-gray-100 transition-colors duration-300">
+                이미지 없음
               </div>
-            </Link>
-          </div>
+            )}
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="text-lg font-semibold text-gray-900">{horse.hrNm || "이름 없음"}</h3>
+              </div>
+              <div className="space-y-1 text-sm text-gray-600">
+                <p>마번: {horse.horseNo}</p>
+                {horse.birthDt && (
+                  <p>출생일: {horse.birthDt}</p>
+                )}
+                {horse.breed && (
+                  <p>품종: {horse.breed}</p>
+                )}
+                {horse.sex && (
+                  <p>성별: {horse.sex}</p>
+                )}
+              </div>
+            </div>
+          </Link>
         ))}
       </div>
     </section>
