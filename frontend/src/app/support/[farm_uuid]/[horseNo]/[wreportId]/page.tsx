@@ -57,7 +57,7 @@ type Farm = {
 
 export default function WeeklyReportDetailPage({ params }: PageProps) {
   const router = useRouter();
-  const { farm_uuid, , wreportId } = use(params);
+  const { farm_uuid, horseNo, wreportId } = use(params);
   
   const [farm, setFarm] = useState<Farm | null>(null);
   const [report, setReport] = useState<WeeklyReportDetail | null>(null);
@@ -82,7 +82,7 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
       setError(null);
       
       console.log('주간 보고서 상세 조회 시작:', { horseNo, wreportId });
-      const response = await FarmService.getHorseWeeklyReportDetail(horseNo, parseInt(wreportId));
+      const response = await FarmService.getHorseWeeklyReportDetail(parseInt(horseNo), parseInt(wreportId));
       console.log('주간 보고서 상세 조회 성공:', response);
       setReport(response.result);
     } catch (e: unknown) {
