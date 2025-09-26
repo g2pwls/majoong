@@ -229,15 +229,7 @@ export default function FarmerMyFarm() {
       <div className="space-y-6">
         {/* 기본 정보 섹션 */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">기본 정보</h3>
-            <button
-              onClick={() => router.push(`/support/${myFarmData?.farmUuid}/edit`)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            >
-              정보 수정
-            </button>
-          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h3>
           <div className="space-y-6">
             {/* 목장명 (편집 가능) */}
             <div className="flex items-center">
