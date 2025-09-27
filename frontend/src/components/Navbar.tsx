@@ -148,7 +148,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between py-4">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between py-4 px-4 sm:px-6 lg:px-8">
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
           <Link 
@@ -218,7 +218,7 @@ export default function Navbar() {
       {/* Mobile drawer */}
       {open && (
         <div className="sm:hidden border-t bg-white">
-          <ul className="mx-4 my-2 flex flex-col gap-2 py-2">
+          <ul className="px-4 my-2 flex flex-col gap-2 py-2">
             <li><Link href="/about" onClick={() => setOpen(false)}>소개</Link></li>
             <li><Link href="/support" onClick={() => setOpen(false)}>
               {userRole === 'FARMER' ? '전체목장' : '목장후원'}
@@ -234,20 +234,16 @@ export default function Navbar() {
             )}
             <li className="pt-2">
               {isLoggedIn ? (
-                <div className="flex flex-col gap-2">
-                  <Link
-                    href="/mypage"
-                    className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200 text-right"
-                    onClick={() => setOpen(false)}
-                  >
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-sm text-gray-600">
                     {userName ? `${userName}님` : ''}
-                  </Link>
+                  </span>
                   <button
                     onClick={() => {
                       handleLogout();
                       setOpen(false);
                     }}
-                    className="inline-block rounded border px-4 py-1"
+                    className="rounded border px-4 py-1 text-sm"
                   >
                     로그아웃
                   </button>
