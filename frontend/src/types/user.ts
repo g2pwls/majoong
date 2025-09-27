@@ -139,6 +139,9 @@ export interface MyFarmResponse {
     phoneNumber: string;
     horseCount: number;
     monthTotalAmount: number;
+    purposeTotalAmount: number;
+    month_total_amount: number;
+    purpose_total_amount: number;
     area: number;
     description: string;
     monthlyScores: unknown[]; // Changed from any[]
