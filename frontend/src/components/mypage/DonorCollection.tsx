@@ -12,6 +12,7 @@ export default function DonorCollection() {
   const [collections, setCollections] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [totalCardCount, setTotalCardCount] = useState(0);
 
   useEffect(() => {
     // 컬렉션 데이터 로드
@@ -23,6 +24,10 @@ export default function DonorCollection() {
         // 사용자의 전체 컬렉션을 조회
         const collections = await getCollection();
         setCollections(collections);
+        
+        // 총 카드 수 계산
+        const totalCards = collections.reduce((sum, item) => sum + item.cardCount, 0);
+        setTotalCardCount(totalCards);
       } catch (err) {
         console.error('컬렉션 로드 실패:', err);
         setError('컬렉션을 불러오는데 실패했습니다.');
@@ -71,7 +76,12 @@ export default function DonorCollection() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">내 컬렉션</h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-lg font-semibold text-gray-900">내 컬렉션</h3>
+          <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+            총 {totalCardCount}장
+          </span>
+        </div>
         <p className="text-sm text-gray-600">
           기부를 통해 얻은 말 카드들을 모아서 볼 수 있습니다.
         </p>
@@ -109,6 +119,11 @@ export default function DonorCollection() {
                         {item.farmName}
                       </span>
                     </div>
+                    <div className="absolute top-2 right-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
+                        {item.cardCount}장
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="p-4">
@@ -122,7 +137,7 @@ export default function DonorCollection() {
                         <span>{item.gender}</span>
                       </div>
                       <p className="text-xs text-gray-500">
-                        생년: {item.birth}
+                        출생일: {item.birth}
                       </p>
                     </div>
                     

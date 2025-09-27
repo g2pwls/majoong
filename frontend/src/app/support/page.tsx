@@ -474,9 +474,9 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen">
       <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="py-4">
+        <div className="pt-4 pb-3">
           <Breadcrumbs items={[
-            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
+            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원" }
           ]} />
         </div>
 

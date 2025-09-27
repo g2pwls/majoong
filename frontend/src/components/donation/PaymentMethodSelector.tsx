@@ -16,10 +16,8 @@ export default function PaymentMethodSelector({
     <div className="pt-6 border-t border-gray-200">
       <h3 className="text-xl font-semibold text-gray-900 mb-4">결제 수단</h3>
       
-      {/* 결제 수단 선택 - 금액 버튼과 동일한 그리드 시스템 사용 */}
+      {/* 결제 수단 선택 - 카카오페이 버튼 왼쪽 정렬 */}
       <div className="grid grid-cols-3 gap-3">
-        <div></div>
-        <div></div>
         <Button
           variant={paymentMethod === 'kakao' ? 'default' : 'outline'}
           onClick={() => onPaymentMethodChange('kakao')}
@@ -49,8 +47,10 @@ export default function PaymentMethodSelector({
             height={40}
             className="object-contain"
           />
-          <span className="text-sm font-medium">카카오페이</span>
+          {/* <span className="text-sm font-medium">카카오페이</span> */}
         </Button>
+        <div></div>
+        <div></div>
       </div>
     </div>
   );

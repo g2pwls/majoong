@@ -18,6 +18,8 @@ function KakaoPayApproveContent() {
   const [showHorseSelection, setShowHorseSelection] = useState(false);
   const [isAddingToCollection, setIsAddingToCollection] = useState(false);
   const [collectionMessage, setCollectionMessage] = useState<string>('');
+  const [showCollectionModal, setShowCollectionModal] = useState(false);
+  const [collectionAdded, setCollectionAdded] = useState(false);
 
   useEffect(() => {
     const handlePaymentApproval = async () => {
@@ -88,46 +90,72 @@ function KakaoPayApproveContent() {
         try {
           await addHorseToCollection(selectedHorse.horseNumber, farmUuid);
           setCollectionMessage('말이 컬렉션에 성공적으로 추가되었습니다!');
+          setCollectionAdded(true);
           
-          // 성공 메시지를 잠시 표시
+          // 컬렉션 추가 완료 후 모달 표시
           setTimeout(() => {
-            proceedToClose();
+            setIsAddingToCollection(false);
+            setShowCollectionModal(true);
           }, 1500);
         } catch (error) {
           console.error('컬렉션 추가 실패:', error);
           setCollectionMessage('컬렉션 추가에 실패했습니다. 계속 진행합니다.');
           
-          // 에러 메시지를 잠시 표시 후 계속 진행
+          // 에러 메시지를 잠시 표시 후 후원 내역으로 이동
           setTimeout(() => {
-            proceedToClose();
+            proceedToSupportHistory();
           }, 2000);
         }
       } else {
-        proceedToClose();
+        // 건너뛰기 또는 말을 선택하지 않은 경우 후원 내역으로 이동
+        proceedToSupportHistory();
       }
     } catch (error) {
       console.error('완료 처리 중 오류:', error);
-      proceedToClose();
+      proceedToSupportHistory();
     }
   };
 
-  const proceedToClose = () => {
+  const proceedToSupportHistory = () => {
     setIsAddingToCollection(false);
     
     // 세션 스토리지 정리
     sessionStorage.removeItem('kakao_pay_info');
     
-    // 부모 창으로 메시지 전송 후 창 닫기
+    // 부모 창으로 메시지 전송 후 마이페이지 후원 내역으로 이동
     if (typeof window !== 'undefined') {
       if (window.opener) {
         window.opener.postMessage({
           type: 'PAYMENT_SUCCESS',
-          selectedHorse: selectedHorse
+          selectedHorse: selectedHorse,
+          redirectTo: '/mypage?tab=support'
         }, '*');
         window.close();
       } else {
         // 일반 창이라면 직접 리다이렉트
-        router.push('/');
+        router.push('/mypage?tab=support');
+      }
+    }
+  };
+
+  const proceedToCollection = () => {
+    setIsAddingToCollection(false);
+    
+    // 세션 스토리지 정리
+    sessionStorage.removeItem('kakao_pay_info');
+    
+    // 부모 창으로 메시지 전송 후 마이페이지 컬렉션으로 이동
+    if (typeof window !== 'undefined') {
+      if (window.opener) {
+        window.opener.postMessage({
+          type: 'PAYMENT_SUCCESS',
+          selectedHorse: selectedHorse,
+          redirectTo: '/mypage?tab=collection'
+        }, '*');
+        window.close();
+      } else {
+        // 일반 창이라면 직접 리다이렉트
+        router.push('/mypage?tab=collection');
       }
     }
   };
@@ -178,7 +206,7 @@ function KakaoPayApproveContent() {
                           <div className="flex-1 text-left">
                             <h4 className="font-semibold text-gray-900">{horse.horseName}</h4>
                             <p className="text-sm text-gray-600">{horse.breed} • {horse.gender}</p>
-                            <p className="text-xs text-gray-500">생년: {horse.birth}</p>
+                            <p className="text-xs text-gray-500">출생일: {horse.birth}</p>
                           </div>
                           {selectedHorse?.horseNumber === horse.horseNumber && (
                             <div className="text-blue-500">✓</div>
@@ -199,18 +227,18 @@ function KakaoPayApproveContent() {
                 ) : (
                   <div className="mt-6 flex gap-3">
                     <Button
-                      onClick={() => handleComplete(false)}
-                      disabled={!selectedHorse}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      컬렉션에 추가하고 완료
-                    </Button>
-                    <Button
                       onClick={() => handleComplete(true)}
                       variant="outline"
                       className="flex-1"
                     >
                       건너뛰기
+                    </Button>
+                    <Button
+                      onClick={() => handleComplete(false)}
+                      disabled={!selectedHorse}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      컬렉션에 추가하기
                     </Button>
                   </div>
                 )}
@@ -252,6 +280,36 @@ function KakaoPayApproveContent() {
           </>
         )}
       </div>
+
+      {/* 컬렉션 추가 완료 모달 */}
+      {showCollectionModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="text-green-500 text-6xl mb-4">✓</div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">컬렉션에 저장되었습니다!</h2>
+              <p className="text-gray-600 mb-6">
+                선택한 말이 컬렉션에 추가되었습니다.<br />
+                컬렉션을 확인하시겠습니까?
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={proceedToSupportHistory}
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  나중에 보기
+                </button>
+                <button
+                  onClick={proceedToCollection}
+                  className="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  컬렉션 보기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

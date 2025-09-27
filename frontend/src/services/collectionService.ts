@@ -13,6 +13,7 @@ export interface CollectionItem {
   totalPrize: string;
   firstRaceDate: string | null;
   lastRaceDate: string | null;
+  cardCount: number;
 }
 
 // 컬렉션 조회 API 응답 타입

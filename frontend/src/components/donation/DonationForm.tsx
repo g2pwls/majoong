@@ -59,7 +59,7 @@ export default function DonationForm({
 }: DonationFormProps) {
   return (
     <div className="space-y-8">
-      <h3 className="text-xl font-semibold text-gray-900">후원 금액</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">후원 금액</h3>
       
       <DonationAmountSelector
         selectedAmount={selectedAmount}
