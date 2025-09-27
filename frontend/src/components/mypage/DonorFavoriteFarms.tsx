@@ -9,6 +9,7 @@ import type { FavoriteFarmsResponse } from '@/types/user';
 interface FavoriteFarm {
   farmName: string;
   farmUuid: string;
+  imageUrl: string;
 }
 
 export default function DonorFavoriteFarms() {

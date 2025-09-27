@@ -44,10 +44,7 @@ export interface FavoriteFarmsResponse {
   result: {
     farmUuid: string;
     farmName: string;
-    profileImage: string;
-    totalScore: number;
-    address: string;
-    description: string;
+    imageUrl: string;
   }[];
 }
 
