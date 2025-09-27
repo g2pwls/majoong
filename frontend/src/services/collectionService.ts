@@ -21,20 +21,23 @@ export interface CollectionResponse {
   isSuccess: boolean;
   message: string;
   code: number;
-  result: CollectionItem[];
+  result: {
+    count: number;
+    dtos: CollectionItem[];
+  };
 }
 
 // 컬렉션 조회
-export const getCollection = async (farmUuid: string): Promise<CollectionItem[]> => {
+export const getCollection = async (): Promise<CollectionItem[]> => {
   try {
-    console.log('컬렉션 조회 시작:', farmUuid);
+    console.log('컬렉션 조회 시작');
     
-    const response = await authApi.get<CollectionResponse>(`/api/v1/members/donators/collections?farmUuid=${farmUuid}`);
+    const response = await authApi.get<CollectionResponse>(`/api/v1/members/donators/collections`);
     
     console.log('컬렉션 조회 응답:', response.data);
     
     if (response.data.isSuccess && response.data.result) {
-      return response.data.result;
+      return response.data.result.dtos;
     } else {
       throw new Error(response.data.message || '컬렉션 조회에 실패했습니다.');
     }

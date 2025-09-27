@@ -7,7 +7,6 @@ import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getCollection, type CollectionItem } from '@/services/collectionService';
-import { getDonationHistory } from '@/services/userService';
 
 export default function DonorCollection() {
   const [collections, setCollections] = useState<CollectionItem[]>([]);
@@ -21,29 +20,9 @@ export default function DonorCollection() {
         setIsLoading(true);
         setError(null);
         
-        // 사용자의 후원 내역을 조회하여 기부한 농장들의 UUID를 가져옴
-        const donationHistoryResponse = await getDonationHistory();
-        
-        // 중복 제거된 농장 UUID 목록 생성
-        const farmUuids = [...new Set(donationHistoryResponse.result.donationHistory.content.map(donation => donation.farmUuid))];
-        
-        if (farmUuids.length === 0) {
-          setCollections([]);
-          return;
-        }
-        
-        // 모든 농장의 컬렉션을 조회
-        const allCollections: CollectionItem[] = [];
-        for (const farmUuid of farmUuids) {
-          try {
-            const farmCollections = await getCollection(farmUuid);
-            allCollections.push(...farmCollections);
-          } catch (err) {
-            console.error(`농장 ${farmUuid} 컬렉션 조회 실패:`, err);
-          }
-        }
-        
-        setCollections(allCollections);
+        // 사용자의 전체 컬렉션을 조회
+        const collections = await getCollection();
+        setCollections(collections);
       } catch (err) {
         console.error('컬렉션 로드 실패:', err);
         setError('컬렉션을 불러오는데 실패했습니다.');
