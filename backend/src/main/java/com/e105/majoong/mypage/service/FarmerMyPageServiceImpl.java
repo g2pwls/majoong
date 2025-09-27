@@ -68,6 +68,7 @@ public class FarmerMyPageServiceImpl implements FarmerMyPageService {
           base.getTotalDonation(),
           base.getUsedAmount(),
           currentBalanceKrw,
+          vault.getVaultAddress(),
           base.getVaultHistoryResponseDtos()
       );
     }
