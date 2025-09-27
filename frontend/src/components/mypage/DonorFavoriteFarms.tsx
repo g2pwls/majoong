@@ -64,12 +64,12 @@ export default function DonorFavoriteFarms() {
 
   const handleVisitFarm = (farmUuid: string) => {
     // 목장 상세 페이지로 이동
-    window.open(`/support/${farmUuid}`, '_blank');
+    window.location.href = `/support/${farmUuid}`;
   };
 
   const handleDonate = (farmUuid: string) => {
     // 목장 기부하기 페이지로 이동
-    window.open(`/support/${farmUuid}/donate`, '_blank');
+    window.location.href = `/support/${farmUuid}/donate`;
   };
 
   if (isLoading) {

@@ -80,10 +80,10 @@ export default function DonationForm({
       />
 
       {/* 기부하기 버튼 */}
-      <div className="flex justify-end pt-4">
+      <div className="pt-4">
         <Button
           onClick={onDonateClick}
-          className="bg-green-500 hover:bg-green-600 text-white px-12 py-4 text-xl font-semibold"
+          className="w-full h-12 bg-green-500 hover:bg-green-600 text-white text-xl font-semibold"
           disabled={selectedAmount <= 0 || !selectedFarm}
         >
           기부하기

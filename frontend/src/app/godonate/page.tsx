@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shuffle } from "lucide-react";
 import { startKakaoPay } from "@/services/paymentService";
@@ -19,7 +18,6 @@ export default function GoDonatePage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
@@ -46,10 +44,29 @@ export default function GoDonatePage() {
     fetchRecommendFarms();
   }, []);
 
+  // 카카오페이 결제 완료 후 메시지 리스너
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'PAYMENT_SUCCESS') {
+        console.log('결제 완료 메시지 수신:', event.data);
+        
+        if (event.data.selectedHorse) {
+          console.log('선택된 말이 컬렉션에 추가되었습니다:', event.data.selectedHorse);
+          // 선택된 말은 이미 카카오페이 승인 페이지에서 컬렉션에 추가되었음
+        }
+        
+        // 결제 완료 후 페이지 새로고침 또는 상태 업데이트
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
-    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -83,7 +100,6 @@ export default function GoDonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
-    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {
