@@ -402,45 +402,47 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ farmData }) => {
                  </div>
                  
                  {/* CSS 애니메이션 스타일 */}
-                 <style jsx>{`
-                   @keyframes waterRise {
-                     0% {
-                       height: 0%;
+                 <style dangerouslySetInnerHTML={{
+                   __html: `
+                     @keyframes waterRise {
+                       0% {
+                         height: 0%;
+                       }
+                       100% {
+                         height: ${farmData?.purposeTotalAmount && farmData.purposeTotalAmount > 0 
+                           ? Math.min(((farmData?.monthTotalAmount || 0) / farmData.purposeTotalAmount) * 100, 100)
+                           : 0}%;
+                       }
                      }
-                     100% {
-                       height: ${farmData?.purposeTotalAmount && farmData.purposeTotalAmount > 0 
-                         ? Math.min(((farmData?.monthTotalAmount || 0) / farmData.purposeTotalAmount) * 100, 100)
-                         : 0}%;
+                     
+                     @keyframes wave {
+                       0%, 100% {
+                         transform: translateX(0) scaleY(1);
+                       }
+                       25% {
+                         transform: translateX(-2px) scaleY(1.1);
+                       }
+                       50% {
+                         transform: translateX(2px) scaleY(0.9);
+                       }
+                       75% {
+                         transform: translateX(-1px) scaleY(1.05);
+                       }
                      }
-                   }
-                   
-                   @keyframes wave {
-                     0%, 100% {
-                       transform: translateX(0) scaleY(1);
+                     
+                     .animate-wave {
+                       animation: wave 3s ease-in-out infinite;
                      }
-                     25% {
-                       transform: translateX(-2px) scaleY(1.1);
+                     
+                     .animate-wave-delayed {
+                       animation: wave 3s ease-in-out infinite 0.5s;
                      }
-                     50% {
-                       transform: translateX(2px) scaleY(0.9);
+                     
+                     .animate-wave-slow {
+                       animation: wave 4s ease-in-out infinite 1s;
                      }
-                     75% {
-                       transform: translateX(-1px) scaleY(1.05);
-                     }
-                   }
-                   
-                   .animate-wave {
-                     animation: wave 3s ease-in-out infinite;
-                   }
-                   
-                   .animate-wave-delayed {
-                     animation: wave 3s ease-in-out infinite 0.5s;
-                   }
-                   
-                   .animate-wave-slow {
-                     animation: wave 4s ease-in-out infinite 1s;
-                   }
-                 `}</style>
+                   `
+                 }} />
                </CardContent>
              </Card>
 
