@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getTokens } from '@/services/authService';
+import React from 'react';
 
 interface FarmerInfo {
   role: string;
@@ -10,6 +9,7 @@ interface FarmerInfo {
   walletAddress: string;
   businessNum: string;
   farmName: string;
+  farmVaultAddress: string;
 }
 
 interface FarmerProfileProps {
@@ -17,35 +17,8 @@ interface FarmerProfileProps {
   userRole?: string;
 }
 
-export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProfileProps) {
-  const [farmerInfo, setFarmerInfo] = useState<FarmerInfo | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (propFarmerInfo) {
-      // props로 받은 데이터 사용
-      setFarmerInfo(propFarmerInfo);
-      setIsLoading(false);
-    } else {
-      // 기존 로직 (임시 데이터)
-      const tokens = getTokens();
-      
-      const mockData: FarmerInfo = {
-        role: 'farmer',
-        nameString: '김농장',
-        email: tokens.email || 'farmer@example.com',
-        walletAddress: '0x1234567890abcdef1234567890abcdef12345678',
-        businessNum: '123-45-67890',
-        farmName: '행복한 목장'
-      };
-      
-      setFarmerInfo(mockData);
-      setIsLoading(false);
-    }
-  }, [propFarmerInfo]);
-
-
-  if (isLoading) {
+export default function FarmerProfile({ farmerInfo }: FarmerProfileProps) {
+  if (!farmerInfo) {
     return (
       <div className="p-6">
         <div className="animate-pulse">
@@ -93,6 +66,21 @@ export default function FarmerProfile({ farmerInfo: propFarmerInfo }: FarmerProf
             </div>
             <p className="mt-1 text-xs text-gray-500">
               블록체인 지갑 주소입니다. 수정할 수 없습니다.
+            </p>
+          </div>
+        </div>
+
+        {/* 금고 주소 */}
+        <div className="flex items-start">
+          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+            금고 주소
+          </label>
+          <div className="flex-1 ml-4">
+            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm break-all overflow-wrap-anywhere">
+              {farmerInfo?.farmVaultAddress}
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              목장 금고 주소입니다. 수정할 수 없습니다.
             </p>
           </div>
         </div>
