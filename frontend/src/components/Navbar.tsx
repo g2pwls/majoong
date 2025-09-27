@@ -170,7 +170,10 @@ export default function Navbar() {
               </>
             )}
             {userRole !== 'FARMER' && (
-              <li><Link href="/godonate" className="text-sm hover:opacity-70">바로기부</Link></li>
+              <>
+                <li><Link href="/godonate" className="text-sm hover:opacity-70">바로기부</Link></li>
+                <li><Link href="/mypage" className="text-sm hover:opacity-70">마이페이지</Link></li>
+              </>
             )}
           </ul>
         </div>
@@ -230,7 +233,10 @@ export default function Navbar() {
               </>
             )}
             {userRole !== 'FARMER' && (
-              <li><Link href="/godonate" onClick={() => setOpen(false)}>바로기부</Link></li>
+              <>
+                <li><Link href="/godonate" onClick={() => setOpen(false)}>바로기부</Link></li>
+                <li><Link href="/mypage" onClick={() => setOpen(false)}>마이페이지</Link></li>
+              </>
             )}
             <li className="pt-2">
               {isLoggedIn ? (
