@@ -36,7 +36,8 @@ export const startKakaoPay = async (request: KakaoPayReadyRequest): Promise<Kaka
         farmUuid: request.farmUuid,
         amount: parseInt(request.totalPrice),
         tid: response.data.result.tid,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        returnUrl: window.location.href // 현재 페이지 URL 저장
       };
       
       sessionStorage.setItem('kakao_pay_info', JSON.stringify(paymentInfo));

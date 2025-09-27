@@ -33,12 +33,39 @@ function KakaoPayApproveContent() {
         setStatus('success');
         setMessage('결제 및 기부가 성공적으로 완료되었습니다!');
         
+        // 저장된 결제 정보에서 원래 페이지 URL 가져오기
+        const paymentInfoStr = sessionStorage.getItem('kakao_pay_info');
+        let returnUrl = '/';
+        
+        if (paymentInfoStr) {
+          try {
+            const paymentInfo = JSON.parse(paymentInfoStr);
+            if (paymentInfo.returnUrl) {
+              returnUrl = paymentInfo.returnUrl;
+            }
+          } catch (error) {
+            console.error('결제 정보 파싱 오류:', error);
+          }
+        }
+        
         // 세션 스토리지 정리
         sessionStorage.removeItem('kakao_pay_info');
         
-        // 3초 후 메인 페이지로 리다이렉트
+        // 3초 후 원래 페이지로 리다이렉트
         setTimeout(() => {
-          router.push('/');
+          if (typeof window !== 'undefined') {
+            // 새 창에서 열렸다면 부모 창으로 메시지 전송 후 창 닫기
+            if (window.opener) {
+              window.opener.postMessage({
+                type: 'PAYMENT_SUCCESS',
+                returnUrl: returnUrl
+              }, '*');
+              window.close();
+            } else {
+              // 일반 창이라면 직접 리다이렉트
+              router.push(returnUrl);
+            }
+          }
         }, 3000);
         
       } catch (error) {

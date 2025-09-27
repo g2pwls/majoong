@@ -48,6 +48,20 @@ export default function DonatePage() {
     }
   }, [farm_uuid]);
 
+  // 카카오페이 결제 완료 후 메시지 리스너
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'PAYMENT_SUCCESS') {
+        console.log('결제 완료 메시지 수신:', event.data);
+        // 결제 완료 후 페이지 새로고침 또는 상태 업데이트
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   // ESC 키로 모달 닫기
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
