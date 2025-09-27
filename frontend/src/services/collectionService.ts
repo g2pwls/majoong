@@ -1,11 +1,35 @@
 import { authApi } from './authService';
 
+// 컬렉션 아이템 타입
+export interface CollectionItem {
+  farmName: string;
+  horseNumber: string;
+  horseName: string;
+  profileImage: string;
+  birth: string;
+  raceCount: string;
+  gender: string;
+  breed: string;
+  totalPrize: string;
+  firstRaceDate: string | null;
+  lastRaceDate: string | null;
+}
+
+// 컬렉션 조회 API 응답 타입
+export interface CollectionResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: CollectionItem[];
+}
+
 // 컬렉션 조회
-export const getCollection = async (farmUuid: string): Promise<any[]> => {
+export const getCollection = async (farmUuid: string): Promise<CollectionItem[]> => {
   try {
     console.log('컬렉션 조회 시작:', farmUuid);
     
-    const response = await authApi.get(`/api/v1/members/donators/collections?farmUuid=${farmUuid}`);
+    const response = await authApi.get<CollectionResponse>(`/api/v1/members/donators/collections?farmUuid=${farmUuid}`);
     
     console.log('컬렉션 조회 응답:', response.data);
     

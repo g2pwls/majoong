@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { getFarmDetail, FarmDetail } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
-import { getTokens, getUserRole } from "@/services/authService";
+import { getTokens } from "@/services/authService";
 import DonationSection from "@/components/donation/DonationSection";
 import FarmDetailCard from "@/components/farm/FarmDetailCard";
 
@@ -24,7 +21,6 @@ export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
@@ -93,7 +89,6 @@ export default function DonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
-    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -127,7 +122,6 @@ export default function DonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
-    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {

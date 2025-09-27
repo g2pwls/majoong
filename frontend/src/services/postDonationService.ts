@@ -1,11 +1,35 @@
 import { authApi } from './authService';
 
+// 기부자 농장 말 정보 타입
+export interface PostDonationHorseInfo {
+  farmName: string;
+  horseNumber: string;
+  horseName: string;
+  profileImage: string;
+  birth: string;
+  raceCount: string;
+  gender: string;
+  breed: string;
+  totalPrize: string;
+  firstRaceDate: string | null;
+  lastRaceDate: string | null;
+}
+
+// 기부자 농장 말 목록 조회 API 응답 타입
+export interface PostDonationHorseResponse {
+  httpStatus: string;
+  isSuccess: boolean;
+  message: string;
+  code: number;
+  result: PostDonationHorseInfo[];
+}
+
 // 기부자 농장 말 목록 조회
-export const getDonatorFarmHorses = async (farmUuid: string): Promise<any[]> => {
+export const getDonatorFarmHorses = async (farmUuid: string): Promise<PostDonationHorseInfo[]> => {
   try {
     console.log('기부자 농장 말 목록 조회 시작:', farmUuid);
     
-    const response = await authApi.get(`/api/v1/members/donators/farms/${farmUuid}`);
+    const response = await authApi.get<PostDonationHorseResponse>(`/api/v1/members/donators/farms/${farmUuid}`);
     
     console.log('기부자 농장 말 목록 조회 응답:', response.data);
     

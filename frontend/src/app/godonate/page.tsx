@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Shuffle } from "lucide-react";
 import { startKakaoPay } from "@/services/paymentService";
@@ -19,7 +18,6 @@ export default function GoDonatePage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
@@ -69,7 +67,6 @@ export default function GoDonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
-    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -103,7 +100,6 @@ export default function GoDonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
-    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {

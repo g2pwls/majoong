@@ -6,22 +6,8 @@ import Image from 'next/image';
 import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { getCollection } from '@/services/collectionService';
+import { getCollection, type CollectionItem } from '@/services/collectionService';
 import { getDonationHistory } from '@/services/userService';
-
-interface CollectionItem {
-  farmName: string;
-  horseNumber: string;
-  horseName: string;
-  profileImage: string;
-  birth: string;
-  raceCount: string;
-  gender: string;
-  breed: string;
-  totalPrize: string;
-  firstRaceDate: string | null;
-  lastRaceDate: string | null;
-}
 
 export default function DonorCollection() {
   const [collections, setCollections] = useState<CollectionItem[]>([]);

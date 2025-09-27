@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getDonatorFarmHorses, addHorseToCollection } from "@/services/horseService";
+import { getDonatorFarmHorses, addHorseToCollection, type PostDonationHorseInfo } from "@/services/postDonationService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
@@ -12,8 +12,8 @@ function KakaoPayApproveContent() {
   const router = useRouter();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('');
-  const [horses, setHorses] = useState<any[]>([]);
-  const [selectedHorse, setSelectedHorse] = useState<any | null>(null);
+  const [horses, setHorses] = useState<PostDonationHorseInfo[]>([]);
+  const [selectedHorse, setSelectedHorse] = useState<PostDonationHorseInfo | null>(null);
   const [farmUuid, setFarmUuid] = useState<string>('');
   const [showHorseSelection, setShowHorseSelection] = useState(false);
   const [isAddingToCollection, setIsAddingToCollection] = useState(false);
@@ -45,14 +45,9 @@ function KakaoPayApproveContent() {
         
         // 저장된 결제 정보에서 원래 페이지 URL과 farmUuid 가져오기
         const paymentInfoStr = sessionStorage.getItem('kakao_pay_info');
-        let returnUrl = '/';
-        
         if (paymentInfoStr) {
           try {
             const paymentInfo = JSON.parse(paymentInfoStr);
-            if (paymentInfo.returnUrl) {
-              returnUrl = paymentInfo.returnUrl;
-            }
             if (paymentInfo.farmUuid) {
               setFarmUuid(paymentInfo.farmUuid);
               // 말 목록 조회
@@ -79,7 +74,7 @@ function KakaoPayApproveContent() {
     handlePaymentApproval();
   }, [searchParams, router]);
 
-  const handleHorseSelect = (horse: any) => {
+  const handleHorseSelect = (horse: PostDonationHorseInfo) => {
     setSelectedHorse(horse);
   };
 
@@ -175,7 +170,7 @@ function KakaoPayApproveContent() {
                           <div className="relative w-12 h-12 flex-shrink-0">
                             <Image
                               src={horse.profileImage || '/horses/default.jpg'}
-                              alt={horse.horseName}
+                              alt={horse.horseName || '말'}
                               fill
                               className="object-cover rounded-full"
                             />
