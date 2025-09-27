@@ -103,26 +103,27 @@ export default function MonthlyReportDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-0 p-4">
-      {/* 브레드크럼 */}
-      <Breadcrumbs items={[
-        { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
-        { label: farm.farm_name, href: `/support/${farm_uuid}` },
-        { label: "월간 소식지", href: `/support/${farm_uuid}?tab=newsletter` },
-        { label: `${report.year}년 ${report.month}월 보고서` }
-      ]} />
+      {/* 브레드크럼과 돌아가기 버튼 */}
+      <div className="flex items-center justify-between">
+        <Breadcrumbs items={[
+          { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
+          { label: farm.farm_name, href: `/support/${farm_uuid}` },
+          { label: "월간 소식지", href: `/support/${farm_uuid}?tab=newsletter` },
+          { label: `${report.year}년 ${report.month}월 보고서` }
+        ]} />
+        
+        {/* 소식지 목록으로 돌아가기 버튼 */}
+        <Button
+          onClick={() => router.push(`/support/${farm_uuid}?tab=newsletter`)}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          소식지 목록으로 돌아가기
+        </Button>
+      </div>
 
       {/* 보고서 내용 */}
       <div className="mt-4">
-        {/* 소식지 목록으로 돌아가기 버튼 */}
-        <div className="mb-6 flex justify-end">
-          <Button
-            onClick={() => router.push(`/support/${farm_uuid}?tab=newsletter`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            소식지 목록으로 돌아가기
-          </Button>
-        </div>
 
         {/* 보고서 내용 */}
         <section>
