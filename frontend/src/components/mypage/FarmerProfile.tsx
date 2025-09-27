@@ -34,33 +34,36 @@ export default function FarmerProfile({ farmerInfo }: FarmerProfileProps) {
 
   return (
     <div className="p-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">회원정보</h2>
+      </div>
       <div className="space-y-6">
         {/* 이름 */}
-        <div className="flex items-center">
-          <label className="w-40 text-sm font-medium text-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center">
+          <label className="w-32 sm:w-40 text-sm font-medium text-gray-700 mb-2 sm:mb-0 whitespace-nowrap">
             이름
           </label>
-          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
+          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 sm:ml-4">
             {farmerInfo?.nameString}
           </div>
         </div>
 
         {/* 계정 (이메일) */}
-        <div className="flex items-center">
-          <label className="w-40 text-sm font-medium text-gray-700">
+        <div className="flex flex-col sm:flex-row sm:items-center">
+          <label className="w-32 sm:w-40 text-sm font-medium text-gray-700 mb-2 sm:mb-0 whitespace-nowrap">
             계정
           </label>
-          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
+          <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 sm:ml-4 break-all">
             {farmerInfo?.email}
           </div>
         </div>
 
         {/* 지갑 정보 */}
-        <div className="flex items-start">
-          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start">
+          <label className="w-32 sm:w-40 text-sm font-medium text-gray-700 mb-2 sm:mb-0 sm:pt-2 whitespace-nowrap">
             지갑 주소
           </label>
-          <div className="flex-1 ml-4">
+          <div className="flex-1 sm:ml-4">
             <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm break-all overflow-wrap-anywhere">
               {farmerInfo?.walletAddress}
             </div>
@@ -71,11 +74,11 @@ export default function FarmerProfile({ farmerInfo }: FarmerProfileProps) {
         </div>
 
         {/* 금고 주소 */}
-        <div className="flex items-start">
-          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start">
+          <label className="w-32 sm:w-40 text-sm font-medium text-gray-700 mb-2 sm:mb-0 sm:pt-2 whitespace-nowrap">
             금고 주소
           </label>
-          <div className="flex-1 ml-4">
+          <div className="flex-1 sm:ml-4">
             <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 font-mono text-sm break-all overflow-wrap-anywhere">
               {farmerInfo?.farmVaultAddress}
             </div>
@@ -86,12 +89,12 @@ export default function FarmerProfile({ farmerInfo }: FarmerProfileProps) {
         </div>
 
         {/* 사업자 등록번호 */}
-        <div className="flex items-start">
-          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-start">
+          <label className="w-32 sm:w-40 text-sm font-medium text-gray-700 mb-2 sm:mb-0 sm:pt-2 whitespace-nowrap">
             사업자 등록번호
           </label>
-          <div className="flex-1 ml-4">
-            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+          <div className="flex-1 sm:ml-4">
+            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 break-all">
               {farmerInfo?.businessNum}
             </div>
             <p className="mt-1 text-xs text-gray-500">
