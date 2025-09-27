@@ -255,9 +255,9 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
     }
 
     @Override
-    public long countAllDonationsByFarm(String farmUuid) {
+    public long countUniqueDonatorsByFarm(String farmUuid) {
         return queryFactory
-                .select(donationHistory.id.count())
+                .select(donationHistory.donatorUuid.countDistinct())
                 .from(donationHistory)
                 .where(donationHistory.farmUuid.eq(farmUuid))
                 .fetchOne();

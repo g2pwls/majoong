@@ -22,5 +22,5 @@ public interface DonationHistoryRepositoryCustom {
 
     Map<String, Long> getMonthlyDonationByFarmList(Set<String> farmUuids, YearMonth ym);
 
-    long countAllDonationsByFarm(String farmUuid);
+    long countUniqueDonatorsByFarm(String farmUuid);
 }
