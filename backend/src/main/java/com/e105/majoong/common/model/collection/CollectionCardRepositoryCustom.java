@@ -5,4 +5,7 @@ import java.util.List;
 
 public interface CollectionCardRepositoryCustom {
     List<HorseInFarmResponseDto> getCollectionList(String memberUuid);
+
+    long incrementCardCount(String memberUuid, String farmUuid, String horseNumber);
+
 }

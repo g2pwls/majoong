@@ -18,6 +18,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -48,14 +49,24 @@ public class DonatorCollectionServiceImpl implements DonatorCollectionService {
             throw new BaseException(BaseResponseStatus.NO_EXIST_DONATOR);
         }
         List<HorseInFarmResponseDto> list = collectionCardRepositoryCustom.getCollectionList(memberUuid);
-        return CollectionResponseDto.toDto(list.size(), list);
+        int totalCardCount = list.stream()
+                .mapToInt(HorseInFarmResponseDto::getCardCount)
+                .sum();
+        return CollectionResponseDto.toDto(totalCardCount, list);
     }
 
     @Override
+    @Transactional
     public void createCollection(String memberUuid, DonatorCardCreateDto dto) {
         if (!donatorRepository.existsByMemberUuid(memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_EXIST_DONATOR);
         }
-        collectionRepository.save(dto.toEntity(memberUuid));
+
+        long updated = collectionCardRepositoryCustom.incrementCardCount(
+                memberUuid, dto.getFarmUuid(), dto.getHorseNumber());
+
+        if (updated == 0) {
+            collectionRepository.save(dto.toEntity(memberUuid));
+        }
     }
 }
