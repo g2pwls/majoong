@@ -8,6 +8,7 @@ import { getTokens } from "@/services/authService";
 import DonationSection from "@/components/donation/DonationSection";
 import FarmDetailCard from "@/components/farm/FarmDetailCard";
 import Breadcrumbs from "@/components/common/Breadcrumb";
+import LoginRequiredModal from "@/components/donation/LoginRequiredModal";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
@@ -301,6 +302,12 @@ export default function DonatePage() {
           </div>
         </div>
       )}
+
+      {/* 로그인 필요 모달 */}
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </div>
   );
 }

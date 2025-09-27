@@ -227,18 +227,18 @@ function KakaoPayApproveContent() {
                 ) : (
                   <div className="mt-6 flex gap-3">
                     <Button
-                      onClick={() => handleComplete(false)}
-                      disabled={!selectedHorse}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      컬렉션에 추가하기
-                    </Button>
-                    <Button
                       onClick={() => handleComplete(true)}
                       variant="outline"
                       className="flex-1"
                     >
                       건너뛰기
+                    </Button>
+                    <Button
+                      onClick={() => handleComplete(false)}
+                      disabled={!selectedHorse}
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      컬렉션에 추가하기
                     </Button>
                   </div>
                 )}

@@ -8,6 +8,8 @@ import { getRecommendFarms, RecommendFarm } from "@/services/apiService";
 import DonationSection from "@/components/donation/DonationSection";
 import FarmCarousel3D from "@/components/farm/FarmCarousel3D";
 import Breadcrumbs from "@/components/common/Breadcrumb";
+import LoginRequiredModal from "@/components/donation/LoginRequiredModal";
+import { getTokens } from "@/services/authService";
 
 // Farm 인터페이스는 apiService에서 import하여 사용
 
@@ -23,6 +25,7 @@ export default function GoDonatePage() {
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const fetchRecommendFarms = async () => {
@@ -131,6 +134,13 @@ export default function GoDonatePage() {
   };
 
   const handleDonateClick = () => {
+    // 로그인 상태 확인
+    const tokens = getTokens();
+    if (!tokens.accessToken) {
+      setShowLoginModal(true);
+      return;
+    }
+
     if (selectedAmount > 0) {
       setShowConfirmPopup(true);
     } else {
@@ -281,6 +291,12 @@ export default function GoDonatePage() {
           />
             </div>
           </div>
+
+          {/* 로그인 필요 모달 */}
+          <LoginRequiredModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+          />
     </div>
   );
 }
