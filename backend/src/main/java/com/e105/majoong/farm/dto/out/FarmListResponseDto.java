@@ -21,10 +21,12 @@ public class FarmListResponseDto {
     private String ownerName;
     private int horseCount;
     private String status;
+    private long monthTotalAmount;
+    private long purposeTotalAmount;
     private List<FarmHorseResponseDto> horses;
     private boolean isBookmark;
 
-    public static FarmListResponseDto toDto(Farm farm, List<FarmHorseResponseDto> FarmHorseList ,boolean isBookmark) {
+    public static FarmListResponseDto toDto(Farm farm, List<FarmHorseResponseDto> FarmHorseList ,long monthTotalAmount, boolean isBookmark) {
         String status;
         Double score = farm.getTotalScore();
         if (score < 38) status = "미흡";
@@ -41,6 +43,8 @@ public class FarmListResponseDto {
                 .ownerName(farm.getOwnerName())
                 .horseCount(farm.getHorseCount())
                 .status(status)
+                .monthTotalAmount(monthTotalAmount)
+                .purposeTotalAmount(farm.getHorseCount()*1000000)
                 .horses(FarmHorseList)
                 .isBookmark(isBookmark)
                 .build();
