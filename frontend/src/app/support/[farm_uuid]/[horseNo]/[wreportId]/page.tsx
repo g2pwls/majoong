@@ -8,7 +8,7 @@ import { FarmService } from "@/services/farmService";
 import { Card, CardContent } from "@/components/ui/card";
 import { getUserRole } from "@/services/authService";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, FileText, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, AlertTriangle, Flag } from "lucide-react";
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string) => {
@@ -63,6 +63,8 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
   const [report, setReport] = useState<WeeklyReportDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [isReportSubmitted, setIsReportSubmitted] = useState(false);
 
   // 농장 정보 조회
   const fetchFarm = useCallback(async () => {
@@ -148,14 +150,22 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
 
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4">
-      {/* 브레드크럼 */}
-      <div className="mb-4">
+      {/* 브레드크럼과 돌아가기 버튼 */}
+      <div className="mb-4 flex items-center justify-between">
         <Breadcrumbs items={[
           { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
           { label: farm?.farm_name || "농장", href: `/support/${farm_uuid}` },
           { label: `말 ${horseNo}번`, href: `/support/${farm_uuid}/${horseNo}` },
           { label: `주간 보고서 ${wreportId}` }
         ]} />
+        
+        <button
+          onClick={() => router.push(`/support/${farm_uuid}/${horseNo}`)}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          말 상세로 돌아가기
+        </button>
       </div>
 
 
@@ -177,10 +187,18 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
                  </p>
                </div>
              </div>
-             <Button variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-               <AlertTriangle className="w-4 h-4" />
-               신고하기
-             </Button>
+             <button
+               onClick={() => !isReportSubmitted && setShowReportModal(true)}
+               disabled={isReportSubmitted}
+               className={`flex items-center gap-2 transition-colors ${
+                 isReportSubmitted 
+                   ? 'text-green-600 cursor-not-allowed' 
+                   : 'text-red-600 hover:text-red-800 hover:underline'
+               }`}
+             >
+               <Flag className="h-4 w-4" />
+               {isReportSubmitted ? '신고완료' : '신고하기'}
+             </button>
            </div>
          </div>
       </div>
@@ -288,17 +306,77 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
         )}
       </div>
 
-      {/* 돌아가기 버튼 - 맨 아래 */}
-      <div className="mt-5 flex justify-end">
-        <Button 
-          onClick={() => router.back()} 
-          variant="outline" 
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          말 상세 페이지로 돌아가기
-        </Button>
-      </div>
+      {/* 신고 모달 */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="text-center">
+              {!isReportSubmitted ? (
+                // 신고 확인 화면
+                <>
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <Flag className="h-6 w-6 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    신고하시겠습니까?
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">
+                    이 주간 보고서를 신고하시겠습니까?<br />
+                    신고된 내용은 검토 후 조치됩니다.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowReportModal(false)}
+                      className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsReportSubmitted(true);
+                        // 3초 후 자동으로 모달 닫기
+                        setTimeout(() => {
+                          setShowReportModal(false);
+                        }, 3000);
+                      }}
+                      className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      신고하기
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // 신고 완료 화면
+                <>
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    신고가 완료되었습니다
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">
+                    신고해주셔서 감사합니다.<br />
+                    검토 후 조치하겠습니다.<br />
+                    <span className="text-xs text-gray-400">잠시 후 자동으로 닫힙니다...</span>
+                  </p>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => {
+                        setShowReportModal(false);
+                      }}
+                      className="px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      확인
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
