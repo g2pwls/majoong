@@ -135,7 +135,7 @@ export default function DonorSupportHistory() {
   };
 
   const handleVisitFarm = (farmUuid: string) => {
-    window.open(`/support/${farmUuid}`, '_blank');
+    window.location.href = `/support/${farmUuid}`;
   };
 
   const handleDonationClick = (donationHistoryId: number) => {
