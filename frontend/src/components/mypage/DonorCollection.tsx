@@ -3,19 +3,24 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Star, MapPin, Users, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { getCollection } from '@/services/collectionService';
+import { getDonationHistory } from '@/services/userService';
 
 interface CollectionItem {
-  id: string;
   farmName: string;
-  farmImage: string;
-  address: string;
-  totalScore: number;
-  horseCount: number;
-  isBookmarked: boolean;
-  lastVisited: string;
+  horseNumber: string;
+  horseName: string;
+  profileImage: string;
+  birth: string;
+  raceCount: string;
+  gender: string;
+  breed: string;
+  totalPrize: string;
+  firstRaceDate: string | null;
+  lastRaceDate: string | null;
 }
 
 export default function DonorCollection() {
@@ -24,38 +29,35 @@ export default function DonorCollection() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // 컬렉션 데이터 로드 (실제 API 연동 필요)
+    // 컬렉션 데이터 로드
     const loadCollections = async () => {
       try {
         setIsLoading(true);
-        // TODO: 실제 API 호출로 변경
-        // const response = await getMyCollections();
+        setError(null);
         
-        // 임시 데이터
-        const mockData: CollectionItem[] = [
-          {
-            id: 'farm1',
-            farmName: '찐찐희산목장',
-            farmImage: '/horses/farm1.jpg',
-            address: '부산 강서구 낙동남로511번길 42',
-            totalScore: 46.2,
-            horseCount: 5,
-            isBookmarked: true,
-            lastVisited: '2024-01-15'
-          },
-          {
-            id: 'farm2',
-            farmName: '해피마장',
-            farmImage: '/horses/farm2.jpg',
-            address: '부산 강서구 낙동남로511번길 42',
-            totalScore: 29.2,
-            horseCount: 3,
-            isBookmarked: true,
-            lastVisited: '2024-01-10'
+        // 사용자의 후원 내역을 조회하여 기부한 농장들의 UUID를 가져옴
+        const donationHistoryResponse = await getDonationHistory();
+        
+        // 중복 제거된 농장 UUID 목록 생성
+        const farmUuids = [...new Set(donationHistoryResponse.result.donationHistory.content.map(donation => donation.farmUuid))];
+        
+        if (farmUuids.length === 0) {
+          setCollections([]);
+          return;
+        }
+        
+        // 모든 농장의 컬렉션을 조회
+        const allCollections: CollectionItem[] = [];
+        for (const farmUuid of farmUuids) {
+          try {
+            const farmCollections = await getCollection(farmUuid);
+            allCollections.push(...farmCollections);
+          } catch (err) {
+            console.error(`농장 ${farmUuid} 컬렉션 조회 실패:`, err);
           }
-        ];
+        }
         
-        setCollections(mockData);
+        setCollections(allCollections);
       } catch (err) {
         console.error('컬렉션 로드 실패:', err);
         setError('컬렉션을 불러오는데 실패했습니다.');
@@ -67,31 +69,7 @@ export default function DonorCollection() {
     loadCollections();
   }, []);
 
-  const handleRemoveFromCollection = async (farmId: string) => {
-    try {
-      // TODO: 실제 API 호출로 변경
-      // await removeFromCollection(farmId);
-      
-      setCollections(prev => prev.filter(item => item.id !== farmId));
-    } catch (err) {
-      console.error('컬렉션에서 제거 실패:', err);
-    }
-  };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-100';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-    if (score >= 40) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
-  };
 
   if (isLoading) {
     return (
@@ -130,7 +108,7 @@ export default function DonorCollection() {
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">내 컬렉션</h3>
         <p className="text-sm text-gray-600">
-          즐겨찾기한 목장들을 모아서 볼 수 있습니다.
+          기부를 통해 얻은 말 카드들을 모아서 볼 수 있습니다.
         </p>
       </div>
 
@@ -139,7 +117,7 @@ export default function DonorCollection() {
           <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">컬렉션이 비어있습니다</h3>
           <p className="text-gray-600 mb-6">
-            마음에 드는 목장을 즐겨찾기에 추가해보세요.
+            목장에 기부하여 말 카드를 수집해보세요.
           </p>
           <Link
             href="/support"
@@ -149,61 +127,53 @@ export default function DonorCollection() {
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {collections.map((item) => (
-            <Card key={item.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+            <Card key={item.horseNumber} className="overflow-hidden hover:shadow-lg transition-shadow">
               <CardContent className="p-0">
-                <div className="flex">
-                  <div className="relative w-32 h-32 flex-shrink-0">
+                <div className="relative">
+                  <div className="relative w-full h-48">
                     <Image
-                      src={item.farmImage}
-                      alt={item.farmName}
+                      src={item.profileImage || '/horses/default.jpg'}
+                      alt={item.horseName}
                       fill
                       className="object-cover"
                     />
-                    <div className="absolute top-2 right-2">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${getScoreColor(item.totalScore)}`}>
-                        {item.totalScore}점
+                    <div className="absolute top-2 left-2">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
+                        {item.farmName}
                       </span>
                     </div>
                   </div>
                   
-                  <div className="flex-1 p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                          {item.farmName}
-                        </h4>
-                        <div className="flex items-center text-sm text-gray-600 mb-2">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          {item.address}
-                        </div>
-                        <div className="flex items-center text-sm text-gray-600 mb-3">
-                          <Users className="w-4 h-4 mr-1" />
-                          말 {item.horseCount}마리
-                        </div>
-                        <p className="text-xs text-gray-500">
-                          마지막 방문: {formatDate(item.lastVisited)}
-                        </p>
+                  <div className="p-4">
+                    <div className="mb-3">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                        {item.horseName}
+                      </h4>
+                      <div className="flex items-center text-sm text-gray-600 mb-1">
+                        <span className="font-medium">{item.breed}</span>
+                        <span className="mx-2">•</span>
+                        <span>{item.gender}</span>
                       </div>
-                      
-                      <div className="flex flex-col gap-2 ml-4">
-                        <Link
-                          href={`/support/${item.id}`}
-                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          방문하기
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRemoveFromCollection(item.id)}
-                          className="text-red-600 border-red-300 hover:bg-red-50"
-                        >
-                          제거
-                        </Button>
+                      <p className="text-xs text-gray-500">
+                        생년: {item.birth}
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">경주 횟수:</span>
+                        <span className="font-medium">{item.raceCount}회</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">총 상금:</span>
+                        <span className="font-medium">
+                          {parseInt(item.totalPrize).toLocaleString()}원
+                        </span>
                       </div>
                     </div>
+                    
                   </div>
                 </div>
               </CardContent>

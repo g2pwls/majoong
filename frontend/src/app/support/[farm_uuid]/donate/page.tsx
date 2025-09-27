@@ -53,6 +53,12 @@ export default function DonatePage() {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'PAYMENT_SUCCESS') {
         console.log('결제 완료 메시지 수신:', event.data);
+        
+        if (event.data.selectedHorse) {
+          console.log('선택된 말이 컬렉션에 추가되었습니다:', event.data.selectedHorse);
+          // 선택된 말은 이미 카카오페이 승인 페이지에서 컬렉션에 추가되었음
+        }
+        
         // 결제 완료 후 페이지 새로고침 또는 상태 업데이트
         window.location.reload();
       }
