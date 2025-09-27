@@ -67,7 +67,8 @@ public class SecurityConfig {
                                 "/api/v1/farms/**",
                                 "/api/v1/kakao-pay/*",
                                 "/api/ocr",
-                                "/receipt/ocr"
+                                "/receipt/ocr",
+                                "/batch/monthly-report"
                         ).permitAll()
                         .requestMatchers("/api/v1/members/donators/**").hasRole("DONATOR")
                         .requestMatchers("/api/v1/members/farmers/**", "/api/v1/withdraw/**").hasRole("FARMER")

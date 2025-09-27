@@ -29,7 +29,12 @@ public class MonthlyReportServiceImpl implements MonthlyReportService {
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MONTHLY_REPORT));
 
         MyScore latestScore = myScoreRepository.findFirstByFarmUuidOrderByYearDescMonthDesc(farmUuid)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_MY_SCORE));
+                .orElse(MyScore.builder()
+                        .farmUuid(farmUuid)
+                        .year(LocalDate.now().getYear())
+                        .month(LocalDate.now().getMonthValue())
+                        .score(38.2) // 기본값
+                        .build());
 
         return MonthlyReportDetailResponseDto.toDto(report, latestScore);
     }
