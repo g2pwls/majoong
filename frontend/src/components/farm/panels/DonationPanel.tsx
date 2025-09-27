@@ -6,7 +6,7 @@ import { FarmService } from "@/services/farmService";
 import { DonationUsageResponse, MonthlyDonationUsed, ReceiptHistory, ReceiptDetail } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, DollarSign, Receipt, Eye, ChevronDown, ChevronUp, Image as ImageIcon } from "lucide-react";
+import { Calendar, DollarSign, Receipt, Eye, ChevronDown, ChevronUp, Image as ImageIcon, Flag } from "lucide-react";
 import DonationUsageChart, { DonationUsageItem } from "./DonationUsageChart";
 import { MonthlyBarChart } from "./DonationUsageChart";
 
@@ -42,6 +42,10 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
   
   // 이미지 모달 상태
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // 신고 모달 상태
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [isReportSubmitted, setIsReportSubmitted] = useState(false);
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -911,9 +915,23 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                         ) : detail ? (
                           <div className="space-y-4">
                             {/* 상세 정보 헤더 */}
-                            <div className="flex items-center gap-2 mb-3">
-                              <Eye className="h-4 w-4 text-purple-600" />
-                              <span className="font-medium text-gray-900">상세 내역</span>
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <Eye className="h-4 w-4 text-purple-600" />
+                                <span className="font-medium text-gray-900">상세 내역</span>
+                              </div>
+                              <button 
+                                onClick={() => !isReportSubmitted && setShowReportModal(true)}
+                                disabled={isReportSubmitted}
+                                className={`flex items-center gap-1 text-sm transition-colors ${
+                                  isReportSubmitted 
+                                    ? 'text-green-600 cursor-not-allowed' 
+                                    : 'text-red-600 hover:text-red-800 hover:underline'
+                                }`}
+                              >
+                                <Flag className="h-4 w-4" />
+                                {isReportSubmitted ? '신고완료' : '신고하기'}
+                              </button>
                             </div>
 
                             {/* 매장 정보와 인증 이미지를 한 줄에 배치 */}
@@ -1147,6 +1165,78 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 신고 모달 */}
+      {showReportModal && (
+        <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="text-center">
+              {!isReportSubmitted ? (
+                // 신고 확인 화면
+                <>
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                    <Flag className="h-6 w-6 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    신고하시겠습니까?
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">
+                    이 기부 내역을 신고하시겠습니까?<br />
+                    신고된 내용은 검토 후 조치됩니다.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowReportModal(false)}
+                      className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIsReportSubmitted(true);
+                        // 3초 후 자동으로 모달 닫기
+                        setTimeout(() => {
+                          setShowReportModal(false);
+                        }, 3000);
+                      }}
+                      className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      신고하기
+                    </button>
+                  </div>
+                </>
+              ) : (
+                // 신고 완료 화면
+                <>
+                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    신고가 완료되었습니다
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-6">
+                    신고해주셔서 감사합니다.<br />
+                    검토 후 조치하겠습니다.<br />
+                    <span className="text-xs text-gray-400">잠시 후 자동으로 닫힙니다...</span>
+                  </p>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => {
+                        setShowReportModal(false);
+                      }}
+                      className="px-6 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    >
+                      확인
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
