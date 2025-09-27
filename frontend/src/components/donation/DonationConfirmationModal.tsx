@@ -35,7 +35,7 @@ export default function DonationConfirmationModal({
           <span className="font-medium text-gray-900">{farmName}</span>에<br/>
           <span className="font-medium text-green-600">{formatAmount(amount)}원</span>을 기부하시겠습니까?
         </p>
-        <div className="flex space-x-4 justify-end">
+        <div className="flex space-x-4 justify-center">
           <Button
             onClick={onClose}
             variant="outline"

@@ -173,6 +173,7 @@ function KakaoPayApproveContent() {
 
         {status === 'success' && (
           <>
+            <div className="text-green-500 text-6xl mb-4">✓</div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">기부 완료!</h2>
             <p className="text-gray-600 mb-2">{message}</p>
             
