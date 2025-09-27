@@ -35,9 +35,7 @@ interface FavoriteFarm {
   address: string;
   profileImage: string;
   totalScore: number;
-  horseCount: number;
-  monthTotalAmount: number;
-  purposeTotalAmount: number;
+  description: string;
 }
 
 interface DonationHistory {
@@ -265,19 +263,16 @@ export default function DonatorPage() {
                           </div>
                         </div>
                       </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-2">{farm.farmName}</h3>
-                        <div className="space-y-2 text-sm text-gray-600">
-
+                        <div className="p-4">
+                          <h3 className="font-semibold text-lg mb-2">{farm.farmName}</h3>
+                          <div className="mt-4">
+                            <Link href={`/support/${farm.farmUuid}`}>
+                              <Button className="w-full" variant="outline">
+                                목장 상세보기
+                              </Button>
+                            </Link>
+                          </div>
                         </div>
-                        <div className="mt-4">
-                          <Link href={`/support/${farm.farmUuid}`}>
-                            <Button className="w-full" variant="outline">
-                              목장 상세보기
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
                     </CardContent>
                   </Card>
                 ))}
