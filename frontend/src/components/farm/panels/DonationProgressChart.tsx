@@ -24,21 +24,43 @@ export default function DonationProgressChart({
 
   return (
     <div className="bg-white rounded-lg p-4 border">
-      <div className="flex justify-between items-center mb-3">
-        <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold text-gray-900">이번 달 모금액</h3>
+      {/* 데스크톱 레이아웃 */}
+      <div className="hidden sm:block">
+        <div className="flex justify-between items-center mb-3">
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-gray-900">이번 달 모금액</h3>
+            <span className="text-gray-700">
+              {formatAmount(monthTotalAmount)}원 / {formatAmount(purposeTotalAmount)}원
+            </span>
+          </div>
+          <div className="text-sm text-gray-600">
+            {progressPercentage >= 100 ? (
+              <span className="text-green-600 font-medium">🎉 목표 달성!</span>
+            ) : (
+              <span>
+                목표까지 {formatAmount(purposeTotalAmount - monthTotalAmount)}원 남음
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 모바일 레이아웃 */}
+      <div className="sm:hidden">
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">이번 달 모금액</h3>
+        <div className="flex justify-between items-center mb-3">
           <span className="text-gray-700">
             {formatAmount(monthTotalAmount)}원 / {formatAmount(purposeTotalAmount)}원
           </span>
-        </div>
-        <div className="text-sm text-gray-600">
-          {progressPercentage >= 100 ? (
-            <span className="text-green-600 font-medium">🎉 목표 달성!</span>
-          ) : (
-            <span>
-              목표까지 {formatAmount(purposeTotalAmount - monthTotalAmount)}원 남음
-            </span>
-          )}
+          <div className="text-sm text-gray-600">
+            {progressPercentage >= 100 ? (
+              <span className="text-green-600 font-medium">🎉 목표 달성!</span>
+            ) : (
+              <span>
+                목표까지 {formatAmount(purposeTotalAmount - monthTotalAmount)}원 남음
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
