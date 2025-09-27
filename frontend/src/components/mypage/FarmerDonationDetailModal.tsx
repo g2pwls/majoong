@@ -182,7 +182,7 @@ export default function FarmerDonationDetailModal({ isOpen, onClose, donationDat
                       기부 정보 안내
                     </h3>
                     <div className="mt-2 text-sm text-blue-700">
-                      <p>이 기부는 블록체인에 기록되었으며, MARON 토큰으로 지급되었습니다. (1 MARON = 1,000원)</p>
+                      <p>이 기부는 블록체인에 기록되었으며, MARON 토큰으로 지급되었습니다. (1 MARON = 100원)</p>
                     </div>
                   </div>
                 </div>

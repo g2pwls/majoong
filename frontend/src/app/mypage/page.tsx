@@ -10,6 +10,7 @@ import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/user';
 import DonorProfile from '@/components/mypage/DonorProfile';
 import DonorSupportHistory from '@/components/mypage/DonorSupportHistory';
 import DonorFavoriteFarms from '@/components/mypage/DonorFavoriteFarms';
+import DonorCollection from '@/components/mypage/DonorCollection';
 
 import FarmerProfile from '@/components/mypage/FarmerProfile';
 import FarmerMyFarm from '@/components/mypage/FarmerMyFarm';
@@ -88,6 +89,7 @@ export default function MyPage() {
           { id: 'profile', label: '회원 정보', component: DonorProfile },
           { id: 'favorites', label: '즐겨찾는 목장', component: DonorFavoriteFarms },
           { id: 'support', label: '후원 내역', component: DonorSupportHistory },
+          { id: 'collection', label: '컬렉션', component: DonorCollection },
         ];
       case 'FARMER':
         return [
@@ -128,7 +130,7 @@ export default function MyPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">마이페이지</h1>

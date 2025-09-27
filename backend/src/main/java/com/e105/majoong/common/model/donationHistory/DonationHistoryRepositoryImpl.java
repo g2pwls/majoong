@@ -10,18 +10,27 @@ import com.e105.majoong.mypage.dto.out.DonationResponseDto;
 import com.e105.majoong.mypage.dto.out.VaultHistoryResponseDto;
 import com.e105.majoong.mypage.dto.out.VaultResponseDto;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import jnr.constants.platform.Local;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.stereotype.Repository;
 
 @RequiredArgsConstructor
 public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryCustom {
@@ -130,7 +139,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
     @Override
     public VaultResponseDto findVaultHistoryByPage(
             String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate) {
-        BooleanBuilder donationBuilder  = new BooleanBuilder();
+        BooleanBuilder donationBuilder = new BooleanBuilder();
         if (startDate != null) {
             donationBuilder.and(donationHistory.donationDate.goe(startDate.atStartOfDay()));
         }
@@ -211,6 +220,38 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
 
         return VaultResponseDto.toDto(
                 totalDonation, usedAmount, currentBalance, history);
+    }
+
+    @Override
+    public Map<String, Long> getMonthlyDonationByFarmList(Set<String> farmUuids, YearMonth yearMonth) {
+        LocalDateTime start = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime end = yearMonth.plusMonths(1).atDay(1).atStartOfDay();
+
+        NumberExpression<Long> sumAmount = donationHistory.donationToken.sum();
+
+        List<Tuple> fetch = queryFactory
+                .select(donationHistory.farmUuid, sumAmount)
+                .from(donationHistory)
+                .where(donationHistory.farmUuid.in(farmUuids),
+                        donationHistory.donationDate.goe(start),
+                        donationHistory.donationDate.lt(end))
+                .groupBy(donationHistory.farmUuid)
+                .fetch();
+
+        Map<String, Long> result = new HashMap<>(farmUuids.size());
+        for (String farUuid : farmUuids) {
+            result.put(farUuid, 0L);
+        }
+        for (Tuple tuple : fetch) {
+            String farmUuid = tuple.get(donationHistory.farmUuid);
+            Long amount = tuple.get(sumAmount);
+            if (amount == null) {
+                amount = 0L;
+            }
+            result.put(farmUuid, amount);
+        }
+
+        return result;
     }
 
 }

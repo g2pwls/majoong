@@ -69,13 +69,29 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
   return (
     <Card>
       <CardContent className="p-6 py-0">
-        <div className="flex items-center justify-between mb-4">
+        {/* 데스크톱 레이아웃 */}
+        <div className="hidden sm:flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-blue-600" />
             <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 평균 변화</h4>
             <span className="text-sm text-red-500 font-medium">기준 38.2°C</span>
           </div>
-          <div className="text-right">
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-gray-500">현재 신뢰도</p>
+            <p className={`text-2xl font-bold ${getScoreColor(currentScore)}`}>
+              {currentScore.toFixed(1)}점
+            </p>
+          </div>
+        </div>
+
+        {/* 모바일 레이아웃 */}
+        <div className="sm:hidden mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp className="h-5 w-5 text-blue-600" />
+            <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 평균 변화</h4>
+            <span className="text-sm text-red-500 font-medium">기준 38.2°C</span>
+          </div>
+          <div className="flex justify-end items-center gap-2">
             <p className="text-sm text-gray-500">현재 신뢰도</p>
             <p className={`text-2xl font-bold ${getScoreColor(currentScore)}`}>
               {currentScore.toFixed(1)}점

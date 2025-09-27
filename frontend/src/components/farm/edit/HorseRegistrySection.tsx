@@ -96,15 +96,15 @@ const HorseRegistrySection = memo(function HorseRegistrySection({ farmUuid, onHo
       )}
 
       {!loading && !error && horses.length > 0 && (
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {horses.map((horse) => (
             <div
               key={horse.id ?? horse.horseNo}
-              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 group relative"
+              className="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl hover:scale-105 transition-all duration-300 group relative"
             >
               <Link
                 href={`/support/${farmUuid}/${horse.horseNo}`}
-                className="block hover:scale-105 transition-transform duration-300"
+                className="block"
               >
                 {horse.image ? (
                   <Image
@@ -125,7 +125,7 @@ const HorseRegistrySection = memo(function HorseRegistrySection({ farmUuid, onHo
                   </div>
                   <p className="text-sm text-gray-500">마번: {horse.horseNo}</p>
                   {horse.birthDt && (
-                    <p className="text-sm text-gray-500">생년월일: {horse.birthDt}</p>
+                    <p className="text-sm text-gray-500">출생일: {horse.birthDt}</p>
                   )}
                   {horse.breed && (
                     <p className="text-sm text-gray-500">품종: {horse.breed}</p>

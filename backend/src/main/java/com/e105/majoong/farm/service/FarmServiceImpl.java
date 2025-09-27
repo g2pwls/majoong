@@ -38,6 +38,8 @@ public class FarmServiceImpl implements FarmService {
             farms = farmRepository.findByFarmNameContaining(farmName, PageRequest.of(page, size));
         }
 
+        LocalDate now = LocalDate.now();
+
         return farms.map(farm -> {
             boolean isBookmark = false;
             if (memberUuid != null && !memberUuid.isBlank()) {
@@ -48,7 +50,13 @@ public class FarmServiceImpl implements FarmService {
                     .map(FarmHorseResponseDto::toDto)
                     .collect(Collectors.toList());
 
-            return FarmListResponseDto.toDto(farm, horseList, isBookmark);
+            long monthTotalAmount = donationHistoryRepository.getMonthlyTotalDonation(
+                    farm.getFarmUuid(),
+                    now.getYear(),
+                    now.getMonthValue()
+            ) * 100;
+
+            return FarmListResponseDto.toDto(farm, horseList, monthTotalAmount, isBookmark);
         });
     }
 

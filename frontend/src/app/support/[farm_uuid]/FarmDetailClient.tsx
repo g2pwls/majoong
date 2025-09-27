@@ -14,7 +14,7 @@ import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { getFarm, Farm, addFarmBookmark, removeFarmBookmark, isMyFarm as checkIsMyFarm } from "@/services/apiService";
-import { isDonator, isFarmer } from "@/services/authService";
+import { isDonator, isFarmer, getUserRole } from "@/services/authService";
 
 const TABS: FarmTabValue[] = ["intro", "horses", "newsletter", "donations", "trust"];
 
@@ -129,36 +129,27 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     }
   };
 
-  if (loading) return <div className="p-6">로딩 중…</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
   // farm_uuid prop을 사용
 
   return (
-    <div className="mx-auto max-w-6xl px-1 p-8">
-      {/* 브레드크럼과 버튼들 */}
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4">
+      {/* 브레드크럼 */}
       <div className="flex items-center justify-between">
-        <Breadcrumbs items={[{ label: "목장후원", href: "/support" }, { label: farm.farm_name }]} />
-        <div className="flex gap-2">
-          {/* 기부하기 버튼 - 기부자이고 농부가 아닌 경우에만 표시 */}
-          {isDonator() && !isFarmer() && (
-            <Link 
-              href={`/support/${farm_uuid}/donate`}
-              className="bg-green-500 text-white py-1 px-4 rounded-md hover:bg-green-600 transition-colors"
-            >
-              기부하기
-            </Link>
-          )}
-          {/* 목장 정보 수정 버튼 - 내 목장인 경우에만 표시 */}
-          {isMyFarm && (
-            <Link 
-              href={`/support/${farm_uuid}/edit`}
-              className="bg-gray-500 text-white py-1 px-4 rounded-md hover:bg-gray-600 transition-colors"
-            >
-              목장 정보 수정
-            </Link>
-          )}
-        </div>
+        <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+        {/* 모바일에서만 기부하기 버튼 표시 */}
+        {!isFarmer() && (
+          <button
+            onClick={() => window.location.href = `/support/${farm_uuid}/donate`}
+            className="lg:hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            기부하기
+          </button>
+        )}
       </div>
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
@@ -186,7 +177,13 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
 
         {/* 오른쪽: 탭 + 패널 */}
         <section>
-          <FarmTabs value={tab} onChange={onChangeTab} />
+          <FarmTabs 
+            value={tab} 
+            onChange={onChangeTab} 
+            farmUuid={farm_uuid}
+            showDonateButton={isDonator() && !isFarmer()}
+            showEditButton={isMyFarm}
+          />
           <div className="mt-4.5">
             {tab === "intro" && <IntroPanel farm={farm} isMyFarm={false} />}
             {tab === "horses" && <HorsesPanel farmUuid={farm_uuid} isMyFarm={isMyFarm} />}

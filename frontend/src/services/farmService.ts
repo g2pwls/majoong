@@ -165,16 +165,16 @@ export class FarmService {
     horseName: string;
     birth: string;
     gender: string;
-    color: string;
+    color: string | null;
     breed: string;
-    countryOfOrigin: string;
-    raceCount: number;
-    firstPlaceCount: number;
-    secondPlaceCount: number;
-    totalPrize: number;
-    retiredDate?: string;
-    firstRaceDate?: string;
-    lastRaceDate?: string;
+    countryOfOrigin: string | null;
+    raceCount: number | null;
+    firstPlaceCount: number | null;
+    secondPlaceCount: number | null;
+    totalPrize: number | null;
+    retiredDate?: string | null;
+    firstRaceDate?: string | null;
+    lastRaceDate?: string | null;
     profileImage?: File;
   }): Promise<void> {
     const formData = new FormData();
@@ -185,13 +185,13 @@ export class FarmService {
     formData.append('horseName', horseData.horseName);
     formData.append('birth', horseData.birth); // YYYY-MM-DD 형식
     formData.append('gender', horseData.gender);
-    formData.append('color', horseData.color);
+    formData.append('color', horseData.color || '');
     formData.append('breed', horseData.breed);
-    formData.append('countryOfOrigin', horseData.countryOfOrigin);
-    formData.append('raceCount', horseData.raceCount.toString());
-    formData.append('firstPlaceCount', horseData.firstPlaceCount.toString());
-    formData.append('secondPlaceCount', horseData.secondPlaceCount.toString());
-    formData.append('totalPrize', horseData.totalPrize.toString());
+    formData.append('countryOfOrigin', horseData.countryOfOrigin || '');
+    formData.append('raceCount', horseData.raceCount?.toString() || '0');
+    formData.append('firstPlaceCount', horseData.firstPlaceCount?.toString() || '0');
+    formData.append('secondPlaceCount', horseData.secondPlaceCount?.toString() || '0');
+    formData.append('totalPrize', horseData.totalPrize?.toString() || '0');
     
     // 선택적 필드 추가
     if (horseData.retiredDate) {
@@ -701,7 +701,7 @@ export class FarmService {
   }
 
   // 말 주간 보고서 상세 조회
-  static async getHorseWeeklyReportDetail(horseNum: number, horseStateId: number) {
+  static async getHorseWeeklyReportDetail(horseNum: string, horseStateId: number) {
     try {
       console.log('말 주간 보고서 상세 조회 API 호출:', {
         horseNum,

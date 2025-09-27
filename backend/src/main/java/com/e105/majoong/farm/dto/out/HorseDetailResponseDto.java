@@ -13,18 +13,18 @@ public class HorseDetailResponseDto {
     private String horseNumber;
     private String horseName;
     private String farmName;
-    private LocalDate birth;
+    private String birth;
     private String gender;
     private String color;
     private String breed;
     private String countryOfOrigin;
-    private Integer raceCount;
-    private Integer firstPlaceCount;
-    private Integer secondPlaceCount;
-    private Long totalPrize;
-    private LocalDate retireDate;
-    private LocalDate firstRaceDate;
-    private LocalDate lastRaceDate;
+    private String raceCount;
+    private String firstPlaceCount;
+    private String secondPlaceCount;
+    private String totalPrize;
+    private String retireDate;
+    private String firstRaceDate;
+    private String lastRaceDate;
     private String horseImageUrl;
 
     private List<HorseWeeklyReportDto> weeklyReport;

@@ -70,6 +70,36 @@ export interface RecommendFarm {
   description: string;
 }
 
+export interface FarmDetail {
+  farmUuid: string;
+  farmName: string;
+  profileImage: string;
+  totalScore: number;
+  address: string;
+  phoneNumber: string;
+  horseCount: number;
+  monthTotalAmount: number;
+  purposeTotalAmount: number;
+  area: number;
+  description: string;
+  createdAt: string;
+  monthlyScores: {
+    year: number;
+    month: number;
+    score: number;
+  }[];
+  horses: {
+    horseUuid: string;
+    horseUrl: string;
+    horseName: string;
+    birth: string;
+    breed: string;
+    gender: string;
+  }[];
+  bookmarked: boolean;
+  ownerName: string;
+}
+
 export interface Horse {
   id: number;
   farm_id: string;
@@ -637,6 +667,32 @@ export const getRecommendFarms = async (): Promise<RecommendFarm[]> => {
     return response.data.result || [];
   } catch (error: unknown) {
     console.error('추천 목장 조회 실패:', error);
+    
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response: { status: number; statusText: string; data: unknown } };
+      console.error('응답 에러:', {
+        status: axiosError.response.status,
+        statusText: axiosError.response.statusText,
+        data: axiosError.response.data
+      });
+    }
+    
+    throw error;
+  }
+}
+
+// 목장 상세 정보 조회
+export const getFarmDetail = async (farmUuid: string): Promise<FarmDetail> => {
+  try {
+    const response = await apiClient.get(`/api/v1/farms/${farmUuid}`);
+    
+    if (response.status !== 200) {
+      throw new Error(`목장 상세 정보 조회 실패: HTTP ${response.status}`);
+    }
+
+    return response.data.result;
+  } catch (error: unknown) {
+    console.error('목장 상세 정보 조회 실패:', error);
     
     if (error && typeof error === 'object' && 'response' in error) {
       const axiosError = error as { response: { status: number; statusText: string; data: unknown } };

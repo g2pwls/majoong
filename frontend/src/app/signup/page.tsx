@@ -121,7 +121,6 @@ export default function SignupPage() {
         if (response.isSuccess) {
           if (response.result.verified) {
             setFarmerInfo(prev => ({ ...prev, businessVerified: true, businessVerifying: false }));
-            alert('사업자 정보 확인이 완료되었습니다.');
           } else {
             setFarmerInfo(prev => ({ ...prev, businessVerifying: false }));
             alert('사업자 정보 확인에 실패했습니다. 입력하신 정보를 다시 확인해주세요.');

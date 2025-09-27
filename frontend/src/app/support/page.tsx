@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getFarms, getHorses, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
-import { isDonator, isFarmer } from "@/services/authService";
+import { isDonator, isFarmer, getUserRole } from "@/services/authService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -66,131 +66,191 @@ const FarmCard: React.FC<{
 
   return (
     <Link href={`/support/${farm.id}`} className="block">
-      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer">
-        <CardContent className="py-1 px-3 md:px-4">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-            {/* 왼쪽: cover + 정보 */}
-            <div className="flex gap-4 items-start">
-              <div className="relative">
-                <Image
-                  src={farm.image_url}
-                  alt={`${farm.farm_name} cover`}
-                  width={232}
-                  height={168}
-                  className="h-42 w-58 rounded-xl object-cover"
-                />
-                <TempBadge temp={farm.total_score} />
-              </div>
-              <div className="flex flex-col justify-center gap-1 h-42">
-                <div className="mb-3 flex items-center gap-2">
-                  <h3 className="text-xl font-semibold">{farm.farm_name}</h3>
-                  {isDonator() && (
-                    <button 
-                      className={`rounded-full border p-1 transition-colors ${
-                        isBookmarked 
-                          ? 'border-yellow-400 bg-yellow-50' 
-                          : 'border-gray-300 hover:border-yellow-400'
-                      } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                      aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                      onClick={handleBookmarkClick}
-                      disabled={isLoading}
-                    >
-                      <Star 
-                        className={`h-4 w-4 ${
+      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out hover:rotate-0 hover:-translate-y-3 hover:scale-101 cursor-pointer p-0 will-change-transform">
+        <div className="flex flex-col lg:flex-row lg:items-stretch lg:justify-between h-auto lg:h-58">
+          {/* 왼쪽: 이미지 (패딩 없이 꽉 차게, 고정 크기) */}
+          <div className="relative lg:w-1/3 h-48 sm:h-56 lg:h-full">
+            <Image
+              src={farm.image_url}
+              alt={`${farm.farm_name} cover`}
+              width={232}
+              height={168}
+              className="h-full w-full object-cover rounded-t-2xl lg:rounded-t-2xl lg:rounded-b-none lg:rounded-r-none"
+            />
+            <TempBadge temp={farm.total_score} />
+          </div>
+          {/* 오른쪽: 정보 (패딩 적용) */}
+          <div className="py-4 px-4 sm:px-6 md:px-8 lg:w-2/3 lg:h-full flex flex-col justify-center">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              {/* 왼쪽: 농장 정보 */}
+              <div className="flex flex-col justify-center gap-2 lg:min-w-0 lg:flex-1">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-semibold">{farm.farm_name}</h3>
+                    {isDonator() && (
+                      <button 
+                        className={`rounded-full border p-1 transition-colors ${
                           isBookmarked 
-                            ? 'fill-yellow-400 text-yellow-400' 
-                            : 'text-gray-400 hover:text-yellow-400'
-                        } ${isLoading ? 'animate-pulse' : ''}`} 
-                      />
-                    </button>
+                            ? 'border-yellow-400 bg-yellow-50' 
+                            : 'border-gray-300 hover:border-yellow-400'
+                        } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                        onClick={handleBookmarkClick}
+                        disabled={isLoading}
+                      >
+                        <Star 
+                          className={`h-4 w-4 ${
+                            isBookmarked 
+                              ? 'fill-yellow-400 text-yellow-400' 
+                              : 'text-gray-400 hover:text-yellow-400'
+                          } ${isLoading ? 'animate-pulse' : ''}`} 
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {/* 모바일에서 기부하기 버튼을 여기에 배치 */}
+                  {!isFarmer() && (
+                    <Button 
+                      className="lg:hidden whitespace-nowrap bg-red-500 hover:bg-red-600 text-sm sm:text-sm px-3 py-1.5"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.href = `/support/${farm.id}/donate`;
+                      }}
+                    >
+                      기부하기
+                    </Button>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-4 w-4" /> {farm.address}
-                </p>
-                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Users className="h-4 w-4" /> 말 {farm.horse_count}두
-                </p>
-                {farm.state && (
-                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
-                )}
-              </div>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-4 w-4 flex-shrink-0" /> 
+                  <span className="truncate">{farm.address}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Users className="h-4 w-4 flex-shrink-0" /> 말 {farm.horse_count}두
+              </p>
+              {farm.state && (
+                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+              )}
             </div>
 
-            {/* 오른쪽: 갤러리 + 버튼 */}
-            <div className={`flex flex-col items-end gap-3 h-42 ${isFarmer() ? 'justify-end' : ''}`}>
-              {!isFarmer() && (
-                <Link href={isDonator() ? `/support/${farm.id}/donate` : '/login'} onClick={(e) => e.stopPropagation()}>
-                  <Button className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600">
-                    기부하기
-                  </Button>
-                </Link>
-              )}
-              <div className="flex gap-2">
-                {(farm.horse_url ?? []).slice(0, 4).map((src, i) => 
-                  src ? (
-                    <Image
-                      key={i}
-                      src={src}
-                      alt={`${farm.farm_name} horse_url ${i + 1}`}
-                      width={92}
-                      height={120}
-                      className="h-30 w-23 rounded-lg object-cover"
-                    />
-                  ) : null
-                )}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-};
- 
-const HorseCard: React.FC<{ horse: Horse; farm: Farm }> = ({ horse, farm }) => (
-  <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
-    <Card className="relative overflow-hidden rounded-2xl shadow-sm cursor-pointer hover:shadow-lg hover:scale-[1.02] transition-all duration-200 p-0">
-      <CardContent className="p-3">
-        <div className="flex flex-col gap-3">
-          {/* 말 이미지 */}
-          <div className="w-full">
-            <Image
-              src={horse.horse_url || "/horses/mal.png"}
-              alt={`${horse.hrNm} 이미지`}
-              width={200}
-              height={150}
-              className="w-full h-45 rounded-lg object-cover"
-            />
-          </div>
-          
-          {/* 말 정보 */}
-          <div className="space-y-2">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 truncate">{horse.hrNm}</h3>
-              <p className="text-sm text-gray-600">마번: {horse.horseNo}</p>
-            </div>
-            
-            <div className="space-y-1 text-sm text-gray-600">
-              <p><span className="font-medium">농장:</span> {farm.farm_name}</p>
-              <p><span className="font-medium">농장주:</span> {farm.name}</p>
-              <p><span className="font-medium">성별:</span> {horse.sex || "미상"}</p>
-              <p><span className="font-medium">색상:</span> {horse.color || "미상"}</p>
-              <p><span className="font-medium">품종:</span> {horse.breed || "미상"}</p>
-              {horse.rcCnt !== undefined && (
-                <p><span className="font-medium">경주횟수:</span> {horse.rcCnt}회</p>
-              )}
-              {horse.amt !== undefined && horse.amt > 0 && (
-                <p><span className="font-medium">총상금:</span> {horse.amt.toLocaleString()}원</p>
+          {/* 오른쪽: 갤러리 + 버튼 */}
+              <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
+            {!isFarmer() && (
+                  <Button 
+                    className="hidden lg:flex ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[120px] text-sm sm:text-base items-center justify-center"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      window.location.href = `/support/${farm.id}/donate`;
+                    }}
+                  >
+                  이 목장에 기부하기
+                </Button>
+            )}
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                  {(farm.horse_url ?? []).map((src, i) => 
+                src ? (
+                      <div key={i} className="relative group flex-shrink-0">
+                  <Image
+                    src={src}
+                    alt={`${farm.farm_name} horse_url ${i + 1}`}
+                    width={92}
+                    height={120}
+                          className="h-30 w-23 rounded-xl object-cover shadow-md hover:shadow-lg transition-all duration-300 group-hover:scale-105 border-2 border-white/20"
+                  />
+                        <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      </div>
+                ) : null
               )}
             </div>
           </div>
         </div>
-      </CardContent>
+          </div>
+        </div>
     </Card>
+    </Link>
+  );
+};
+ 
+const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ horse, farm, index }) => {
+  // 각 카드마다 다른 회전각도 적용
+  const getRotationClass = (index: number) => {
+    const rotations = [
+      'rotate-[0.8deg]', 'rotate-[-0.8deg]', 'rotate-[-0.6deg]', 'rotate-[0.6deg]', 
+      'rotate-[-0.75deg]', 'rotate-[0.25deg]', 'rotate-[-0.3deg]', 'rotate-[0.9deg]'
+    ];
+    return rotations[index % rotations.length];
+  };
+
+  // 평균 색상 계산 (이미지에서 추출된 색상 사용)
+  const getAverageColor = (index: number) => {
+    const colors = [
+      '#b0b6a9', '#afa294', '#3c3c3d', '#b47460', 
+      '#60a6ce', '#46666f', '#8e898f', '#8d516e'
+    ];
+    return colors[index % colors.length];
+  };
+
+  const averageColor = getAverageColor(index);
+
+  return (
+  <Link href={`/support/${farm.id}/${horse.horseNo}`} passHref>
+      <article 
+        className={`
+          relative group cursor-pointer transition-all duration-300 ease-in-out
+          hover:rotate-0 hover:-translate-y-3 hover:scale-110 hover:opacity-100
+          ${getRotationClass(index)}
+          sm:opacity-75
+          will-change-transform
+        `}
+        style={{
+          transformStyle: 'preserve-3d'
+        }}
+      >
+        <div 
+          className="
+            border-2 sm:border-4 rounded-lg p-0.5 sm:p-1
+            bg-gradient-to-br from-[var(--average-color)] to-[var(--average-color)]/90
+            shadow-[3px_3px_0px_0px_rgba(0,0,0,0.15)] sm:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.15)]
+            group-hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] sm:group-hover:shadow-[12px_12px_0px_0px_rgba(0,0,0,0.2)]
+            transition-all duration-300
+            min-h-[140px] sm:min-h-[200px]
+          "
+          style={{
+            borderColor: averageColor,
+            backgroundColor: averageColor,
+            backgroundImage: `radial-gradient(transparent 0)`,
+            backgroundSize: '7px 7px',
+            backgroundPosition: 'center'
+          }}
+        >
+          {/* 말 이미지 */}
+          <div className="relative overflow-hidden rounded-md">
+            <Image
+              src={horse.horse_url || "/horses/mal.png"}
+              alt={`${horse.hrNm} 이미지`}
+              width={200}
+              height={280}
+              className="w-full aspect-[200/200] sm:aspect-[200/280] object-cover rounded-md"
+            />
+          </div>
+          
+          {/* 말 이름 (캡션) */}
+          <div className="p-1 sm:p-2">
+            <h3 className="text-xs sm:text-sm font-bold text-white truncate text-center leading-tight">
+              {horse.hrNm}
+            </h3>
+            <p className="text-xs text-white/80 text-center mt-0.5 sm:mt-1 truncate">
+              {farm.farm_name}
+            </p>
+            </div>
+          </div>
+      </article>
   </Link>
 );
+};
 
 export default function SupportPage() {
   const [sort, setSort] = useState<"latest" | "recommended">("recommended");
@@ -203,7 +263,7 @@ export default function SupportPage() {
   
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = searchType === "horse" ? 24 : 10; // 마명 검색 시 30개, 농장 검색 시 10개
 
   // 즐겨찾기 토글 함수
   const handleBookmarkToggle = async (farmUuid: string) => {
@@ -393,38 +453,36 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-6xl px-1 pb-16">
-        <div className="py-8 pb-5">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="py-4">
           <Breadcrumbs items={[
-            { label: "목장후원", href: "/support" },
+            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
           ]} />
         </div>
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* 왼쪽: 제목 + 탭 */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold">전체 목장</h1>
             <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "recommended")} className="shrink-0">
-              <TabsList>
-                <TabsTrigger value="recommended">신뢰도순</TabsTrigger>
-                <TabsTrigger value="latest">최신순</TabsTrigger>
+              <TabsList className="h-8">
+                <TabsTrigger value="recommended" className="text-xs px-2">신뢰도순</TabsTrigger>
+                <TabsTrigger value="latest" className="text-xs px-2">최신순</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           {/* 오른쪽: 검색 */}
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <div className="flex items-center gap-2">
-              <SearchTypeToggle value={searchType} onChange={setSearchType} />
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="w-[240px] pl-8"
-                  placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                />
-              </div>
+          <div className="flex flex-row items-center gap-2">
+            <SearchTypeToggle value={searchType} onChange={setSearchType} />
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="w-[182px] sm:w-[200px] pl-8 h-9 text-sm"
+                placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
             </div>
           </div>
         </div>
@@ -443,10 +501,20 @@ export default function SupportPage() {
             />
           ))}
           {!loading && searchType === "horse" && (
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 ${isFarmer() ? 'flex justify-end' : ''}`}>
-              {paginatedHorses.map(({ horse, farm }) => (
-                <HorseCard key={`${farm.id}-${horse.id}`} horse={horse} farm={farm} />
-              ))}
+            <div className="relative">
+              <div className="mb-6">
+                <p className="text-sm text-gray-600">총 {filteredHorses.length}마의 말이 있습니다</p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+                {paginatedHorses.map(({ horse, farm }, index) => (
+                  <HorseCard 
+                    key={`${farm.id}-${horse.id}`} 
+                    horse={horse} 
+                    farm={farm} 
+                    index={index}
+                  />
+                ))}
+              </div>
             </div>
           )}
           {!loading && searchType === "farm" && filteredFarms.length === 0 && (

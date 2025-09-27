@@ -33,9 +33,9 @@ public class HorseServiceImpl implements HorseService {
         Page<Horse> horses;
 
         if (horseName == null || horseName.isBlank()) {
-            horses = horseRepository.findAll(PageRequest.of(page, size));
+            horses = horseRepository.findByDeletedAtIsNull(PageRequest.of(page, size));
         } else {
-            horses = horseRepository.findByHorseNameContaining(horseName, PageRequest.of(page, size));
+            horses = horseRepository.findByHorseNameContainingAndDeletedAtIsNull(horseName, PageRequest.of(page, size));
         }
 
         return horses.map(HorseSearchResponseDto::toDto);

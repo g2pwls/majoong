@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { getMyFarm, updateFarmInfo } from '@/services/userService';
 import { MyFarmResponse, FarmUpdateRequest } from '@/types/user';
 
@@ -19,6 +20,7 @@ interface FarmInfo {
 }
 
 export default function FarmerMyFarm() {
+  const router = useRouter();
   const [farmInfo, setFarmInfo] = useState<FarmInfo | null>(null);
   const [myFarmData, setMyFarmData] = useState<MyFarmResponse['result'] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -188,6 +190,12 @@ export default function FarmerMyFarm() {
     setIsEditing(false);
   };
 
+  const handleFarmNameClick = () => {
+    if (myFarmData?.farmUuid) {
+      router.push(`/support/${myFarmData.farmUuid}`);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -218,15 +226,6 @@ export default function FarmerMyFarm() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-end items-center mb-6">
-        <button
-          onClick={() => window.open(`/support/${myFarmData?.farmUuid}`, '_blank')}
-          className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
-        >
-          내 목장 가기
-        </button>
-      </div>
-      
       <div className="space-y-6">
         {/* 기본 정보 섹션 */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -237,19 +236,31 @@ export default function FarmerMyFarm() {
               <label className="w-40 text-sm font-medium text-gray-700">
                 목장명
               </label>
-              <div className="flex-1 ml-4">
+              <div className="flex-1 ml-4 flex items-center gap-3">
                 {isEditing ? (
                   <input
                     type="text"
                     value={editedInfo.name}
                     onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="목장명을 입력하세요"
                   />
                 ) : (
-                  <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+                  <div 
+                    className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={handleFarmNameClick}
+                    title="목장 상세 페이지로 이동"
+                  >
                     {myFarmData?.farmName}
                   </div>
+                )}
+                {!isEditing && (
+                  <button
+                    onClick={() => router.push(`/support/${myFarmData?.farmUuid}`)}
+                    className="px-3 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-sm"
+                  >
+                    내 목장 가기
+                  </button>
                 )}
               </div>
             </div>

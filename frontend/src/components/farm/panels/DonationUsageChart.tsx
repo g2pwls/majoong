@@ -16,14 +16,32 @@ interface DonationUsageChartProps {
   data: DonationUsageItem[];
   totalAmount: number;
   title: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
 }
 
 
-export default function DonationUsageChart({ data, totalAmount, title }: DonationUsageChartProps) {
+export default function DonationUsageChart({ data, totalAmount, title, isLoading = false, loadingMessage = "데이터를 불러오는 중..." }: DonationUsageChartProps) {
+  // 로딩 중일 때
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="px-4">
+          <h3 className="text-lg font-semibold mb-4">{title}</h3>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{loadingMessage}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 데이터가 없을 때
   if (!data || data.length === 0) {
     return (
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="px-4">
           <h3 className="text-lg font-semibold mb-4">{title}</h3>
           <div className="text-center py-8">
             <p className="text-gray-500">사용 내역이 없습니다.</p>
@@ -35,7 +53,7 @@ export default function DonationUsageChart({ data, totalAmount, title }: Donatio
 
   return (
     <Card>
-      <CardContent className="p-4 py-0">
+      <CardContent className="py-0">
         <h3 className="text-lg font-semibold mb-4">{title}</h3>
         
         <div className="flex flex-col lg:flex-row gap-6">
@@ -136,6 +154,21 @@ interface MonthlyBarChartProps {
 }
 
 export function MonthlyBarChart({ data, title }: MonthlyBarChartProps) {
+  // 데이터가 없거나 모든 금액이 0인 경우 확인
+  const hasData = data && data.length > 0 && data.some(item => item.amount > 0);
+  
+  if (!hasData) {
+    return (
+      <Card>
+        <CardContent className="p-4 py-0">
+          <h3 className="text-lg font-semibold mb-4">{title}</h3>
+          <div className="text-center py-8">
+            <p className="text-gray-500">해당 연도의 기부금 내역이 없습니다.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   const chartData = data.map(item => ({
     month: `${item.month}월`,

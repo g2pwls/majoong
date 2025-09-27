@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Trophy, MapPin, Phone } from "lucide-react";
 import { FarmService } from "@/services/farmService";
 import { HorseDetailResult } from "@/types/farm";
+import { getUserRole } from "@/services/authService";
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string) => {
@@ -114,18 +115,18 @@ export default function HorseDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl px-1 p-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4">
         {/* 브레드크럼 */}
         <Breadcrumbs
           items={[
-            { label: "목장후원", href: "/support" },
+            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
             { label: farm?.farm_name || "목장", href: `/support/${farm_uuid}` },
             { label: `${horse.horseNumber} ${horse.horseName}` },
           ]}
         />
 
         {/* 메인 콘텐츠 */}
-        <div className="flex flex-row items-center justify-between mt-5">
+        <div className="flex flex-row items-center justify-between mt-4">
           <h1 className="text-3xl font-bold"><span className="text-red-600">{horse.horseNumber}</span> {horse.horseName}</h1>
             <div className="mt-0">
               <Button 

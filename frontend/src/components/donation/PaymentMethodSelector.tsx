@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 
 interface PaymentMethodSelectorProps {
-  paymentMethod: 'kakao' | 'bank';
-  onPaymentMethodChange: (method: 'kakao' | 'bank') => void;
+  paymentMethod: 'kakao';
+  onPaymentMethodChange: (method: 'kakao') => void;
 }
 
 export default function PaymentMethodSelector({
@@ -17,28 +17,17 @@ export default function PaymentMethodSelector({
       
       {/* 결제 수단 선택 */}
       <div className="space-y-4">
-        <div className="flex space-x-4">
+        <div className="grid grid-cols-3 gap-3">
           <Button
-            variant={paymentMethod === 'kakao' ? "default" : "outline"}
+            variant={paymentMethod === 'kakao' ? 'default' : 'outline'}
             onClick={() => onPaymentMethodChange('kakao')}
-            className={`px-6 py-3 ${
+            className={`h-12 ${
               paymentMethod === 'kakao'
-                ? "bg-yellow-400 hover:bg-yellow-500 text-white"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-            }`}
+                ? 'bg-yellow-400 hover:bg-yellow-500 text-white'
+                : 'border-yellow-400 text-yellow-600 hover:bg-yellow-50'
+            } transition-colors`}
           >
             카카오페이
-          </Button>
-          <Button
-            variant={paymentMethod === 'bank' ? "default" : "outline"}
-            onClick={() => onPaymentMethodChange('bank')}
-            className={`px-6 py-3 ${
-              paymentMethod === 'bank'
-                ? "bg-blue-500 hover:bg-blue-600 text-white"
-                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-            }`}
-          >
-            무통장입금
           </Button>
         </div>
       </div>
