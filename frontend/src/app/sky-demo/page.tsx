@@ -1,6 +1,7 @@
 "use client";
 
 import SkyBackground from '@/components/common/SkyBackground';
+import ForestBackground from '@/components/common/ForestBackground';
 
 export default function SkyDemoPage() {
   return (
