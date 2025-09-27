@@ -148,7 +148,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
         const currentDate = new Date();
         // 모든 년월에 대한 API 호출을 병렬로 처리
-        const apiPromises: Promise<any>[] = [];
+        const apiPromises: Promise<DonationUsageResponse | null>[] = [];
         const yearMonthPairs: { year: number; month: number }[] = [];
         
         for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
@@ -232,7 +232,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         const endMonth = year === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
         
         // 해당 년도의 모든 월에 대한 API 호출을 병렬로 처리
-        const apiPromises: Promise<any>[] = [];
+        const apiPromises: Promise<DonationUsageResponse | null>[] = [];
         const monthNumbers: number[] = [];
         
         for (let m = startMonth; m <= endMonth; m++) {
@@ -320,7 +320,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         const currentDate = new Date();
         
         // 모든 년월에 대한 API 호출을 병렬로 처리
-        const apiPromises: Promise<any>[] = [];
+        const apiPromises: Promise<DonationUsageResponse | null>[] = [];
         const yearMonthPairs: { year: number; month: number }[] = [];
         
         for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
@@ -372,7 +372,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         const endMonth = year === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
         
         // 해당 년도의 모든 월에 대한 API 호출을 병렬로 처리
-        const apiPromises: Promise<any>[] = [];
+        const apiPromises: Promise<DonationUsageResponse | null>[] = [];
         const monthNumbers: number[] = [];
         
         for (let month = startMonth; month <= endMonth; month++) {

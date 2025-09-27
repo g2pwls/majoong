@@ -8,7 +8,7 @@ import DonationUsageChart, { DonationUsageItem } from "./DonationUsageChart";
 import { MonthlyBarChart } from "./DonationUsageChart";
 import { Farm } from "@/types/farm";
 import { FarmService } from "@/services/farmService";
-import { ScoreHistory, DonationUsageResponse, MonthlyDonationUsed } from "@/types/farm";
+import { ScoreHistory, DonationUsageResponse, MonthlyDonationUsed, ReceiptHistory } from "@/types/farm";
 
 export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isMyFarm?: boolean }) {
   const [scoreHistory, setScoreHistory] = useState<ScoreHistory[]>([]);
@@ -78,7 +78,7 @@ export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isM
       setYearlyData(allMonthlyData);
       
       // 전체 년도 데이터도 수집 (원형 그래프용)
-      const allReceipts: any[] = [];
+      const allReceipts: ReceiptHistory[] = [];
       for (let month = 1; month <= 12; month++) {
         try {
           const data = await FarmService.getDonationUsage(farm.farmUuid, currentYear, month);
