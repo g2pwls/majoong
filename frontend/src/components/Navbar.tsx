@@ -2,6 +2,7 @@
 
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -114,6 +115,32 @@ export default function Navbar() {
     }
   };
 
+  // ESC 키로 모달 닫기
+  React.useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showFarmRegistrationModal) {
+        setShowFarmRegistrationModal(false);
+      }
+    };
+
+    if (showFarmRegistrationModal) {
+      document.addEventListener('keydown', handleEscape);
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [showFarmRegistrationModal]);
+
+  // 모달이 열릴 때 body 스크롤 제어
+  React.useEffect(() => {
+    if (showFarmRegistrationModal) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }
+  }, [showFarmRegistrationModal]);
+
   // intro 페이지에서는 네브바를 표시하지 않음
   if (pathname === '/intro') {
     return null;
@@ -121,7 +148,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-0 py-4">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
           <Link 
@@ -154,7 +181,7 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/mypage"
-                className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
+                className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200"
               >
                 {userName ? `${userName}님` : ''}
               </Link>
@@ -210,7 +237,7 @@ export default function Navbar() {
                 <div className="flex flex-col gap-2">
                   <Link
                     href="/mypage"
-                    className="text-sm text-gray-600 hover:text-blue-600 cursor-pointer"
+                    className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200 text-right"
                     onClick={() => setOpen(false)}
                   >
                     {userName ? `${userName}님` : ''}
@@ -228,7 +255,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="inline-block rounded border px-4 py-1"
+                  className="block w-full text-center rounded border px-4 py-2"
                   onClick={() => setOpen(false)}
                 >
                   로그인
@@ -241,15 +268,20 @@ export default function Navbar() {
 
       {/* 목장 등록 모달 - Portal을 사용하여 body에 직접 렌더링 */}
       {showFarmRegistrationModal && typeof window !== 'undefined' && createPortal(
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[9999]">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999]"
+          onClick={() => setShowFarmRegistrationModal(false)}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="text-center">
-              <div className="text-2xl mb-4">🚜</div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 목장을 등록해주세요
               </h3>
               <p className="text-gray-600 mb-6">
-                나의 목장 기능을 사용하려면 먼저 목장을 등록해야 합니다.
+                목장 등록 후 이용할 수 있는 메뉴입니다.
               </p>
               <div className="flex gap-3 justify-center">
                 <button
@@ -265,7 +297,7 @@ export default function Navbar() {
                   }}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                 >
-                  목장 등록하기
+                  목장 등록
                 </button>
               </div>
             </div>

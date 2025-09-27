@@ -16,6 +16,7 @@ type Props = {
   className?: string;
   farmUuid?: string;                   // 기부하기 버튼을 위한 farmUuid
   showDonateButton?: boolean;          // 기부하기 버튼 표시 여부
+  showEditButton?: boolean;            // 목장 정보 수정 버튼 표시 여부
 };
 
 const DEFAULT_ITEMS: TabItem[] = [
@@ -33,6 +34,7 @@ export default function FarmTabs({
   className = "",
   farmUuid,
   showDonateButton = false,
+  showEditButton = false,
 }: Props) {
   return (
     <div className={`border-b border-gray-200 ${className}`}>
@@ -65,15 +67,28 @@ export default function FarmTabs({
           })}
         </nav>
         
-        {/* 기부하기 버튼 */}
-        {showDonateButton && farmUuid && (
-          <Link 
-            href={`/support/${farmUuid}/donate`}
-            className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
-          >
-            기부하기
-          </Link>
-        )}
+        {/* 오른쪽 버튼들 */}
+        <div className="flex gap-2">
+          {/* 목장 정보 수정 버튼 */}
+          {showEditButton && farmUuid && (
+            <Link 
+              href={`/support/${farmUuid}/edit`}
+              className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors text-sm font-medium"
+            >
+              목장 정보 수정
+            </Link>
+          )}
+          
+          {/* 기부하기 버튼 */}
+          {showDonateButton && farmUuid && (
+            <Link 
+              href={`/support/${farmUuid}/donate`}
+              className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+            >
+              기부하기
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

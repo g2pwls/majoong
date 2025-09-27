@@ -211,7 +211,7 @@ export interface FarmRegistrationRequest {
   phoneNumber: string;
   address: string;
   openingDate: string; // YYYY-MM-DD 형식
-  area: number;
+  area: string;
   description: string;
   profileImage: File | null;
 }

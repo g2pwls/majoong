@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { getFarmDetail, FarmDetail } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
-import DonationForm from "@/components/donation/DonationForm";
+import { getTokens, getUserRole } from "@/services/authService";
+import DonationSection from "@/components/donation/DonationSection";
 import FarmDetailCard from "@/components/farm/FarmDetailCard";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
@@ -15,6 +16,7 @@ import FarmDetailCard from "@/components/farm/FarmDetailCard";
 
 export default function DonatePage() {
   const params = useParams();
+  const router = useRouter();
   const farm_uuid = params.farm_uuid as string;
   
   const [farmDetail, setFarmDetail] = useState<FarmDetail | null>(null);
@@ -27,6 +29,7 @@ export default function DonatePage() {
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     const fetchFarmDetail = async () => {
@@ -131,6 +134,13 @@ export default function DonatePage() {
   };
 
   const handleDonateClick = () => {
+    // 로그인 상태 확인
+    const tokens = getTokens();
+    if (!tokens.accessToken) {
+      setShowLoginModal(true);
+      return;
+    }
+
     if (selectedAmount > 0) {
       setShowConfirmPopup(true);
     } else {
@@ -190,50 +200,79 @@ export default function DonatePage() {
           <div className="flex items-centermb-4 flex flex-col">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
             <div className="w-37 h-1 bg-gray-300"></div>
-          </div>
-        </div>
+                </div>
+              </div>
+              
+        {/* 목장 정보와 후원 정보 섹션 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* 목장 정보 */}
+          <FarmDetailCard farmDetail={farmDetail} />
 
-        {/* 기부 폼 */}
-        <Card className="bg-white border border-gray-200 p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 왼쪽: 농장 정보 */}
-            <div>
-              <FarmDetailCard farmDetail={farmDetail} />
+          {/* 후원 정보 섹션 */}
+          <DonationSection
+            selectedAmount={selectedAmount}
+            customAmount={customAmount}
+            showAmountWarning={showAmountWarning}
+            isCustomInputActive={isCustomInputActive}
+            paymentMethod={paymentMethod}
+            showConfirmPopup={showConfirmPopup}
+            selectedFarm={{
+              id: farmDetail.farmUuid,
+              farm_name: farmDetail.farmName,
+              farmName: farmDetail.farmName,
+              total_score: farmDetail.totalScore,
+              totalScore: farmDetail.totalScore,
+              image_url: farmDetail.profileImage,
+              profileImage: farmDetail.profileImage,
+              address: farmDetail.address,
+              farmUuid: farmDetail.farmUuid
+            }}
+            onAmountSelect={handleAmountSelect}
+            onCustomAmountChange={handleCustomAmountChange}
+            onCustomInputClick={handleCustomInputClick}
+            onCustomInputBlur={handleCustomInputBlur}
+            onCustomInputKeyDown={handleCustomInputKeyDown}
+            onPaymentMethodChange={handlePaymentMethodChange}
+            onDonateClick={handleDonateClick}
+            onConfirmDonation={handleConfirmDonation}
+            onCloseConfirmPopup={() => setShowConfirmPopup(false)}
+            formatAmount={formatAmount}
+                />
+              </div>
             </div>
 
-            {/* 오른쪽: 후원 정보 */}
-            <DonationForm
-              selectedAmount={selectedAmount}
-              customAmount={customAmount}
-              showAmountWarning={showAmountWarning}
-              isCustomInputActive={isCustomInputActive}
-              paymentMethod={paymentMethod}
-              showConfirmPopup={showConfirmPopup}
-              selectedFarm={{
-                id: farmDetail.farmUuid,
-                farm_name: farmDetail.farmName,
-                farmName: farmDetail.farmName,
-                total_score: farmDetail.totalScore,
-                totalScore: farmDetail.totalScore,
-                image_url: farmDetail.profileImage,
-                profileImage: farmDetail.profileImage,
-                address: farmDetail.address,
-                farmUuid: farmDetail.farmUuid
-              }}
-              onAmountSelect={handleAmountSelect}
-              onCustomAmountChange={handleCustomAmountChange}
-              onCustomInputClick={handleCustomInputClick}
-              onCustomInputBlur={handleCustomInputBlur}
-              onCustomInputKeyDown={handleCustomInputKeyDown}
-              onPaymentMethodChange={handlePaymentMethodChange}
-              onDonateClick={handleDonateClick}
-              onConfirmDonation={handleConfirmDonation}
-              onCloseConfirmPopup={() => setShowConfirmPopup(false)}
-              formatAmount={formatAmount}
-            />
+      {/* 로그인 필요 모달 */}
+      {showLoginModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                로그인이 필요합니다
+              </h3>
+              <p className="text-gray-600 mb-6">
+                로그인하여 목장에 기부해보세요.
+              </p>
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => setShowLoginModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    setShowLoginModal(false);
+                    router.push('/login');
+                  }}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  로그인하기
+                </button>
+                </div>
+            </div>
           </div>
-        </Card>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

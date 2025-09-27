@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { submitReceiptSettlement } from "../../../services/apiService";
 import ReceiptSubmissionProgress from "../panels/ReceiptSubmissionProgress";
 
@@ -27,6 +28,7 @@ export default function DonationProofUpload({
   onImageUpload,
   onImageSwap
 }: DonationProofUploadProps) {
+  const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [draggedType, setDraggedType] = useState<string | null>(null);
@@ -76,11 +78,25 @@ export default function DonationProofUpload({
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   const [apiComplete, setApiComplete] = useState(false);
+  
+  // --- 모달 관련 상태 ---
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   // 진행 상황 완료 핸들러
   const handleProgressComplete = () => {
     setShowProgress(false);
     setSubmitting(false);
+  };
+
+  // 완료 모달 핸들러
+  const handleModalClose = () => {
+    setShowCompletionModal(false);
+  };
+
+  // DonationPanel로 이동
+  const handleGoToDonationPanel = () => {
+    setShowCompletionModal(false);
+    router.push(`/support/${farmUuid}?tab=donations`);
   };
 
   // 컴포넌트 렌더링 추적
@@ -603,6 +619,9 @@ export default function DonationProofUpload({
         console.log("정산 성공:", result.settlement);
       }
       
+      // 완료 모달 표시
+      setShowCompletionModal(true);
+      
       // 진행 상황은 자동으로 완료되므로 여기서는 숨기지 않음
     } catch (e: unknown) {
       console.error("제출 에러:", e);
@@ -1097,6 +1116,41 @@ export default function DonationProofUpload({
         onComplete={handleProgressComplete}
         isApiComplete={apiComplete}
       />
+
+      {/* 완료 모달 */}
+      {showCompletionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                제출이 완료되었습니다!
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                영수증 정산이 성공적으로 제출되었습니다.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleModalClose}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={handleGoToDonationPanel}
+                  className="flex-1 px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  기부 내역 보기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

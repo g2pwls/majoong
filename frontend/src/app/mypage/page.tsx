@@ -10,6 +10,7 @@ import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/user';
 import DonorProfile from '@/components/mypage/DonorProfile';
 import DonorSupportHistory from '@/components/mypage/DonorSupportHistory';
 import DonorFavoriteFarms from '@/components/mypage/DonorFavoriteFarms';
+import DonorCollection from '@/components/mypage/DonorCollection';
 
 import FarmerProfile from '@/components/mypage/FarmerProfile';
 import FarmerMyFarm from '@/components/mypage/FarmerMyFarm';
@@ -88,6 +89,7 @@ export default function MyPage() {
           { id: 'profile', label: '회원 정보', component: DonorProfile },
           { id: 'favorites', label: '즐겨찾는 목장', component: DonorFavoriteFarms },
           { id: 'support', label: '후원 내역', component: DonorSupportHistory },
+          { id: 'collection', label: '컬렉션', component: DonorCollection },
         ];
       case 'FARMER':
         return [
