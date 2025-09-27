@@ -219,19 +219,18 @@ public class ManageFarmServiceImpl implements ManageFarmService {
                     .subscribeOn(Schedulers.boundedElastic());
         });
 
-        //AI 모델로 전달할 Data URI 생성
-        Mono<String> dataUriMono = bytesMono.map(bytes -> {
-            String mime = Optional.ofNullable(file.getContentType()).orElse("image/jpeg");
-            String b64 = java.util.Base64.getEncoder().encodeToString(bytes);
-            return "data:" + mime + ";base64," + b64;
-        });
-
-        //AI 분석 결과 텍스트 반환
-        Mono<String> summaryMono = dataUriMono
-                .flatMap(dataUri -> openAIService.analyzeHorseImage(slot, dataUri))
-                .timeout(Duration.ofSeconds(18))
+        //AI 분석은 base64 대신 S3 URL을 그대로 사용
+        Mono<String> summaryMono = urlMono
+                .flatMap(url -> openAIService.analyzeHorseImage(slot, url))
+                .timeout(Duration.ofSeconds(60))
+                .retryWhen(
+                        reactor.util.retry.Retry.backoff(2, Duration.ofSeconds(1))
+                                .filter(ex -> ex instanceof org.springframework.web.reactive.function.client.WebClientResponseException w &&
+                                              (w.getStatusCode().is5xxServerError() || w.getStatusCode().value() == 429))
+                )
                 .onErrorReturn("분석 실패");
 
+        //URL과 요약을 묶어 반환
         return Mono.zip(urlMono, summaryMono)
                 .map(t -> new ImgResult(slot, t.getT1(), t.getT2()));
     }
