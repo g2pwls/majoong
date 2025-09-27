@@ -95,20 +95,20 @@ function MyPageContent() {
     switch (role) {
       case 'DONATOR':
         return [
-          { id: 'profile', label: '회원 정보', component: DonorProfile },
-          { id: 'favorites', label: '즐겨찾는 목장', component: DonorFavoriteFarms },
-          { id: 'support', label: '후원 내역', component: DonorSupportHistory },
+          { id: 'profile', label: '회원정보', component: DonorProfile },
+          { id: 'favorites', label: '즐겨찾기', component: DonorFavoriteFarms },
+          { id: 'support', label: '후원내역', component: DonorSupportHistory },
           { id: 'collection', label: '컬렉션', component: DonorCollection },
         ];
       case 'FARMER':
         return [
-          { id: 'profile', label: '회원 정보', component: FarmerProfile },
+          { id: 'profile', label: '회원정보', component: FarmerProfile },
           { id: 'farm', label: '목장 정보', component: FarmerMyFarm },
-          { id: 'support', label: '후원 내역', component: FarmerSupportHistory },
+          { id: 'support', label: '후원내역', component: FarmerSupportHistory },
         ];
       case 'ADMIN':
         return [
-          { id: 'profile', label: '회원 정보', component: AdminProfile },
+          { id: 'profile', label: '회원정보', component: AdminProfile },
           { id: 'reports', label: '신고 내역', component: AdminReportHistory },
         ];
       default:

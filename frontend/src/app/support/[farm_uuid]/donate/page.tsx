@@ -224,7 +224,7 @@ export default function DonatePage() {
             { label: '기부하기' }
           ]} />
         </div>
-        
+
         <div className="mb-6 flex flex-row">
           <div className="flex items-centermb-4 flex flex-col">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">기부하기</h1>
@@ -298,9 +298,9 @@ export default function DonatePage() {
                   로그인하기
                 </button>
                 </div>
+              </div>
             </div>
           </div>
-        </div>
       )}
 
       {/* 로그인 필요 모달 */}

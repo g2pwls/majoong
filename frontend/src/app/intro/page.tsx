@@ -25,13 +25,6 @@ export default function IntroPage() {
               로그인하기
             </Link>
             
-            <Link
-              href="/"
-              className="w-full flex justify-center py-3 px-4 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200"
-            >
-              둘러보기
-            </Link>
-            
             <p className="text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
               서비스 이용을 위해 로그인이 필요합니다
             </p>
