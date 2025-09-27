@@ -21,4 +21,6 @@ public interface DonationHistoryRepositoryCustom {
             String memberUuid, int page, int size, LocalDate startDate, LocalDate endDate);
 
     Map<String, Long> getMonthlyDonationByFarmList(Set<String> farmUuids, YearMonth ym);
+
+    long countUniqueDonatorsByFarm(String farmUuid);
 }
