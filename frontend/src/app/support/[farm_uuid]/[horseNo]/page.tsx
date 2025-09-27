@@ -139,7 +139,7 @@ export default function HorseDetailPage({ params }: PageProps) {
               </Button>
           </div>
         </div>
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8">
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
           {/* 왼쪽: 말 사진 */}
           <div className="space-y-4">
             <Card className="overflow-hidden">
@@ -187,12 +187,10 @@ export default function HorseDetailPage({ params }: PageProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                   {/* 출생일: 상단 전폭 */}
-                  {horse.birth && (
-                    <div className="md:col-span-2 flex items-center gap-2 text-gray-600">
-                      <Calendar className="h-4 w-4" />
-                      <span>출생일: {horse.birth}</span>
-                    </div>
-                  )}
+                  <div className="md:col-span-2 flex items-center gap-2 text-gray-600">
+                    <Calendar className="h-4 w-4" />
+                    <span>출생일: {horse.birth || "-"}</span>
+                  </div>
 
                   {/* 좌측: 말 상세 정보 */}
                   <section>
@@ -246,30 +244,22 @@ export default function HorseDetailPage({ params }: PageProps) {
                   </section>
 
                   {/* 하단 추가 정보: 전폭 */}
-                  {(horse.firstRaceDate || horse.lastRaceDate || horse.retireDate) && (
-                    <div className="md:col-span-2 mt-2 pt-4 border-t">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {horse.firstRaceDate && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">최초출주일</label>
-                            <p className="text-lg">{horse.firstRaceDate}</p>
-                          </div>
-                        )}
-                        {horse.lastRaceDate && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">최종출주</label>
-                            <p className="text-lg">{horse.lastRaceDate}</p>
-                          </div>
-                        )}
-                        {horse.retireDate && (
-                          <div>
-                            <label className="text-sm font-medium text-gray-500">경주마불용일</label>
-                            <p className="text-lg">{horse.retireDate}</p>
-                          </div>
-                        )}
+                  <div className="md:col-span-2 mt-2 pt-4 border-t">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">최초출주일</label>
+                        <p className="text-lg">{horse.firstRaceDate || "-"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">최종출주</label>
+                        <p className="text-lg">{horse.lastRaceDate || "-"}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">경주마불용일</label>
+                        <p className="text-lg">{horse.retireDate || "-"}</p>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
