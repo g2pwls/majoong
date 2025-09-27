@@ -101,8 +101,8 @@ export default function LoginPage() {
                 ) : (
                   <>
                     <Image
-                      src="/kakaotalk_logo.png"
-                      alt="카카오톡 아이콘"
+                      src="/kakao_logo.png"
+                      alt="kakaotalk"
                       width={20}
                       height={20}
                       className="mr-2"
