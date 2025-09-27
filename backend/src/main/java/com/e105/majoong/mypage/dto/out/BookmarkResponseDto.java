@@ -10,5 +10,5 @@ import lombok.Getter;
 public class BookmarkResponseDto {
     private String farmName;
     private String farmUuid;
-
+    private String imageUrl;
 }
