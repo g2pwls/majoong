@@ -33,7 +33,8 @@ public class CollectionCardRepositoryImpl implements CollectionCardRepositoryCus
                         horse.breed,
                         horse.totalPrize,
                         horse.firstRaceDate,
-                        horse.lastRaceDate
+                        horse.lastRaceDate,
+                        collectionCard.cardCount
                 ))
                 .from(horse)
                 .join(collectionCard).on(collectionCard.horseNumber.eq(horse.horseNumber))
@@ -44,5 +45,18 @@ public class CollectionCardRepositoryImpl implements CollectionCardRepositoryCus
                 )
                 .orderBy(collectionCard.createdAt.desc())
                 .fetch();
+    }
+
+    @Override
+    public long incrementCardCount(String memberUuid, String farmUuid, String horseNumber) {
+        return queryFactory
+                .update(collectionCard)
+                .set(collectionCard.cardCount, collectionCard.cardCount.add(1))
+                .where(
+                        collectionCard.memberUuid.eq(memberUuid),
+                        collectionCard.farmUuid.eq(farmUuid),
+                        collectionCard.horseNumber.eq(horseNumber)
+                )
+                .execute();
     }
 }

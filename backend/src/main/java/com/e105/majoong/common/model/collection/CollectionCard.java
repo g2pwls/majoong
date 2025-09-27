@@ -36,6 +36,9 @@ public class CollectionCard {
     @Column
     private String horseNumber;
 
+    @Column
+    private int cardCount;
+
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime createdAt;

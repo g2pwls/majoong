@@ -82,12 +82,14 @@ public class FarmServiceImpl implements FarmService {
                 now.getMonthValue()
         ) * 100;
 
+        long uniqueDonators = donationHistoryRepository.countUniqueDonatorsByFarm(farmUuid);
+
         boolean isBookmark = false;
         if (memberUuid != null && !memberUuid.isBlank()) {
             isBookmark = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
         }
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, isBookmark);
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, uniqueDonators,  isBookmark);
     }
 
     @Override
@@ -111,8 +113,11 @@ public class FarmServiceImpl implements FarmService {
                 now.getYear(),
                 now.getMonthValue()
         ) * 100;
+
+        long uniqueDonators = donationHistoryRepository.countUniqueDonatorsByFarm(farm.getFarmUuid());
+
         boolean bookmarked = bookmarkRepository.existsByMemberUuidAndFarmUuid(memberUuid, farm.getFarmUuid());
 
-        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, bookmarked);
+        return FarmDetailResponseDto.toDto(farm, monthlyScores, horseDtos, monthTotalAmount, uniqueDonators, bookmarked);
     }
 }
