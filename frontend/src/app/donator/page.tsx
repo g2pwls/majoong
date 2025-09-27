@@ -284,7 +284,7 @@ export default function DonatorPage() {
         {/* 즐겨찾기 목장 섹션 */}
         <div className="space-y-6 mt-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-2xl font-bold text-gray-900">즐겨찾기 목장</h2>
+            <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장</h2>
             <button
               onClick={() => window.location.href = '/mypage'}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -345,7 +345,7 @@ export default function DonatorPage() {
         </div>
 
         {/* 즐겨찾는 목장의 최신 소식지 섹션 */}
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 mt-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장의 최신 소식</h2>
           </div>
