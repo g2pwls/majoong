@@ -37,37 +37,41 @@ export default function FarmTabs({
   showEditButton = false,
 }: Props) {
   return (
-    <div className={`border-b border-gray-200 ${className}`}>
+    <div className={`w-full${className}`}>
+      {/* 탭과 버튼이 같은 줄에 배치 */}
       <div className="flex items-center justify-between">
-        <nav
-          className="-mb-px flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide"
-          role="tablist"
-          aria-label="Farm Tabs"
-        >
-          {items.map((it) => {
-            const active = value === it.value;
-            return (
-              <button
-                key={it.value}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                aria-controls={it.panelId}
-                className={[
-                  "whitespace-nowrap border-b-2 px-1 pb-2 mt-2 text-xs sm:text-sm font-medium transition-colors focus:outline-none focus-visible:ring flex-shrink-0",
-                  active
-                    ? "border-black text-black"
-                    : "border-transparent text-gray-500 hover:text-black hover:border-gray-300",
-                ].join(" ")}
-                onClick={() => onChange(it.value)}
-              >
-                {it.label}
-              </button>
-            );
-          })}
-        </nav>
+        {/* 탭 영역 - border-b 포함 */}
+        <div className="border-b border-gray-200 w-fit">
+          <nav
+            className="-mb-px flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide"
+            role="tablist"
+            aria-label="Farm Tabs"
+          >
+            {items.map((it) => {
+              const active = value === it.value;
+              return (
+                <button
+                  key={it.value}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-controls={it.panelId}
+                  className={[
+                    "whitespace-nowrap border-b-2 px-1 pb-2 mt-2 text-xs sm:text-sm font-medium transition-colors focus:outline-none focus-visible:ring flex-shrink-0",
+                    active
+                      ? "border-black text-black"
+                      : "border-transparent text-gray-500 hover:text-black hover:border-gray-300",
+                  ].join(" ")}
+                  onClick={() => onChange(it.value)}
+                >
+                  {it.label}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
         
-        {/* 오른쪽 버튼들 */}
+        {/* 오른쪽 버튼들 - border-b와 분리 */}
         <div className="flex gap-2">
           {/* 목장 정보 수정 버튼 */}
           {showEditButton && farmUuid && (
@@ -83,7 +87,7 @@ export default function FarmTabs({
           {showDonateButton && farmUuid && (
             <Link 
               href={`/support/${farmUuid}/donate`}
-              className="hidden lg:block bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+              className="hidden lg:block bg-red-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
             >
               기부하기
             </Link>
