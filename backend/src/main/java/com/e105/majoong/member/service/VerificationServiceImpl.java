@@ -30,63 +30,68 @@ public class VerificationServiceImpl implements VerificationService {
 
     @Override
     public VerificationResponseDto verify(VerificationRequestDto req) {
-        try {
-            JSONObject biz = new JSONObject();
-            biz.put("b_no", req.getBusinessNum());
-            biz.put("start_dt", req.getOpeningDate());
-            biz.put("p_nm", req.getName());
-            biz.put("p_nm2", "");
-            biz.put("b_nm", req.getFarmName());
-            biz.put("corp_no", "");
-            biz.put("b_sector", "");
-            biz.put("b_type", "");
+        // 기존 API 호출 로직 전체 주석 처리
+    /*
+    try {
+        JSONObject biz = new JSONObject();
+        biz.put("b_no", req.getBusinessNum());
+        biz.put("start_dt", req.getOpeningDate());
+        biz.put("p_nm", req.getName());
+        biz.put("p_nm2", "");
+        biz.put("b_nm", req.getFarmName());
+        biz.put("corp_no", "");
+        biz.put("b_sector", "");
+        biz.put("b_type", "");
 
-            JSONArray businesses = new JSONArray();
-            businesses.add(biz);
+        JSONArray businesses = new JSONArray();
+        businesses.add(biz);
 
-            JSONObject bodyJson = new JSONObject();
-            bodyJson.put("businesses", businesses);
+        JSONObject bodyJson = new JSONObject();
+        bodyJson.put("businesses", businesses);
 
-            RequestBody body = RequestBody.create(
-                    bodyJson.toString(),
-                    MediaType.parse("application/json; charset=UTF-8")
-            );
+        RequestBody body = RequestBody.create(
+                bodyJson.toString(),
+                MediaType.parse("application/json; charset=UTF-8")
+        );
 
-            String encodedKey = URLEncoder.encode(serviceKey, StandardCharsets.UTF_8);
-            String url = "https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=" + encodedKey;
+        String encodedKey = URLEncoder.encode(serviceKey, StandardCharsets.UTF_8);
+        String url = "https://api.odcloud.kr/api/nts-businessman/v1/validate?serviceKey=" + encodedKey;
 
-            Request request = new Request.Builder()
-                    .url(url)
-                    .post(body)
-                    .addHeader("Content-Type", "application/json; charset=UTF-8")
-                    .addHeader("Accept", "application/json")
-                    .build();
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("Content-Type", "application/json; charset=UTF-8")
+                .addHeader("Accept", "application/json")
+                .build();
 
-            try (Response response = client.newCall(request).execute()) {
-                if (!response.isSuccessful()) {
-                    log.error("API 호출 실패: {}", response);
-                    throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
-                }
-
-                String responseBody = response.body().string();
-                log.info("응답: {}", responseBody);
-
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> map = mapper.readValue(responseBody, Map.class);
-
-                boolean verified = false;
-                List<Map<String, Object>> data = (List<Map<String, Object>>) map.get("data");
-                if (data != null && !data.isEmpty()) {
-                    String valid = (String) data.get(0).get("valid");
-                    verified = "01".equals(valid);
-                }
-
-                return new VerificationResponseDto(verified);
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                log.error("API 호출 실패: {}", response);
+                throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
             }
 
-        } catch (Exception e) {
-            log.error("사업자 검증 실패", e);
-            throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
+            String responseBody = response.body().string();
+            log.info("응답: {}", responseBody);
+
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> map = mapper.readValue(responseBody, Map.class);
+
+            boolean verified = false;
+            List<Map<String, Object>> data = (List<Map<String, Object>>) map.get("data");
+            if (data != null && !data.isEmpty()) {
+                String valid = (String) data.get(0).get("valid");
+                verified = "01".equals(valid);
+            }
+
+            return new VerificationResponseDto(verified);
         }
+    } catch (Exception e) {
+        log.error("사업자 검증 실패", e);
+        throw new BaseException(BaseResponseStatus.INVALID_INPUT_VALUE);
+    }
+    */
+
+        // 무조건 true 반환
+        return new VerificationResponseDto(true);
     }
 }

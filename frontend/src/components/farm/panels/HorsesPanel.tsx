@@ -82,7 +82,7 @@ export default function HorsesPanel({ farmUuid, isMyFarm = false }: Props) {
         <p className="text-sm text-gray-600 flex items-center ml-5">총 {horses.length}마리</p>
       </div>
       
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {horses.map((horse) => (
           <Link
             key={horse.id ?? horse.horseNo}
@@ -102,9 +102,9 @@ export default function HorsesPanel({ farmUuid, isMyFarm = false }: Props) {
                 이미지 없음
               </div>
             )}
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-lg font-semibold text-gray-900">{horse.hrNm || "이름 없음"}</h3>
+            <div className="py-3 px-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{horse.hrNm || "이름 없음"}</h3>
               </div>
               <div className="space-y-1 text-sm text-gray-600">
                 <p>마번: {horse.horseNo}</p>

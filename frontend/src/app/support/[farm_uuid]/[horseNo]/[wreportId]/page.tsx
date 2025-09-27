@@ -147,25 +147,17 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-1 p-2">
-      {/* 브레드크럼과 돌아가기 버튼 */}
-      <div className="flex items-center justify-between mb-4">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4">
+      {/* 브레드크럼 */}
+      <div className="mb-4">
         <Breadcrumbs items={[
           { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, 
           { label: farm?.farm_name || "농장", href: `/support/${farm_uuid}` },
           { label: `말 ${horseNo}번`, href: `/support/${farm_uuid}/${horseNo}` },
           { label: `주간 보고서 ${wreportId}` }
         ]} />
-        
-        <Button 
-          onClick={() => router.back()} 
-          variant="outline" 
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          말 상세 페이지로 돌아가기
-        </Button>
       </div>
+
 
       {/* 헤더 */}
       <div className="mb-4">
@@ -294,6 +286,18 @@ export default function WeeklyReportDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* 돌아가기 버튼 - 맨 아래 */}
+      <div className="mt-5 flex justify-end">
+        <Button 
+          onClick={() => router.back()} 
+          variant="outline" 
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          말 상세 페이지로 돌아가기
+        </Button>
       </div>
     </div>
   );

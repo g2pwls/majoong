@@ -16,10 +16,28 @@ interface DonationUsageChartProps {
   data: DonationUsageItem[];
   totalAmount: number;
   title: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
 }
 
 
-export default function DonationUsageChart({ data, totalAmount, title }: DonationUsageChartProps) {
+export default function DonationUsageChart({ data, totalAmount, title, isLoading = false, loadingMessage = "데이터를 불러오는 중..." }: DonationUsageChartProps) {
+  // 로딩 중일 때
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="px-4">
+          <h3 className="text-lg font-semibold mb-4">{title}</h3>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">{loadingMessage}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // 데이터가 없을 때
   if (!data || data.length === 0) {
     return (
       <Card>

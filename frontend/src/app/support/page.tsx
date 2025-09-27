@@ -84,29 +84,44 @@ const FarmCard: React.FC<{
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
               {/* 왼쪽: 농장 정보 */}
               <div className="flex flex-col justify-center gap-2 lg:min-w-0 lg:flex-1">
-                <div className="mb-2 flex items-center gap-2">
-                  <h3 className="text-lg sm:text-xl font-semibold">{farm.farm_name}</h3>
-                {isDonator() && (
-                  <button 
-                    className={`rounded-full border p-1 transition-colors ${
-                      isBookmarked 
-                        ? 'border-yellow-400 bg-yellow-50' 
-                        : 'border-gray-300 hover:border-yellow-400'
-                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                    aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                    onClick={handleBookmarkClick}
-                    disabled={isLoading}
-                  >
-                    <Star 
-                      className={`h-4 w-4 ${
-                        isBookmarked 
-                          ? 'fill-yellow-400 text-yellow-400' 
-                          : 'text-gray-400 hover:text-yellow-400'
-                      } ${isLoading ? 'animate-pulse' : ''}`} 
-                    />
-                  </button>
-                )}
-              </div>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-semibold">{farm.farm_name}</h3>
+                    {isDonator() && (
+                      <button 
+                        className={`rounded-full border p-1 transition-colors ${
+                          isBookmarked 
+                            ? 'border-yellow-400 bg-yellow-50' 
+                            : 'border-gray-300 hover:border-yellow-400'
+                        } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                        aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                        onClick={handleBookmarkClick}
+                        disabled={isLoading}
+                      >
+                        <Star 
+                          className={`h-4 w-4 ${
+                            isBookmarked 
+                              ? 'fill-yellow-400 text-yellow-400' 
+                              : 'text-gray-400 hover:text-yellow-400'
+                          } ${isLoading ? 'animate-pulse' : ''}`} 
+                        />
+                      </button>
+                    )}
+                  </div>
+                  {/* 모바일에서 기부하기 버튼을 여기에 배치 */}
+                  {!isFarmer() && (
+                    <Button 
+                      className="lg:hidden whitespace-nowrap bg-red-500 hover:bg-red-600 text-sm sm:text-sm px-3 py-1.5"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.href = `/support/${farm.id}/donate`;
+                      }}
+                    >
+                      기부하기
+                    </Button>
+                  )}
+                </div>
               <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <MapPin className="h-4 w-4 flex-shrink-0" /> 
                   <span className="truncate">{farm.address}</span>
@@ -124,7 +139,7 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[120px] text-sm sm:text-base"
+                    className="hidden lg:flex ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[120px] text-sm sm:text-base items-center justify-center"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -187,7 +202,7 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ hors
           relative group cursor-pointer transition-all duration-300 ease-in-out
           hover:rotate-0 hover:-translate-y-3 hover:scale-110 hover:opacity-100
           ${getRotationClass(index)}
-          opacity-75
+          sm:opacity-75
           will-change-transform
         `}
         style={{
@@ -218,7 +233,7 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ hors
               alt={`${horse.hrNm} 이미지`}
               width={200}
               height={280}
-              className="w-full aspect-[200/280] object-cover rounded-md"
+              className="w-full aspect-[200/200] sm:aspect-[200/280] object-cover rounded-md"
             />
           </div>
           
@@ -438,7 +453,7 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen">
-      <main className="mx-auto max-w-6xl px-1 pb-16">
+      <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
         <div className="py-4">
           <Breadcrumbs items={[
             { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
@@ -447,29 +462,27 @@ export default function SupportPage() {
 
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           {/* 왼쪽: 제목 + 탭 */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-xl font-bold">전체 목장</h1>
             <Tabs value={sort} onValueChange={(v) => setSort(v as "latest" | "recommended")} className="shrink-0">
-              <TabsList>
-                <TabsTrigger value="recommended">신뢰도순</TabsTrigger>
-                <TabsTrigger value="latest">최신순</TabsTrigger>
+              <TabsList className="h-8">
+                <TabsTrigger value="recommended" className="text-xs px-2">신뢰도순</TabsTrigger>
+                <TabsTrigger value="latest" className="text-xs px-2">최신순</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
 
           {/* 오른쪽: 검색 */}
-          <div className="flex flex-col gap-2 md:flex-row md:items-center">
-            <div className="flex items-center gap-2">
-              <SearchTypeToggle value={searchType} onChange={setSearchType} />
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  className="w-[240px] pl-8"
-                  placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                />
-              </div>
+          <div className="flex flex-row items-center gap-2">
+            <SearchTypeToggle value={searchType} onChange={setSearchType} />
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                className="w-[182px] sm:w-[200px] pl-8 h-9 text-sm"
+                placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+              />
             </div>
           </div>
         </div>

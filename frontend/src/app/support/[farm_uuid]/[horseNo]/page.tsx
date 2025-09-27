@@ -115,7 +115,7 @@ export default function HorseDetailPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="mx-auto max-w-6xl px-1 p-4">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4">
         {/* 브레드크럼 */}
         <Breadcrumbs
           items={[

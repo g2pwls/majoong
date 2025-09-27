@@ -129,16 +129,27 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     }
   };
 
-  if (loading) return <div className="">로딩 중…</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
   // farm_uuid prop을 사용
 
   return (
-    <div className="mx-auto max-w-6xl px-1 p-4">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-4">
       {/* 브레드크럼 */}
       <div className="flex items-center justify-between">
         <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
+        {/* 모바일에서만 기부하기 버튼 표시 */}
+        {!isFarmer() && (
+          <button
+            onClick={() => window.location.href = `/support/${farm_uuid}/donate`}
+            className="lg:hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            기부하기
+          </button>
+        )}
       </div>
 
       {/* 2열: 좌(타이틀+카드), 우(탭+패널) */}
