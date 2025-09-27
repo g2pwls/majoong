@@ -17,7 +17,7 @@ public class BatchScheduler {
     private final JobLauncher jobLauncher;
     private final Job monthlyReportJob;
 
-    @Scheduled(cron = "0 0 1 1 * *") // 매월 1일 새벽 1시에 실행
+    @Scheduled(cron = "0 0 11 31 * *") // 매월 31일 오전 11시에 실행
     public void runMonthlyReportJob() {
         try {
             JobParameters jobParameters = new JobParametersBuilder()
