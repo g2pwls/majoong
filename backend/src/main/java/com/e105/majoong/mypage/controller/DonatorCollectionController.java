@@ -3,6 +3,7 @@ package com.e105.majoong.mypage.controller;
 import com.e105.majoong.auth.security.CustomUserDetails;
 import com.e105.majoong.common.entity.BaseResponse;
 import com.e105.majoong.mypage.dto.in.DonatorCardCreateDto;
+import com.e105.majoong.mypage.dto.out.CollectionResponseDto;
 import com.e105.majoong.mypage.dto.out.HorseInFarmResponseDto;
 import com.e105.majoong.mypage.service.DonatorCollectionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,9 +37,8 @@ public class DonatorCollectionController {
 
     @GetMapping("/collections")
     @Operation(summary = "회원 카드 목록 조회")
-    public BaseResponse<List<HorseInFarmResponseDto>> getCollectionList(@AuthenticationPrincipal CustomUserDetails user,
-                                                                        @RequestParam String farmUuid) {
-        return new BaseResponse<>(donatorCollectionService.getCollectionList(user.getMemberUuid(), farmUuid));
+    public BaseResponse<CollectionResponseDto> getCollectionList(@AuthenticationPrincipal CustomUserDetails user) {
+        return new BaseResponse<>(donatorCollectionService.getCollectionList(user.getMemberUuid()));
     }
 
     @PostMapping("/collections")
