@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Shuffle } from "lucide-react";
 import { startKakaoPay } from "@/services/paymentService";
 import { getRecommendFarms, RecommendFarm } from "@/services/apiService";
-import DonationForm from "@/components/donation/DonationForm";
+import DonationSection from "@/components/donation/DonationSection";
 import FarmCarousel3D from "@/components/farm/FarmCarousel3D";
 
 // Farm 인터페이스는 apiService에서 import하여 사용
@@ -206,55 +206,53 @@ export default function GoDonatePage() {
           </div>
         </div>
 
-        {/* 기부 폼 */}
-        <Card className="bg-white border border-gray-200 p-8">
+        {/* 목장 선택과 후원 정보 섹션 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* 왼쪽: 목장 선택 */}
+          {/* 목장 선택 섹션 */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">농장 선택</h2>
-                <Button
-                  onClick={handleRandomSelect}
-                  variant="outline"
-                  size="sm"
-                  className="flex items-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50"
-                >
-                  <Shuffle className="h-4 w-4" />
-                  랜덤 선택
-                </Button>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">농장 선택</h2>
+              <Button
+                onClick={handleRandomSelect}
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50"
+              >
+                <Shuffle className="h-4 w-4" />
+                랜덤 선택
+              </Button>
                             </div>
                             
-              {/* 3D 캐러셀 */}
-              <FarmCarousel3D
-                farms={recommendFarms}
-                selectedFarm={selectedFarm}
-                onFarmSelect={setSelectedFarm}
-              />
+            {/* 3D 캐러셀 */}
+            <FarmCarousel3D
+              farms={recommendFarms}
+              selectedFarm={selectedFarm}
+              onFarmSelect={setSelectedFarm}
+            />
             </div>
 
-            {/* 오른쪽: 후원 정보 */}
-            <DonationForm
-              selectedAmount={selectedAmount}
-              customAmount={customAmount}
-              showAmountWarning={showAmountWarning}
-              isCustomInputActive={isCustomInputActive}
-              paymentMethod={paymentMethod}
-              showConfirmPopup={showConfirmPopup}
-              selectedFarm={selectedFarm}
-              onAmountSelect={handleAmountSelect}
-              onCustomAmountChange={handleCustomAmountChange}
-              onCustomInputClick={handleCustomInputClick}
-              onCustomInputBlur={handleCustomInputBlur}
-              onCustomInputKeyDown={handleCustomInputKeyDown}
-              onPaymentMethodChange={handlePaymentMethodChange}
-              onDonateClick={handleDonateClick}
-              onConfirmDonation={handleConfirmDonation}
-              onCloseConfirmPopup={() => setShowConfirmPopup(false)}
-              formatAmount={formatAmount}
-            />
+          {/* 후원 정보 섹션 */}
+          <DonationSection
+            selectedAmount={selectedAmount}
+            customAmount={customAmount}
+            showAmountWarning={showAmountWarning}
+            isCustomInputActive={isCustomInputActive}
+            paymentMethod={paymentMethod}
+            showConfirmPopup={showConfirmPopup}
+            selectedFarm={selectedFarm}
+            onAmountSelect={handleAmountSelect}
+            onCustomAmountChange={handleCustomAmountChange}
+            onCustomInputClick={handleCustomInputClick}
+            onCustomInputBlur={handleCustomInputBlur}
+            onCustomInputKeyDown={handleCustomInputKeyDown}
+            onPaymentMethodChange={handlePaymentMethodChange}
+            onDonateClick={handleDonateClick}
+            onConfirmDonation={handleConfirmDonation}
+            onCloseConfirmPopup={() => setShowConfirmPopup(false)}
+            formatAmount={formatAmount}
+          />
+            </div>
           </div>
-        </Card>
-      </div>
     </div>
   );
 }
