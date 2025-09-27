@@ -72,11 +72,24 @@ export default function LoginPage() {
               <button
                 onClick={handleKakaoLogin}
                 disabled={isLoading}
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-black transition-colors duration-200 shadow-md ${
+                className={`group relative w-[70%] flex items-center justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-black transition-colors duration-200 shadow-md ${
                   isLoading 
-                    ? 'bg-yellow-200 cursor-not-allowed' 
-                    : 'bg-yellow-300 hover:bg-yellow-400 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'
+                    ? 'cursor-not-allowed' 
+                    : 'hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2'
                 }`}
+                style={{
+                  backgroundColor: isLoading ? '#fee500' : '#fee500',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.backgroundColor = '#fdd835';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.backgroundColor = '#fee500';
+                  }
+                }}
               >
                 {isLoading ? (
                   <>
@@ -85,15 +98,13 @@ export default function LoginPage() {
                   </>
                 ) : (
                   <>
-                    <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                      <Image
-                        src="/KakaoTalk_logo.svg.webp"
-                        alt="카카오톡 아이콘"
-                        width={20}
-                        height={20}
-                        className="text-black"
-                      />
-                    </span>
+                    <Image
+                      src="/kakaotalk_logo.png"
+                      alt="카카오톡 아이콘"
+                      width={20}
+                      height={20}
+                      className="mr-2"
+                    />
                     카카오톡으로 로그인
                   </>
                 )}
