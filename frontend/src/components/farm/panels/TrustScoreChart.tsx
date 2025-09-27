@@ -71,7 +71,7 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
       <CardContent className="p-6 py-0">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
+            <TrendingUp className="hidden sm:block h-5 w-5 text-blue-600" />
             <h4 className="text-lg font-semibold">{selectedYear}년 신뢰도 평균 변화</h4>
             <span className="text-sm text-red-500 font-medium">기준 38.2°C</span>
           </div>
