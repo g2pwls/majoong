@@ -254,4 +254,12 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
         return result;
     }
 
+    @Override
+    public long countAllDonationsByFarm(String farmUuid) {
+        return queryFactory
+                .select(donationHistory.id.count())
+                .from(donationHistory)
+                .where(donationHistory.farmUuid.eq(farmUuid))
+                .fetchOne();
+    }
 }

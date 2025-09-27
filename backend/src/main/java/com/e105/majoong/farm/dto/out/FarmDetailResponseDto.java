@@ -24,6 +24,7 @@ public class FarmDetailResponseDto {
     private double area;
     private String description;
     private LocalDateTime createdAt;
+    private long donationCount;
     private List<MonthlyScoreResponseDto> monthlyScores;
     private List<FarmHorseDetailResponseDto> horses;
     private boolean bookmarked;
@@ -33,6 +34,7 @@ public class FarmDetailResponseDto {
             List<MonthlyScoreResponseDto> monthlyScores,
             List<FarmHorseDetailResponseDto> horses,
             long monthTotalAmount,
+            long uniqueDonators,
             boolean bookmarked
     ) {
         return FarmDetailResponseDto.builder()
@@ -50,6 +52,7 @@ public class FarmDetailResponseDto {
                 .horses(horses)
                 .description(farm.getDescription())
                 .createdAt(farm.getCreatedAt())
+                .donationCount(uniqueDonators)
                 .area(farm.getArea())
                 .bookmarked(bookmarked)
                 .build();
