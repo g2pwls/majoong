@@ -57,21 +57,6 @@ export default function FarmerProfile({ farmerInfo }: FarmerProfileProps) {
           </div>
         </div>
 
-        {/* 사업자 등록번호 */}
-        <div className="flex items-start">
-          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
-            사업자 등록번호
-          </label>
-          <div className="flex-1 ml-4">
-            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
-              {farmerInfo?.businessNum}
-            </div>
-            <p className="mt-1 text-xs text-gray-500">
-              사업자 등록번호는 수정할 수 없습니다.
-            </p>
-          </div>
-        </div>
-
         {/* 금고 주소 */}
         <div className="flex items-start">
           <label className="w-40 text-sm font-medium text-gray-700 pt-2">
@@ -83,6 +68,21 @@ export default function FarmerProfile({ farmerInfo }: FarmerProfileProps) {
             </div>
             <p className="mt-1 text-xs text-gray-500">
               목장 금고 주소입니다. 수정할 수 없습니다.
+            </p>
+          </div>
+        </div>
+
+        {/* 사업자 등록번호 */}
+        <div className="flex items-start">
+          <label className="w-40 text-sm font-medium text-gray-700 pt-2">
+            사업자 등록번호
+          </label>
+          <div className="flex-1 ml-4">
+            <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
+              {farmerInfo?.businessNum}
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              사업자 등록번호는 수정할 수 없습니다.
             </p>
           </div>
         </div>
