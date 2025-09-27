@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import SkyBackground from '@/components/common/SkyBackground';
+import ForestBackground from '@/components/common/ForestBackground';
 // OAuth 콜백 로직은 /login/callback 페이지로 이동
 
 export default function LoginPage() {
@@ -34,29 +35,32 @@ export default function LoginPage() {
   // 에러 상태 (로그인 버튼 클릭 시 에러)
   if (error) {
     return (
-      <SkyBackground>
-        <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="text-red-500 text-xl mb-3">⚠️</div>
-            <p className="text-white mb-3">{error}</p>
-            <button
-              onClick={() => {
-                setError(null);
-              }}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              다시 시도
-            </button>
+      <SkyBackground className="h-screen">
+        <ForestBackground>
+          <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <div className="text-red-500 text-xl mb-3">⚠️</div>
+              <p className="text-white mb-3">{error}</p>
+              <button
+                onClick={() => {
+                  setError(null);
+                }}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              >
+                다시 시도
+              </button>
+            </div>
           </div>
-        </div>
+        </ForestBackground>
       </SkyBackground>
     );
   }
 
   // 일반 로그인 UI
   return (
-    <SkyBackground>
-      <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <SkyBackground className="h-screen">
+      <ForestBackground>
+        <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-4">
           <div className="text-center">
             <h2 className="text-2xl font-extrabold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
@@ -118,7 +122,8 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </ForestBackground>
     </SkyBackground>
   );
 }

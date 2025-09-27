@@ -27,6 +27,7 @@ export interface FarmerInfoResponse {
     walletAddress: string;
     businessNum: string;
     farmName: string;
+    farmVaultAddress: string;
     // 기존 타입 정의와 실제 API 응답이 다름
     profileImage?: string;
     phoneNumber?: string;
