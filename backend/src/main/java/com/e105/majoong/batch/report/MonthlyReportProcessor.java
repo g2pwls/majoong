@@ -35,7 +35,7 @@ public class MonthlyReportProcessor implements ItemProcessor<Farm, MonthlyReport
 
     @Override
     public MonthlyReport process(Farm farm) throws Exception {
-        LocalDate lastMonth = LocalDate.now().minusMonths(1);
+        LocalDate lastMonth = LocalDate.now();
         LocalDateTime startDateTime = lastMonth.withDayOfMonth(1).atStartOfDay();
         LocalDateTime endDateTime = lastMonth.withDayOfMonth(lastMonth.lengthOfMonth()).atTime(LocalTime.MAX);
 
