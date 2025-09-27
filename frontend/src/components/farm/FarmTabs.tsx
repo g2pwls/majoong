@@ -40,7 +40,7 @@ export default function FarmTabs({
     <div className={`border-b border-gray-200 ${className}`}>
       <div className="flex items-center justify-between">
         <nav
-          className="-mb-px flex gap-2 sm:gap-6 overflow-x-auto scrollbar-hide"
+          className="-mb-px flex gap-4 sm:gap-6 overflow-x-auto scrollbar-hide"
           role="tablist"
           aria-label="Farm Tabs"
         >
