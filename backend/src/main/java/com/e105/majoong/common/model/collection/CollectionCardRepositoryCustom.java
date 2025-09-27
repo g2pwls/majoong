@@ -4,5 +4,8 @@ import com.e105.majoong.mypage.dto.out.HorseInFarmResponseDto;
 import java.util.List;
 
 public interface CollectionCardRepositoryCustom {
-    List<HorseInFarmResponseDto> getCollectionList(String memberUuid, String farmUuid);
+    List<HorseInFarmResponseDto> getCollectionList(String memberUuid);
+
+    long incrementCardCount(String memberUuid, String farmUuid, String horseNumber);
+
 }

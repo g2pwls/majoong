@@ -59,7 +59,7 @@ public class FarmController {
     }
 
     @GetMapping("/{farmUuid}/monthly-reports/{reportId}")
-    @Operation(summary = "목장 상세의 월간 보고서 목록 조회")
+    @Operation(summary = "목장 상세의 월간 보고서 상세 조회")
     public BaseResponse<MonthlyReportDetailResponseDto> getReportDetail(
             @PathVariable String farmUuid,
             @PathVariable Long reportId
@@ -68,7 +68,7 @@ public class FarmController {
     }
 
     @GetMapping("/{farmUuid}/monthly-reports")
-    @Operation(summary = "목장 상세의 월간 보고서 상세 조회")
+    @Operation(summary = "목장 상세의 월간 보고서 목록 조회")
     public BaseResponse<List<MonthlyReportListResponseDto>> getReports(
             @PathVariable String farmUuid,
             @RequestParam(required = false) Integer year

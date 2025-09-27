@@ -32,9 +32,13 @@ export default function OAuthCallbackPage() {
           if (response.role === 'FARMER') {
             console.log('Existing farmer, redirecting to dashboard page');
             router.push('/dashboard');
+          } else if (response.role === 'DONATOR') {
+            // DONATOR - 기부자 페이지로 이동
+            console.log('Existing donator, redirecting to donator page');
+            router.push('/donator');
           } else {
-            // DONATOR 또는 기타
-            console.log('Existing donator, redirecting to home page');
+            // 기타 역할
+            console.log('Other role, redirecting to home page');
             router.push('/');
           }
         }

@@ -254,4 +254,12 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
         return result;
     }
 
+    @Override
+    public long countUniqueDonatorsByFarm(String farmUuid) {
+        return queryFactory
+                .select(donationHistory.donatorUuid.countDistinct())
+                .from(donationHistory)
+                .where(donationHistory.farmUuid.eq(farmUuid))
+                .fetchOne();
+    }
 }

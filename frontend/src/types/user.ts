@@ -27,6 +27,7 @@ export interface FarmerInfoResponse {
     walletAddress: string;
     businessNum: string;
     farmName: string;
+    farmVaultAddress: string;
     // 기존 타입 정의와 실제 API 응답이 다름
     profileImage?: string;
     phoneNumber?: string;
@@ -43,10 +44,7 @@ export interface FavoriteFarmsResponse {
   result: {
     farmUuid: string;
     farmName: string;
-    profileImage: string;
-    totalScore: number;
-    address: string;
-    description: string;
+    imageUrl: string;
   }[];
 }
 
@@ -139,6 +137,9 @@ export interface MyFarmResponse {
     phoneNumber: string;
     horseCount: number;
     monthTotalAmount: number;
+    purposeTotalAmount: number;
+    month_total_amount: number;
+    purpose_total_amount: number;
     area: number;
     description: string;
     monthlyScores: unknown[]; // Changed from any[]

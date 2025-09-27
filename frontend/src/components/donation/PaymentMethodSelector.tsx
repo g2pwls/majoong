@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface PaymentMethodSelectorProps {
   paymentMethod: 'kakao';
@@ -12,24 +13,44 @@ export default function PaymentMethodSelector({
   onPaymentMethodChange,
 }: PaymentMethodSelectorProps) {
   return (
-    <div className="space-y-6 pt-6 border-t border-gray-200">
-      <h3 className="text-xl font-semibold text-gray-900">결제 수단</h3>
+    <div className="pt-6 border-t border-gray-200">
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">결제 수단</h3>
       
-      {/* 결제 수단 선택 */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-3 gap-3">
-          <Button
-            variant={paymentMethod === 'kakao' ? 'default' : 'outline'}
-            onClick={() => onPaymentMethodChange('kakao')}
-            className={`h-12 ${
-              paymentMethod === 'kakao'
-                ? 'bg-yellow-400 hover:bg-yellow-500 text-white'
-                : 'border-yellow-400 text-yellow-600 hover:bg-yellow-50'
-            } transition-colors`}
-          >
-            카카오페이
-          </Button>
-        </div>
+      {/* 결제 수단 선택 - 카카오페이 버튼 왼쪽 정렬 */}
+      <div className="grid grid-cols-3 gap-3">
+        <Button
+          variant={paymentMethod === 'kakao' ? 'default' : 'outline'}
+          onClick={() => onPaymentMethodChange('kakao')}
+          className={`h-12 flex items-center justify-center gap-2 ${
+            paymentMethod === 'kakao'
+              ? 'text-black'
+              : 'border-[#fee500] text-[#fee500] hover:bg-[#fee500]/10'
+          } transition-colors`}
+          style={{
+            backgroundColor: paymentMethod === 'kakao' ? '#fee500' : 'transparent',
+          }}
+          onMouseEnter={(e) => {
+            if (paymentMethod === 'kakao') {
+              e.currentTarget.style.backgroundColor = '#fdd835';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (paymentMethod === 'kakao') {
+              e.currentTarget.style.backgroundColor = '#fee500';
+            }
+          }}
+        >
+          <Image
+            src="/images/payment/KakaoPay_Logo.png"
+            alt="카카오페이"
+            width={40}
+            height={40}
+            className="object-contain"
+          />
+          {/* <span className="text-sm font-medium">카카오페이</span> */}
+        </Button>
+        <div></div>
+        <div></div>
       </div>
     </div>
   );

@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { getFarmDetail, FarmDetail } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
-import { getTokens, getUserRole } from "@/services/authService";
+import { getTokens } from "@/services/authService";
 import DonationSection from "@/components/donation/DonationSection";
 import FarmDetailCard from "@/components/farm/FarmDetailCard";
+import Breadcrumbs from "@/components/common/Breadcrumb";
+import LoginRequiredModal from "@/components/donation/LoginRequiredModal";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
@@ -24,7 +23,6 @@ export default function DonatePage() {
   const [customAmount, setCustomAmount] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showCustomInput, setShowCustomInput] = useState(false);
   const [showAmountWarning, setShowAmountWarning] = useState(false);
   const [isCustomInputActive, setIsCustomInputActive] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
@@ -47,6 +45,30 @@ export default function DonatePage() {
       fetchFarmDetail();
     }
   }, [farm_uuid]);
+
+  // 카카오페이 결제 완료 후 메시지 리스너
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'PAYMENT_SUCCESS') {
+        console.log('결제 완료 메시지 수신:', event.data);
+        
+        if (event.data.selectedHorse) {
+          console.log('선택된 말이 컬렉션에 추가되었습니다:', event.data.selectedHorse);
+          // 선택된 말은 이미 카카오페이 승인 페이지에서 컬렉션에 추가되었음
+        }
+        
+        // 리다이렉트 URL이 있으면 해당 페이지로 이동, 없으면 새로고침
+        if (event.data.redirectTo) {
+          window.location.href = event.data.redirectTo;
+        } else {
+          window.location.reload();
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   // ESC 키로 모달 닫기
   useEffect(() => {
@@ -73,7 +95,6 @@ export default function DonatePage() {
   const handleAmountSelect = (amount: number) => {
     setSelectedAmount(amount);
     setCustomAmount("");
-    setShowCustomInput(false);
     setShowAmountWarning(false);
     setIsCustomInputActive(false);
   };
@@ -107,7 +128,6 @@ export default function DonatePage() {
     setSelectedAmount(0);
     setCustomAmount("");
     setShowAmountWarning(false);
-    setShowCustomInput(false);
   };
 
   const handleCustomInputBlur = () => {
@@ -195,11 +215,20 @@ export default function DonatePage() {
   return (
     <div>
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
+        {/* 브레드크럼 */}
+        <div className="pt-4 pb-3">
+          <Breadcrumbs items={[
+            { label: '목장후원', href: '/support' },
+            { label: farmDetail?.farmName || '농장', href: `/support/${farm_uuid}` },
+            { label: '기부하기' }
+          ]} />
+        </div>
+        
         <div className="mb-6 flex flex-row">
           <div className="flex items-centermb-4 flex flex-col">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
-            <div className="w-37 h-1 bg-gray-300"></div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">기부하기</h1>
+            <div className="w-29 h-0.5 bg-gray-300"></div>
                 </div>
               </div>
               
@@ -273,6 +302,12 @@ export default function DonatePage() {
           </div>
         </div>
       )}
+
+      {/* 로그인 필요 모달 */}
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </div>
   );
 }

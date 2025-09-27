@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.util.Base64;
 import java.util.Random;
 
@@ -52,7 +54,7 @@ public class OpenAIServiceImpl implements OpenAIService {
             - 정면 사진: 얼굴, 전신 균형, 체중(BCS), 전방 부상 중심으로 평가. 문장 시작은 '정면:'으로.
             - 좌측 사진: 왼쪽 몸통 근육 발달, 좌측 발굽 상태, 털/피부 이상 평가. 시작 문장 '좌측:'.
             - 우측 사진: 오른쪽 몸통 근육 발달, 우측 발굽 상태, 움직임 영향 요소 평가. 시작 문장 '우측:'.
-            - 마구간 사진: 말 상태 언급 금지, 환경·위생 평가(바닥, 깔짚, 환기, 급수/사료). 시작 문장 '마구간:'.
+            - 마구간 사진: 말 상태 언급 금지, 사진에서 관찰 가능한 환경만 평가. 평가 항목: 바닥, 깔짚, 환기, 청결/환경 안정성. 시작 문장 '마구간:'.
                     
             [출력 규칙]
             - 각 사진별 2~3문장, 약 120자 내외로 작성.
@@ -174,6 +176,8 @@ public class OpenAIServiceImpl implements OpenAIService {
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
+                .timeout(Duration.ofSeconds(30))                 // ⬅ 타임아웃 추가
+                .retryWhen(Retry.fixedDelay(3, Duration.ofSeconds(2))) // ⬅ 재시도 추가
                 .map(this::parseFirstMessageText)
                 .onErrorResume(e -> {
                     log.error("OpenAI API 호출 실패", e);
@@ -210,11 +214,20 @@ public class OpenAIServiceImpl implements OpenAIService {
 
         String endpoint = String.format("%s%s?key=%s", imageBaseUrl, imageUrl, apiKey);
 
+
         return imageWebClient.post()
                 .uri(endpoint)
                 .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(String.class)
+                .timeout(Duration.ofSeconds(60)) // 이미지 생성은 오래 걸릴 수 있으니 60초
+                .retryWhen(
+                        Retry.fixedDelay(2, Duration.ofSeconds(3)) // 503 같은 일시적 실패 시 2번 재시도
+                                .filter(throwable -> {
+                                    log.warn("재시도 조건 확인: {}", throwable.toString());
+                                    return true; // 모든 예외에 대해 재시도 (필요하면 WebClientResponseException만 걸러도 됨)
+                                })
+                )
                 .map(responseJson -> {
                     try {
                         var root = mapper.readTree(responseJson);
@@ -232,9 +245,10 @@ public class OpenAIServiceImpl implements OpenAIService {
                     }
                 })
                 .onErrorResume(e -> {
-                    log.error("이미지 생성 실패", e);
+                    log.error("이미지 생성 최종 실패", e);
                     return Mono.justOrEmpty((String) null);
                 });
+
     }
 
     private String shortenContent(String content, int maxLength) {

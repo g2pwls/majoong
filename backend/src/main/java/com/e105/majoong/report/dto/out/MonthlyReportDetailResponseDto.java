@@ -19,6 +19,7 @@ public class MonthlyReportDetailResponseDto {
     private int month;
     private String content;
     private Double score;
+    private String thumbnail;
     private LocalDateTime createdAt;
 
     public static MonthlyReportDetailResponseDto toDto(MonthlyReport report, MyScore latestScore) {
@@ -28,6 +29,7 @@ public class MonthlyReportDetailResponseDto {
                 .month(report.getCreatedAt().getMonthValue())
                 .content(report.getContent())
                 .score(latestScore.getScore())
+                .thumbnail(report.getThumbnail())
                 .createdAt(report.getCreatedAt())
                 .build();
     }

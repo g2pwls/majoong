@@ -55,22 +55,22 @@ export default function FarmerMyFarm() {
             imageUrl: farmData.profileImage,
             totalSupport: farmData.monthTotalAmount,
             supportCount: 0, // API에서 제공되지 않는 필드
-            status: 'active',
+      status: 'active',
             createdAt: '', // API에서 제공되지 않는 필드
             lastUpdated: '' // API에서 제공되지 않는 필드
-          };
-          
-          setFarmInfo(farmInfo);
-          setEditedInfo({
-            name: farmData.farmName,
-            description: farmData.description
-          });
-          setEditedPhoneNumber(farmData.phoneNumber);
+    };
+    
+           setFarmInfo(farmInfo);
+    setEditedInfo({
+             name: farmData.farmName,
+             description: farmData.description
+    });
+           setEditedPhoneNumber(farmData.phoneNumber);
         }
       } catch (error) {
         console.error('목장 정보 조회 오류:', error);
       } finally {
-        setIsLoading(false);
+    setIsLoading(false);
       }
     };
 
@@ -137,12 +137,12 @@ export default function FarmerMyFarm() {
       
       if (response.isSuccess) {
         // 성공 시 로컬 상태 업데이트
-        setFarmInfo(prev => prev ? {
-          ...prev,
-          name: editedInfo.name,
-          description: editedInfo.description,
-          lastUpdated: new Date().toISOString().split('T')[0]
-        } : null);
+    setFarmInfo(prev => prev ? {
+      ...prev,
+      name: editedInfo.name,
+      description: editedInfo.description,
+      lastUpdated: new Date().toISOString().split('T')[0]
+    } : null);
         
         if (myFarmData) {
           setMyFarmData(prev => prev ? {
@@ -155,7 +155,7 @@ export default function FarmerMyFarm() {
         }
         
         alert('목장 정보가 성공적으로 수정되었습니다.');
-        setIsEditing(false);
+    setIsEditing(false);
         
         // 이미지 미리보기 URL 정리
         if (imagePreview && imagePreview.startsWith('blob:')) {
@@ -227,15 +227,15 @@ export default function FarmerMyFarm() {
   return (
     <div className="p-6">
       <div className="space-y-6">
-        {/* 기본 정보 섹션 */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h3>
-          <div className="space-y-6">
-            {/* 목장명 (편집 가능) */}
+          {/* 기본 정보 섹션 */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">기본 정보</h3>
+            <div className="space-y-6">
+              {/* 목장명 (편집 가능) */}
             <div className="flex items-center">
               <label className="w-40 text-sm font-medium text-gray-700">
-                목장명
-              </label>
+                  목장명
+                </label>
               <div className="flex-1 ml-4 flex items-center gap-3">
                 {isEditing ? (
                   <input
@@ -263,13 +263,13 @@ export default function FarmerMyFarm() {
                   </button>
                 )}
               </div>
-            </div>
+              </div>
 
-            {/* 대표 사진 (편집 가능) */}
+              {/* 대표 사진 (편집 가능) */}
             <div className="flex items-start">
               <label className="w-40 text-sm font-medium text-gray-700 pt-2">
-                대표 사진
-              </label>
+                  대표 사진
+                </label>
               <div className="flex-1 ml-4">
                 {isEditing ? (
                   <div className="space-y-3">
@@ -328,13 +328,13 @@ export default function FarmerMyFarm() {
                   )
                 )}
               </div>
-            </div>
+              </div>
 
-            {/* 연락처 (편집 가능) */}
+              {/* 연락처 (편집 가능) */}
             <div className="flex items-center">
               <label className="w-40 text-sm font-medium text-gray-700">
-                연락처
-              </label>
+                  연락처
+                </label>
               <div className="flex-1 ml-4">
                 {isEditing ? (
                   <input
@@ -351,13 +351,13 @@ export default function FarmerMyFarm() {
                   </div>
                 )}
               </div>
-            </div>
+              </div>
 
-            {/* 목장 설명 (편집 가능) */}
+              {/* 목장 설명 (편집 가능) */}
             <div className="flex items-start">
               <label className="w-40 text-sm font-medium text-gray-700 pt-2">
-                목장 설명
-              </label>
+                  목장 설명
+                </label>
               <div className="flex-1 ml-4">
                 {isEditing ? (
                   <textarea
@@ -373,71 +373,71 @@ export default function FarmerMyFarm() {
                   </div>
                 )}
               </div>
-            </div>
+              </div>
 
-            {/* 주소 (읽기 전용) */}
+              {/* 주소 (읽기 전용) */}
             <div className="flex items-center">
               <label className="w-40 text-sm font-medium text-gray-700">
-                주소
-              </label>
+                  주소
+                </label>
               <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
-                {myFarmData?.address}
+                  {myFarmData?.address}
+                </div>
               </div>
-            </div>
 
-            {/* 면적 (읽기 전용) */}
+              {/* 면적 (읽기 전용) */}
             <div className="flex items-center">
               <label className="w-40 text-sm font-medium text-gray-700">
-                면적
-              </label>
+                  면적
+                </label>
               <div className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900 ml-4">
-                {myFarmData?.area}m²
+                  {myFarmData?.area}m²
+                </div>
               </div>
             </div>
-          </div>
-          
-          {/* 정보 수정 버튼 */}
-          {!isEditing && (
+            
+            {/* 정보 수정 버튼 */}
+            {!isEditing && (
             <div className="pt-4 flex justify-end">
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                정보 수정
-              </button>
-            </div>
-          )}
-          
-          {/* 편집 버튼들 */}
-          {isEditing && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  정보 수정
+                </button>
+              </div>
+            )}
+            
+            {/* 편집 버튼들 */}
+            {isEditing && (
             <div className="flex gap-2 pt-4 justify-end">
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className={`px-4 py-2 text-white rounded-md transition-colors flex items-center ${
-                  isSaving
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    저장 중...
-                  </>
-                ) : (
-                  '저장'
-                )}
-              </button>
-              <button
-                onClick={handleCancel}
-                disabled={isSaving}
-                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
-              >
-                취소
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className={`px-4 py-2 text-white rounded-md transition-colors flex items-center ${
+                    isSaving
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  }`}
+                >
+                  {isSaving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      저장 중...
+                    </>
+                  ) : (
+                    '저장'
+                  )}
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  취소
+                </button>
+              </div>
+            )}
         </div>
       </div>
 

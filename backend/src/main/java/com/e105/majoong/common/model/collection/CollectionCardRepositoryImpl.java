@@ -20,7 +20,7 @@ public class CollectionCardRepositoryImpl implements CollectionCardRepositoryCus
 
 
     @Override
-    public List<HorseInFarmResponseDto> getCollectionList(String memberUuid, String farmUuid) {
+    public List<HorseInFarmResponseDto> getCollectionList(String memberUuid) {
         return queryFactory.select(Projections.constructor(
                         HorseInFarmResponseDto.class,
                         farm.farmName,
@@ -33,17 +33,30 @@ public class CollectionCardRepositoryImpl implements CollectionCardRepositoryCus
                         horse.breed,
                         horse.totalPrize,
                         horse.firstRaceDate,
-                        horse.lastRaceDate
+                        horse.lastRaceDate,
+                        collectionCard.cardCount
                 ))
                 .from(horse)
                 .join(collectionCard).on(collectionCard.horseNumber.eq(horse.horseNumber))
                 .join(horse.farm, farm)
                 .where(
                         collectionCard.memberUuid.eq(memberUuid),
-                        farm.farmUuid.eq(farmUuid),
                         horse.deletedAt.isNull()
                 )
                 .orderBy(collectionCard.createdAt.desc())
                 .fetch();
+    }
+
+    @Override
+    public long incrementCardCount(String memberUuid, String farmUuid, String horseNumber) {
+        return queryFactory
+                .update(collectionCard)
+                .set(collectionCard.cardCount, collectionCard.cardCount.add(1))
+                .where(
+                        collectionCard.memberUuid.eq(memberUuid),
+                        collectionCard.farmUuid.eq(farmUuid),
+                        collectionCard.horseNumber.eq(horseNumber)
+                )
+                .execute();
     }
 }

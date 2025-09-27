@@ -37,7 +37,7 @@ export default function SkyBackground({ children, className = '' }: SkyBackgroun
 
         .sky-background-container {
           font-family: 'Oswald', sans-serif;
-          height: 100vh;
+          height: 50vh;
           padding: 0;
           margin: 0;
           background: linear-gradient(#8FD9FB, #82C8E5);
@@ -45,6 +45,10 @@ export default function SkyBackground({ children, className = '' }: SkyBackgroun
           vertical-align: middle;
           position: relative;
           overflow: hidden;
+        }
+
+        .sky-background-container.h-screen {
+          height: 100vh !important;
         }
 
         .content {

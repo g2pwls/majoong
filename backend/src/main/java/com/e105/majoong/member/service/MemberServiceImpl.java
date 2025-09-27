@@ -2,6 +2,9 @@ package com.e105.majoong.member.service;
 
 import com.e105.majoong.common.entity.BaseResponseStatus;
 import com.e105.majoong.common.exception.BaseException;
+import com.e105.majoong.common.model.farmVault.FarmVault;
+import com.e105.majoong.common.model.farmVault.FarmVaultRepository;
+import com.e105.majoong.common.model.farmer.Farmer;
 import com.e105.majoong.member.dto.out.DonatorResponseDto;
 import com.e105.majoong.member.dto.out.FarmerResponseDto;
 import com.e105.majoong.common.model.donator.DonatorRepository;
@@ -17,6 +20,7 @@ public class MemberServiceImpl implements MemberService {
 
     private final DonatorRepository donatorRepository;
     private final FarmerRepository farmerRepository;
+    private final FarmVaultRepository farmVaultRepository;
 
     @Override
     public DonatorResponseDto getDonatorInfo(String memberUuid) {
@@ -27,8 +31,13 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public FarmerResponseDto getFarmerInfo(String memberUuid) {
-        return farmerRepository.findByMemberUuid(memberUuid)
-                .map(FarmerResponseDto::toDto)
+        Farmer farmer = farmerRepository.findByMemberUuid(memberUuid)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_USER));
+
+        FarmVault farmVault = farmVaultRepository.findByMemberUuid(memberUuid)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.NO_EXIST_FARM));
+
+        return FarmerResponseDto.toDto(farmer, farmVault);
     }
+
 }

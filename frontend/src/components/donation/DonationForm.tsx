@@ -59,7 +59,7 @@ export default function DonationForm({
 }: DonationFormProps) {
   return (
     <div className="space-y-8">
-      <h3 className="text-xl font-semibold text-gray-900">후원 금액</h3>
+      <h3 className="text-xl font-semibold text-gray-900 mb-4">후원 금액</h3>
       
       <DonationAmountSelector
         selectedAmount={selectedAmount}
@@ -80,10 +80,10 @@ export default function DonationForm({
       />
 
       {/* 기부하기 버튼 */}
-      <div className="flex justify-end pt-4">
+      <div className="pt-4">
         <Button
           onClick={onDonateClick}
-          className="bg-green-500 hover:bg-green-600 text-white px-12 py-4 text-xl font-semibold"
+          className="w-full h-12 bg-green-500 hover:bg-green-600 text-white text-xl font-semibold"
           disabled={selectedAmount <= 0 || !selectedFarm}
         >
           기부하기

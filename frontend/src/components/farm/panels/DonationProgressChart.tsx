@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+
 interface DonationProgressChartProps {
   monthTotalAmount: number;
   purposeTotalAmount: number;
@@ -16,6 +18,19 @@ export default function DonationProgressChart({
   const progressPercentage = purposeTotalAmount > 0 
     ? Math.min((monthTotalAmount / purposeTotalAmount) * 100, 100)
     : 0;
+
+  // 애니메이션을 위한 상태
+  const [animatedPercentage, setAnimatedPercentage] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // 컴포넌트가 마운트되면 애니메이션 시작
+  useEffect(() => {
+    setIsVisible(true);
+    const timer = setTimeout(() => {
+      setAnimatedPercentage(progressPercentage);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [progressPercentage]);
 
   // 금액 포맷팅 함수
   const formatAmount = (amount: number) => {
@@ -68,12 +83,17 @@ export default function DonationProgressChart({
       <div className="flex items-center gap-3">
         <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
           <div 
-            className="bg-red-500 h-full rounded-full transition-all duration-300 ease-in-out"
-            style={{ width: `${progressPercentage}%` }}
+            className={`bg-red-500 h-full rounded-full transition-all duration-1000 ease-out ${
+              isVisible ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ 
+              width: `${animatedPercentage}%`,
+              transform: isVisible ? 'translateX(0)' : 'translateX(-100%)'
+            }}
           />
         </div>
-        <span className="text-gray-600 font-medium">
-          {Math.round(progressPercentage)}%
+        <span className="text-gray-600 font-medium transition-all duration-1000 ease-out">
+          {Math.round(animatedPercentage)}%
         </span>
       </div>
     </div>

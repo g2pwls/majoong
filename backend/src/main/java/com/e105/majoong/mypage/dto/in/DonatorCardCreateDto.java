@@ -15,6 +15,7 @@ public class DonatorCardCreateDto {
                 .memberUuid(memberUuid)
                 .horseNumber(horseNumber)
                 .farmUuid(farmUuid)
+                .cardCount(1)
                 .build();
     }
 }

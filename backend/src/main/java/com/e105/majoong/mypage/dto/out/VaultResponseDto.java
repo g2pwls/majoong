@@ -13,6 +13,7 @@ public class VaultResponseDto {
     private Long totalDonation;
     private Long usedAmount;
     private Long currentBalance; //지갑 잔액
+    private String farmVaultAddress;
     private Page<VaultHistoryResponseDto> vaultHistoryResponseDtos;
 
     public static VaultResponseDto toDto(
@@ -25,6 +26,22 @@ public class VaultResponseDto {
                 .totalDonation(totalDonation)
                 .usedAmount(usedAmount)
                 .currentBalance(currentBalance)
+                .vaultHistoryResponseDtos(vaultHistoryResponseDtos)
+                .build();
+    }
+
+    public static VaultResponseDto toDto(
+            Long totalDonation,
+            Long usedAmount,
+            Long currentBalance,
+            String farmVaultAddress,
+            Page<VaultHistoryResponseDto> vaultHistoryResponseDtos
+    ) {
+        return VaultResponseDto.builder()
+                .totalDonation(totalDonation)
+                .usedAmount(usedAmount)
+                .currentBalance(currentBalance)
+                .farmVaultAddress(farmVaultAddress)
                 .vaultHistoryResponseDtos(vaultHistoryResponseDtos)
                 .build();
     }

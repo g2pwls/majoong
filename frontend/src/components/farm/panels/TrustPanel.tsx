@@ -1,7 +1,7 @@
 // src/components/farm/panels/TrustPanel.tsx
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { FarmService } from "@/services/farmService";
 import { ScoreHistory, ScoreHistoryItem } from "@/types/farm";
 import { Button } from "@/components/ui/button";
@@ -77,14 +77,11 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
     } catch (error) {
       console.error('목장 정보 조회 실패:', error);
     }
-  }, [farmUuid, selectedYear]);
+  }, [farmUuid]);
 
   // 신뢰도 내역 조회 (월별 평균)
   const fetchScoreHistory = useCallback(async (year: number | 'all', month?: number) => {
     try {
-      setLoading(true);
-      setError(null);
-      
       if (year === 'all') {
         // 전체 년도 조회 - 모든 년도의 데이터를 수집
         console.log('전체 년도 신뢰도 내역 조회 시작:', { farmUuid });
@@ -119,17 +116,12 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
       console.error('신뢰도 내역 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "신뢰도 내역을 불러오는 중 오류가 발생했어요.";
       setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
-  }, [farmUuid]);
+  }, [farmUuid, farmCreatedAt]);
 
   // 신뢰도 목록 조회 (상세 내역)
   const fetchScoreHistoryList = useCallback(async (year?: number | 'all', month?: number) => {
     try {
-      setLoading(true);
-      setError(null);
-      
       if (year === 'all') {
         // 전체 년도 조회 - 모든 년도의 데이터를 수집
         console.log('전체 년도 신뢰도 목록 조회 시작:', { farmUuid });
@@ -164,23 +156,46 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
       console.error('신뢰도 목록 조회 실패:', e);
       const errorMessage = e instanceof Error ? e.message : "신뢰도 목록을 불러오는 중 오류가 발생했어요.";
       setError(errorMessage);
-    } finally {
-      setLoading(false);
     }
-  }, [farmUuid]);
+  }, [farmUuid, farmCreatedAt]);
 
-  // 년도 변경 시 그래프 데이터와 상세 내역 조회
+  // 컴포넌트 초기화 및 데이터 로딩
   useEffect(() => {
+    let isMounted = true;
+    
     const initializeData = async () => {
-      // 목장 정보 먼저 가져오기
-      await fetchFarmInfo();
-      // 신뢰도 내역 조회
-      await fetchScoreHistory(selectedYear);
-      await fetchScoreHistoryList(selectedYear, selectedMonth || undefined);
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // 목장 정보 먼저 가져오기
+        await fetchFarmInfo();
+        
+        if (!isMounted) return;
+        
+        // 신뢰도 내역과 목록을 병렬로 조회
+        await Promise.all([
+          fetchScoreHistory(selectedYear),
+          fetchScoreHistoryList(selectedYear, selectedMonth || undefined)
+        ]);
+      } catch (error) {
+        console.error('데이터 초기화 실패:', error);
+        if (isMounted) {
+          setError('데이터를 불러오는 중 오류가 발생했습니다.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
     };
     
     initializeData();
-  }, [farmUuid, selectedYear, fetchScoreHistory, fetchScoreHistoryList, selectedMonth, fetchFarmInfo]);
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [farmUuid, selectedYear, selectedMonth]);
 
   // 월 변경 시 상세 내역만 다시 조회
   useEffect(() => {
@@ -189,7 +204,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
     } else {
       fetchScoreHistoryList(selectedYear);
     }
-  }, [selectedMonth, fetchScoreHistoryList, selectedYear]);
+  }, [selectedMonth, selectedYear]);
 
   const handleYearChange = (year: number | 'all') => {
     setSelectedYear(year);
@@ -242,59 +257,54 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
   };
 
 
-  // 현재 점수 계산 (최신 데이터 기준)
-  const getCurrentScore = () => {
+  // 현재 점수 계산 (최신 데이터 기준) - 메모이제이션
+  const currentScoreValue = useMemo(() => {
     if (currentScore !== undefined) return currentScore;
     if (scoreHistory.length > 0) {
       const latestScore = scoreHistory[scoreHistory.length - 1];
       return latestScore.avgScore;
     }
     return 0;
-  };
+  }, [currentScore, scoreHistory]);
 
-  // 점수에 따른 색상 결정
-  const getScoreColor = (score: number) => {
+  // 점수에 따른 색상 결정 - 메모이제이션
+  const getScoreColor = useCallback((score: number) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-600";
     return "text-red-600";
-  };
+  }, []);
 
-  // 카테고리 ID를 한글 이름으로 매핑
+  // 카테고리 ID를 한글 이름으로 매핑 - 메모이제이션
+  const categoryNameMap = useMemo(() => ({
+    "farm_photo": "목장 사진 업로드",
+    "horse_photo": "전체 말 사진 업로드",
+    "receipt": "영수증 증빙",
+    "not_uploaded": "미업로드"
+  }), []);
+
   const getCategoryName = (category: string) => {
-    switch (category) {
-      case "farm_photo":
-        return "목장 사진 업로드드";
-      case "horse_photo":
-        return "전체 말 사진 업로드";
-      case "receipt":
-        return "영수증 증빙";
-      case "not_uploaded":
-        return "미업로드";
-      default:
-        return category;
-    }
+    return categoryNameMap[category as keyof typeof categoryNameMap] || category;
   };
 
 
 
-  // 정렬된 신뢰도 상세 내역 (최신순)
-  const getSortedScoreHistoryList = () => {
+  // 정렬된 신뢰도 상세 내역 (최신순) - 메모이제이션
+  const sortedScoreHistoryList = useMemo(() => {
     return [...scoreHistoryList].sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  };
+  }, [scoreHistoryList]);
 
-  // 페이지네이션된 데이터
-  const getPaginatedData = () => {
-    const sortedData = getSortedScoreHistoryList();
-    const totalItems = sortedData.length;
+  // 페이지네이션된 데이터 - 메모이제이션
+  const paginatedData = useMemo(() => {
+    const totalItems = sortedScoreHistoryList.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const currentItems = sortedData.slice(startIndex, endIndex);
+    const currentItems = sortedScoreHistoryList.slice(startIndex, endIndex);
     
     return { currentItems, totalItems, totalPages };
-  };
+  }, [sortedScoreHistoryList, currentPage, itemsPerPage]);
 
 
   if (loading) {
@@ -336,7 +346,6 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
     );
   }
 
-  const currentScoreValue = getCurrentScore();
 
   return (
     <section id="panel-trust" className="space-y-4">
@@ -382,7 +391,7 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
         </div>
         
         {(() => {
-          const { currentItems, totalItems, totalPages } = getPaginatedData();
+          const { currentItems, totalItems, totalPages } = paginatedData;
           return totalItems > 0 ? (
             <>
               <div className="space-y-3">

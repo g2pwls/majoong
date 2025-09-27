@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import { Search, Star, MapPin, Users } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -66,7 +66,7 @@ const FarmCard: React.FC<{
 
   return (
     <Link href={`/support/${farm.id}`} className="block">
-      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out hover:rotate-0 hover:-translate-y-3 hover:scale-101 cursor-pointer p-0 will-change-transform">
+      <Card className="relative overflow-hidden rounded-2xl shadow-sm hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,0.2)] transition-all duration-300 ease-in-out hover:rotate-0 hover:-translate-y-2 hover:scale-102 cursor-pointer p-0 will-change-transform">
         <div className="flex flex-col lg:flex-row lg:items-stretch lg:justify-between h-auto lg:h-58">
           {/* 왼쪽: 이미지 (패딩 없이 꽉 차게, 고정 크기) */}
           <div className="relative lg:w-1/3 h-48 sm:h-56 lg:h-full">
@@ -122,18 +122,16 @@ const FarmCard: React.FC<{
                     </Button>
                   )}
                 </div>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <MapPin className="h-4 w-4 flex-shrink-0" /> 
-                  <span className="truncate">{farm.address}</span>
-              </p>
-              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <Users className="h-4 w-4 flex-shrink-0" /> 말 {farm.horse_count}두
-              </p>
-              {farm.state && (
-                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
-              )}
-            </div>
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-4 w-4 flex-shrink-0" /> 
+                    <span className="break-words">{farm.address}</span>
+                </p>
+                <p className="text-sm text-muted-foreground"> 말 {farm.horse_count}두</p>
+                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+                {farm.state && (
+                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+                )}
+              </div>
 
           {/* 오른쪽: 갤러리 + 버튼 */}
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
@@ -287,6 +285,9 @@ export default function SupportPage() {
         const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
         const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
         localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
+        
+        // 커스텀 이벤트 발생시켜 다른 페이지에서 변경사항 감지
+        window.dispatchEvent(new CustomEvent('bookmarkChanged'));
       } else {
         await addFarmBookmark(farmUuid);
         // farms 배열의 해당 농장의 bookmark 상태 업데이트
@@ -299,6 +300,9 @@ export default function SupportPage() {
           bookmarkedFarms.push(farmUuid);
           localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarms));
         }
+        
+        // 커스텀 이벤트 발생시켜 다른 페이지에서 변경사항 감지
+        window.dispatchEvent(new CustomEvent('bookmarkChanged'));
       }
     } catch (error) {
       console.error('즐겨찾기 토글 실패:', error);
@@ -383,8 +387,22 @@ export default function SupportPage() {
       }
     };
 
+    // 커스텀 이벤트 리스너 추가 (같은 탭 내에서의 변경 감지)
+    const handleCustomStorageChange = () => {
+      const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+      setFarms(prev => prev.map(farm => ({
+        ...farm,
+        bookmarked: bookmarkedFarms.includes(farm.id)
+      })));
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('bookmarkChanged', handleCustomStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('bookmarkChanged', handleCustomStorageChange);
+    };
   }, []);
 
   const { filteredFarms, filteredHorses, paginatedFarms, paginatedHorses, totalPages, totalItems } = useMemo(() => {
@@ -454,9 +472,9 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen">
       <main className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
-        <div className="py-4">
+        <div className="pt-4 pb-3">
           <Breadcrumbs items={[
-            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" },
+            { label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원" }
           ]} />
         </div>
 

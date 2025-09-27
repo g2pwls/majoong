@@ -21,6 +21,7 @@ public class HorseInFarmResponseDto {
     private String totalPrize;
     private String firstRaceDate;
     private String lastRaceDate;
+    private int cardCount;
 
     public static HorseInFarmResponseDto toDto(String farmName, Horse horse) {
         return HorseInFarmResponseDto.builder()

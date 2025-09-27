@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Star } from 'lucide-react';
 import { getFavoriteFarms, removeFavoriteFarm } from '@/services/userService';
 import type { FavoriteFarmsResponse } from '@/types/user';
 
 interface FavoriteFarm {
   farmName: string;
   farmUuid: string;
+  imageUrl: string;
 }
 
 export default function DonorFavoriteFarms() {
@@ -40,14 +42,6 @@ export default function DonorFavoriteFarms() {
   }, []);
 
   const handleRemoveFavorite = async (farmUuid: string) => {
-    // 해당 목장의 이름을 찾기
-    const farm = favoriteFarms.find(f => f.farmUuid === farmUuid);
-    const farmName = farm?.farmName || '목장';
-    
-    if (!confirm(`"${farmName}"을 즐겨찾기에서 제거하시겠습니까?`)) {
-      return;
-    }
-
     try {
       console.log('즐겨찾기 삭제 요청:', farmUuid);
       await removeFavoriteFarm(farmUuid);
@@ -55,22 +49,29 @@ export default function DonorFavoriteFarms() {
       // 로컬 상태에서 해당 목장 제거
       setFavoriteFarms(prev => prev.filter(farm => farm.farmUuid !== farmUuid));
       
-      console.log('즐겨찾기 삭제 완료:', farmName);
-      // 완료 팝업 제거 - 확인 팝업만 표시하고 즉시 제거 처리
+      // localStorage에서 즐겨찾기 상태 제거
+      const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+      const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
+      localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
+      
+      // 커스텀 이벤트 발생시켜 다른 페이지에서 변경사항 감지
+      window.dispatchEvent(new CustomEvent('bookmarkChanged'));
+      
+      console.log('즐겨찾기 삭제 완료');
     } catch (error) {
       console.error('즐겨찾기 삭제 실패:', error);
-      alert('즐겨찾기 삭제에 실패했습니다. 다시 시도해주세요.');
+      // 에러 발생 시 사용자에게 알림하지 않고 콘솔에만 로그
     }
   };
 
   const handleVisitFarm = (farmUuid: string) => {
     // 목장 상세 페이지로 이동
-    window.open(`/support/${farmUuid}`, '_blank');
+    window.location.href = `/support/${farmUuid}`;
   };
 
   const handleDonate = (farmUuid: string) => {
     // 목장 기부하기 페이지로 이동
-    window.open(`/support/${farmUuid}/donate`, '_blank');
+    window.location.href = `/support/${farmUuid}/donate`;
   };
 
   if (isLoading) {
@@ -114,9 +115,11 @@ export default function DonorFavoriteFarms() {
       
       {favoriteFarms.length === 0 ? (
         <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
+          <div className="mx-auto mb-4">
+            <button className="rounded-full border border-gray-300 p-3 transition-colors hover:border-yellow-400">
+              <Star className="h-12 w-12 text-gray-400 hover:text-yellow-400" />
+            </button>
+          </div>
           <h3 className="mt-2 text-sm font-medium text-gray-900">즐겨찾는 목장이 없습니다</h3>
           <p className="mt-1 text-sm text-gray-500 mb-4">관심 있는 목장을 즐겨찾기에 추가해보세요.</p>
           <Link href="/support" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
@@ -134,12 +137,10 @@ export default function DonorFavoriteFarms() {
                 <h3 className="text-lg font-semibold text-gray-900">{farm.farmName}</h3>
                 <button
                   onClick={() => handleRemoveFavorite(farm.farmUuid)}
-                  className="text-red-500 hover:text-red-600 transition-colors p-1"
+                  className="rounded-full border border-yellow-400 bg-yellow-50 p-1 transition-colors hover:border-yellow-500 hover:bg-yellow-100"
                   title="즐겨찾기에서 제거"
                 >
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                  </svg>
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 </button>
               </div>
               

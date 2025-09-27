@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import SkyBackground from '@/components/common/SkyBackground';
+import ForestBackground from '@/components/common/ForestBackground';
 // OAuth 콜백 로직은 /login/callback 페이지로 이동
 
 export default function LoginPage() {
@@ -34,8 +35,8 @@ export default function LoginPage() {
   // 에러 상태 (로그인 버튼 클릭 시 에러)
   if (error) {
     return (
-      <SkyBackground>
-        <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <SkyBackground className="h-screen">
+        <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-20">
           <div className="text-center">
             <div className="text-red-500 text-xl mb-3">⚠️</div>
             <p className="text-white mb-3">{error}</p>
@@ -49,14 +50,15 @@ export default function LoginPage() {
             </button>
           </div>
         </div>
+        <ForestBackground />
       </SkyBackground>
     );
   }
 
   // 일반 로그인 UI
   return (
-    <SkyBackground>
-      <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+    <SkyBackground className="h-screen">
+      <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-20">
         <div className="max-w-md w-full space-y-4">
           <div className="text-center">
             <h2 className="text-2xl font-extrabold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
@@ -72,11 +74,24 @@ export default function LoginPage() {
               <button
                 onClick={handleKakaoLogin}
                 disabled={isLoading}
-                className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-black transition-colors duration-200 shadow-md ${
+                className={`group relative w-[70%] flex items-center justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-black transition-colors duration-200 shadow-md ${
                   isLoading 
-                    ? 'bg-yellow-200 cursor-not-allowed' 
-                    : 'bg-yellow-300 hover:bg-yellow-400 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500'
+                    ? 'cursor-not-allowed' 
+                    : 'hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2'
                 }`}
+                style={{
+                  backgroundColor: isLoading ? '#fee500' : '#fee500',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.backgroundColor = '#fdd835';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading) {
+                    e.currentTarget.style.backgroundColor = '#fee500';
+                  }
+                }}
               >
                 {isLoading ? (
                   <>
@@ -85,15 +100,13 @@ export default function LoginPage() {
                   </>
                 ) : (
                   <>
-                    <span className="absolute left-0 inset-y-0 flex items-center pl-3">
-                      <Image
-                        src="/KakaoTalk_logo.svg.webp"
-                        alt="카카오톡 아이콘"
-                        width={20}
-                        height={20}
-                        className="text-black"
-                      />
-                    </span>
+                    <Image
+                      src="/kakao_logo.png"
+                      alt="카카오톡 아이콘콘"
+                      width={20}
+                      height={20}
+                      className="mr-2"
+                    />
                     카카오톡으로 로그인
                   </>
                 )}
@@ -108,6 +121,7 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      <ForestBackground />
     </SkyBackground>
   );
 }

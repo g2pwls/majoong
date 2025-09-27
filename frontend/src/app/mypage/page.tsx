@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getTokens, getUserRole, debugTokenStatus } from '@/services/authService';
 import { getFarmerInfo, getDonatorInfo } from '@/services/userService';
 import type { FarmerInfoResponse, DonatorInfoResponse } from '@/types/user';
@@ -27,13 +27,22 @@ interface TabConfig {
   component: React.ComponentType<Record<string, unknown>>;
 }
 
-export default function MyPage() {
+function MyPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [activeTab, setActiveTab] = useState<string>('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [farmerInfo, setFarmerInfo] = useState<FarmerInfoResponse['result'] | null>(null);
   const [donatorInfo, setDonatorInfo] = useState<DonatorInfoResponse['result'] | null>(null);
+
+  // URL 쿼리 파라미터에서 탭 정보 읽기
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const loadUserData = async () => {
@@ -170,5 +179,20 @@ export default function MyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function MyPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">마이페이지를 불러오는 중...</p>
+        </div>
+      </div>
+    }>
+      <MyPageContent />
+    </Suspense>
   );
 }

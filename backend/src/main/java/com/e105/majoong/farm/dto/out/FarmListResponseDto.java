@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -25,6 +26,7 @@ public class FarmListResponseDto {
     private long purposeTotalAmount;
     private List<FarmHorseResponseDto> horses;
     private boolean isBookmark;
+    private LocalDateTime createdAt;
 
     public static FarmListResponseDto toDto(Farm farm, List<FarmHorseResponseDto> FarmHorseList ,long monthTotalAmount, boolean isBookmark) {
         String status;
@@ -47,6 +49,7 @@ public class FarmListResponseDto {
                 .purposeTotalAmount(farm.getHorseCount()*1000000)
                 .horses(FarmHorseList)
                 .isBookmark(isBookmark)
+                .createdAt(farm.getCreatedAt())
                 .build();
     }
 }
