@@ -221,9 +221,21 @@ export default function DonatorPage() {
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               어서오세요 {donatorInfo?.nameString} 님
             </h1>
-            <p className="text-lg md:text-xl">
+            <p className="text-lg md:text-xl mb-10">
                 이번 달에도 말들이 건강히 지내고 있어요!
             </p>
+            <div className="flex gap-4 justify-end">
+              <Link href="/support">
+                <Button className="bg-white text-gray-900 hover:bg-gray-100 px-6 py-3 text-lg font-semibold">
+                  목장 둘러보기
+                </Button>
+              </Link>
+              <Link href="/godonate">
+                <Button className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-3 text-lg font-semibold">
+                  바로 기부하기
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -284,7 +296,7 @@ export default function DonatorPage() {
         {/* 즐겨찾기 목장 섹션 */}
         <div className="space-y-6 mt-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-2xl font-bold text-gray-900">즐겨찾기 목장</h2>
+            <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장</h2>
             <button
               onClick={() => window.location.href = '/mypage'}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
@@ -345,7 +357,7 @@ export default function DonatorPage() {
         </div>
 
         {/* 즐겨찾는 목장의 최신 소식지 섹션 */}
-        <div className="space-y-6 mt-6">
+        <div className="space-y-6 mt-8">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장의 최신 소식</h2>
           </div>
