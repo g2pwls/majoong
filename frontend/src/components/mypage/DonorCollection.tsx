@@ -122,7 +122,7 @@ export default function DonorCollection() {
                         <span>{item.gender}</span>
                       </div>
                       <p className="text-xs text-gray-500">
-                        생년: {item.birth}
+                        출생일: {item.birth}
                       </p>
                     </div>
                     

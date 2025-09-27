@@ -30,7 +30,7 @@ export default function Breadcrumbs({ items }: { items: BreadcrumbItem[] }) {
       {allItems.map((item, idx) => (
         <div key={idx} className="flex items-center">
           {idx !== 0 && (
-            <span className="mx-2 text-gray-300">{">"}</span>
+            <span className="mx-2 text-gray-500">{">"}</span>
           )}
           {item.href ? (
             <Link href={item.href} className="hover:text-black flex items-center gap-1">

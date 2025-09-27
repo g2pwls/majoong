@@ -7,6 +7,7 @@ import { startKakaoPay } from "@/services/paymentService";
 import { getTokens } from "@/services/authService";
 import DonationSection from "@/components/donation/DonationSection";
 import FarmDetailCard from "@/components/farm/FarmDetailCard";
+import Breadcrumbs from "@/components/common/Breadcrumb";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
@@ -55,8 +56,12 @@ export default function DonatePage() {
           // 선택된 말은 이미 카카오페이 승인 페이지에서 컬렉션에 추가되었음
         }
         
-        // 결제 완료 후 페이지 새로고침 또는 상태 업데이트
-        window.location.reload();
+        // 리다이렉트 URL이 있으면 해당 페이지로 이동, 없으면 새로고침
+        if (event.data.redirectTo) {
+          window.location.href = event.data.redirectTo;
+        } else {
+          window.location.reload();
+        }
       }
     };
 
@@ -209,11 +214,20 @@ export default function DonatePage() {
   return (
     <div>
       {/* 메인 컨텐츠 */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
+        {/* 브레드크럼 */}
+        <div className="pt-4 pb-3">
+          <Breadcrumbs items={[
+            { label: '목장후원', href: '/support' },
+            { label: farmDetail?.farmName || '농장', href: `/support/${farm_uuid}` },
+            { label: '기부하기' }
+          ]} />
+        </div>
+        
         <div className="mb-6 flex flex-row">
           <div className="flex items-centermb-4 flex flex-col">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">기부하기</h1>
-            <div className="w-37 h-1 bg-gray-300"></div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">기부하기</h1>
+            <div className="w-29 h-0.5 bg-gray-300"></div>
                 </div>
               </div>
               
