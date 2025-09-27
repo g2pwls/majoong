@@ -96,7 +96,7 @@ const HorseRegistrySection = memo(function HorseRegistrySection({ farmUuid, onHo
       )}
 
       {!loading && !error && horses.length > 0 && (
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {horses.map((horse) => (
             <div
               key={horse.id ?? horse.horseNo}

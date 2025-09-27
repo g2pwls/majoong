@@ -82,7 +82,7 @@ export default function HorsesPanel({ farmUuid, isMyFarm = false }: Props) {
         <p className="text-sm text-gray-600 flex items-center ml-5">총 {horses.length}마리</p>
       </div>
       
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {horses.map((horse) => (
           <Link
             key={horse.id ?? horse.horseNo}

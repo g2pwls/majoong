@@ -40,7 +40,7 @@ export default function FarmTabs({
     <div className={`border-b border-gray-200 ${className}`}>
       <div className="flex items-center justify-between">
         <nav
-          className="-mb-px flex gap-6"
+          className="-mb-px flex gap-2 sm:gap-6 overflow-x-auto scrollbar-hide"
           role="tablist"
           aria-label="Farm Tabs"
         >
@@ -54,7 +54,7 @@ export default function FarmTabs({
                 aria-selected={active}
                 aria-controls={it.panelId}
                 className={[
-                  "whitespace-nowrap border-b-2 px-1 pb-2 mt-2 text-sm font-medium transition-colors focus:outline-none focus-visible:ring",
+                  "whitespace-nowrap border-b-2 px-1 pb-2 mt-2 text-xs sm:text-sm font-medium transition-colors focus:outline-none focus-visible:ring flex-shrink-0",
                   active
                     ? "border-black text-black"
                     : "border-transparent text-gray-500 hover:text-black hover:border-gray-300",
@@ -83,7 +83,7 @@ export default function FarmTabs({
           {showDonateButton && farmUuid && (
             <Link 
               href={`/support/${farmUuid}/donate`}
-              className="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+              className="hidden lg:block bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
             >
               기부하기
             </Link>
