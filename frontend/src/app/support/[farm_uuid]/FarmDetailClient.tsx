@@ -129,7 +129,9 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     }
   };
 
-  if (loading) return <div className="">로딩 중…</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+  </div>;
   if (!farm) return <div className="p-6">농장 정보를 불러오지 못했습니다.</div>;
 
   // farm_uuid prop을 사용

@@ -58,6 +58,13 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     details: false
   });
   
+  // 로딩 진행률 표시를 위한 상태
+  const [loadingProgress, setLoadingProgress] = useState({
+    current: 0,
+    total: 0,
+    message: ''
+  });
+  
   // 목장 정보 가져오기 및 년도/월 범위 설정
   const fetchFarmInfo = useCallback(async () => {
     try {
@@ -140,47 +147,64 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
         const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
         const currentDate = new Date();
+        // 모든 년월에 대한 API 호출을 병렬로 처리
+        const apiPromises: Promise<any>[] = [];
+        const yearMonthPairs: { year: number; month: number }[] = [];
+        
         for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
           if (month === 'all') {
-            // 전체 년도 + 전체 월 조회
-            for (let m = 1; m <= 12; m++) {
-              try {
-                console.log(`${y}년 ${m}월 데이터 조회 중...`);
-                const monthData = await FarmService.getDonationUsage(farmUuid, y, m);
-                
-                if (monthData.receiptHistory && monthData.receiptHistory.length > 0) {
-                  console.log(`${y}년 ${m}월 영수증 ${monthData.receiptHistory.length}개 추가`);
-                  allReceipts.push(...monthData.receiptHistory);
-                }
-                
-                if (monthData.monthlyDonationUsed && monthData.monthlyDonationUsed.length > 0) {
-                  allMonthlyData.push(...monthData.monthlyDonationUsed);
-                }
-              } catch (error) {
-                console.warn(`${y}년 ${m}월 데이터 조회 실패:`, error);
-                // 해당 월 데이터가 없어도 계속 진행
-              }
+            // 전체 년도 + 전체 월 조회 - 실제 데이터 범위만 조회
+            const startMonth = y === createdDate.getFullYear() ? createdDate.getMonth() + 1 : 1;
+            const endMonth = y === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
+            
+            for (let m = startMonth; m <= endMonth; m++) {
+              yearMonthPairs.push({ year: y, month: m });
+              apiPromises.push(
+                FarmService.getDonationUsage(farmUuid, y, m)
+                  .catch(error => {
+                    console.warn(`${y}년 ${m}월 데이터 조회 실패:`, error);
+                    return null;
+                  })
+              );
             }
           } else {
-            // 전체 년도 + 특정 월 조회
-            try {
-              console.log(`${y}년 ${month}월 데이터 조회 중...`);
-              const monthData = await FarmService.getDonationUsage(farmUuid, y, month);
-              
-              if (monthData.receiptHistory && monthData.receiptHistory.length > 0) {
-                console.log(`${y}년 ${month}월 영수증 ${monthData.receiptHistory.length}개 추가`);
-                allReceipts.push(...monthData.receiptHistory);
-              }
-              
-              if (monthData.monthlyDonationUsed && monthData.monthlyDonationUsed.length > 0) {
-                allMonthlyData.push(...monthData.monthlyDonationUsed);
-              }
-            } catch (error) {
-              console.warn(`${y}년 ${month}월 데이터 조회 실패:`, error);
-              // 해당 월 데이터가 없어도 계속 진행
+            // 전체 년도 + 특정 월 조회 - 해당 월이 실제 범위 내에 있는지 확인
+            const startMonth = y === createdDate.getFullYear() ? createdDate.getMonth() + 1 : 1;
+            const endMonth = y === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
+            
+            if (month >= startMonth && month <= endMonth) {
+              yearMonthPairs.push({ year: y, month });
+              apiPromises.push(
+                FarmService.getDonationUsage(farmUuid, y, month)
+                  .catch(error => {
+                    console.warn(`${y}년 ${month}월 데이터 조회 실패:`, error);
+                    return null;
+                  })
+              );
             }
           }
         }
+        
+        console.log(`총 ${apiPromises.length}개의 상세 데이터 API 호출을 병렬로 실행합니다.`);
+        
+        // 모든 API 호출을 병렬로 실행
+        const results = await Promise.all(apiPromises);
+        
+        // 결과 처리
+        results.forEach((monthData, index) => {
+          if (monthData) {
+            const { year, month } = yearMonthPairs[index];
+            
+            if (monthData.receiptHistory && monthData.receiptHistory.length > 0) {
+              console.log(`${year}년 ${month}월 영수증 ${monthData.receiptHistory.length}개 추가`);
+              allReceipts.push(...monthData.receiptHistory);
+            }
+            
+            if (monthData.monthlyDonationUsed && monthData.monthlyDonationUsed.length > 0) {
+              allMonthlyData.push(...monthData.monthlyDonationUsed);
+            }
+          }
+        });
         
         // 전체 데이터 구성
         data = {
@@ -195,30 +219,53 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         
         setAllYearData(data);
       } else if (month === 'all') {
-        // 특정 년도 + 전체 월 조회 - 모든 월의 데이터를 수집
+        // 특정 년도 + 전체 월 조회 - 실제 데이터 범위만 조회
         console.log('전체 년도 데이터 수집 시작:', year);
         const allReceipts: ReceiptHistory[] = [];
         const allMonthlyData: MonthlyDonationUsed[] = [];
         
-        // 1월부터 12월까지 각 달의 데이터를 가져옴
-        for (let m = 1; m <= 12; m++) {
-          try {
-            console.log(`${year}년 ${m}월 데이터 조회 중...`);
-            const monthData = await FarmService.getDonationUsage(farmUuid, year, m);
+        // 목장 생성일과 현재 날짜를 고려하여 해당 년도의 실제 월 범위 계산
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        
+        const startMonth = year === createdDate.getFullYear() ? createdDate.getMonth() + 1 : 1;
+        const endMonth = year === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
+        
+        // 해당 년도의 모든 월에 대한 API 호출을 병렬로 처리
+        const apiPromises: Promise<any>[] = [];
+        const monthNumbers: number[] = [];
+        
+        for (let m = startMonth; m <= endMonth; m++) {
+          monthNumbers.push(m);
+          apiPromises.push(
+            FarmService.getDonationUsage(farmUuid, year, m)
+              .catch(error => {
+                console.warn(`${year}년 ${m}월 데이터 조회 실패:`, error);
+                return null;
+              })
+          );
+        }
+        
+        console.log(`${year}년 ${apiPromises.length}개월 상세 데이터를 병렬로 조회합니다.`);
+        
+        // 모든 API 호출을 병렬로 실행
+        const results = await Promise.all(apiPromises);
+        
+        // 결과 처리
+        results.forEach((monthData, index) => {
+          if (monthData) {
+            const month = monthNumbers[index];
             
             if (monthData.receiptHistory && monthData.receiptHistory.length > 0) {
-              console.log(`${year}년 ${m}월 영수증 ${monthData.receiptHistory.length}개 추가`);
+              console.log(`${year}년 ${month}월 영수증 ${monthData.receiptHistory.length}개 추가`);
               allReceipts.push(...monthData.receiptHistory);
             }
             
             if (monthData.monthlyDonationUsed && monthData.monthlyDonationUsed.length > 0) {
               allMonthlyData.push(...monthData.monthlyDonationUsed);
             }
-          } catch (error) {
-            console.warn(`${year}년 ${m}월 데이터 조회 실패:`, error);
-            // 해당 월 데이터가 없어도 계속 진행
           }
-        }
+        });
         
         // 전체 데이터 구성
         data = {
@@ -249,7 +296,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     } finally {
       setLoadingStates(prev => ({ ...prev, monthly: false }));
     }
-  }, [farmUuid, dataCache]);
+  }, [farmUuid, dataCache, farmCreatedAt]);
 
   // 연간 기부금 사용 내역 조회 (막대 그래프용) - 캐싱 적용
   const fetchYearlyData = useCallback(async (year: number | 'all') => {
@@ -264,32 +311,48 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       setLoadingStates(prev => ({ ...prev, yearly: true }));
       
       if (year === 'all') {
-        // 전체 년도 조회 - 모든 년도의 데이터를 수집
+        // 전체 년도 조회 - 목장 생성일부터 현재까지의 실제 데이터만 조회
         console.log('전체 년도 연간 기부금 사용 내역 조회 시작:', { farmUuid });
         const allMonthlyData: MonthlyDonationUsed[] = [];
         
         // 목장 생성일부터 현재까지 각 년도의 데이터를 가져옴
         const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
         const currentDate = new Date();
+        
+        // 모든 년월에 대한 API 호출을 병렬로 처리
+        const apiPromises: Promise<any>[] = [];
+        const yearMonthPairs: { year: number; month: number }[] = [];
+        
         for (let y = createdDate.getFullYear(); y <= currentDate.getFullYear(); y++) {
-          for (let month = 1; month <= 12; month++) {
-            try {
-              console.log(`${y}년 ${month}월 데이터 조회 중...`);
-              const data = await FarmService.getDonationUsage(farmUuid, y, month);
-              console.log(`${y}년 ${month}월 API 응답:`, data);
-              
-              if (data.monthlyDonationUsed && data.monthlyDonationUsed.length > 0) {
-                console.log(`${y}년 ${month}월 데이터 추가:`, data.monthlyDonationUsed);
-                allMonthlyData.push(...data.monthlyDonationUsed);
-              } else {
-                console.log(`${y}년 ${month}월 데이터 없음`);
-              }
-            } catch (error) {
-              console.warn(`${y}년 ${month}월 데이터 조회 실패:`, error);
-              // 해당 월 데이터가 없어도 계속 진행
-            }
+          // 해당 년도의 시작 월과 끝 월 계산
+          const startMonth = y === createdDate.getFullYear() ? createdDate.getMonth() + 1 : 1;
+          const endMonth = y === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
+          
+          for (let month = startMonth; month <= endMonth; month++) {
+            yearMonthPairs.push({ year: y, month });
+            apiPromises.push(
+              FarmService.getDonationUsage(farmUuid, y, month)
+                .catch(error => {
+                  console.warn(`${y}년 ${month}월 데이터 조회 실패:`, error);
+                  return null; // 실패한 경우 null 반환
+                })
+            );
           }
         }
+        
+        console.log(`총 ${apiPromises.length}개의 API 호출을 병렬로 실행합니다.`);
+        
+        // 모든 API 호출을 병렬로 실행
+        const results = await Promise.all(apiPromises);
+        
+        // 결과 처리
+        results.forEach((data, index) => {
+          if (data && data.monthlyDonationUsed && data.monthlyDonationUsed.length > 0) {
+            const { year, month } = yearMonthPairs[index];
+            console.log(`${year}년 ${month}월 데이터 추가:`, data.monthlyDonationUsed);
+            allMonthlyData.push(...data.monthlyDonationUsed);
+          }
+        });
         
         console.log('전체 년도 연간 데이터 수집 완료:', { 
           totalMonths: allMonthlyData.length, 
@@ -301,24 +364,41 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
         console.log('연간 기부금 사용 내역 조회 시작:', { farmUuid, year });
         const monthlyData: MonthlyDonationUsed[] = [];
         
-        // 1월부터 12월까지 각 달의 데이터를 가져옴
-        for (let month = 1; month <= 12; month++) {
-          try {
-            console.log(`${year}년 ${month}월 데이터 조회 중...`);
-            const data = await FarmService.getDonationUsage(farmUuid, year, month);
-            console.log(`${year}년 ${month}월 API 응답:`, data);
-            
-            if (data.monthlyDonationUsed && data.monthlyDonationUsed.length > 0) {
-              console.log(`${year}년 ${month}월 데이터 추가:`, data.monthlyDonationUsed);
-              monthlyData.push(...data.monthlyDonationUsed);
-            } else {
-              console.log(`${year}년 ${month}월 데이터 없음`);
-            }
-          } catch (error) {
-            console.warn(`${year}년 ${month}월 데이터 조회 실패:`, error);
-            // 해당 월 데이터가 없어도 계속 진행
-          }
+        // 목장 생성일과 현재 날짜를 고려하여 해당 년도의 실제 월 범위 계산
+        const createdDate = farmCreatedAt ? new Date(farmCreatedAt) : new Date('2021-01-01');
+        const currentDate = new Date();
+        
+        const startMonth = year === createdDate.getFullYear() ? createdDate.getMonth() + 1 : 1;
+        const endMonth = year === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
+        
+        // 해당 년도의 모든 월에 대한 API 호출을 병렬로 처리
+        const apiPromises: Promise<any>[] = [];
+        const monthNumbers: number[] = [];
+        
+        for (let month = startMonth; month <= endMonth; month++) {
+          monthNumbers.push(month);
+          apiPromises.push(
+            FarmService.getDonationUsage(farmUuid, year, month)
+              .catch(error => {
+                console.warn(`${year}년 ${month}월 데이터 조회 실패:`, error);
+                return null; // 실패한 경우 null 반환
+              })
+          );
         }
+        
+        console.log(`${year}년 ${apiPromises.length}개월 데이터를 병렬로 조회합니다.`);
+        
+        // 모든 API 호출을 병렬로 실행
+        const results = await Promise.all(apiPromises);
+        
+        // 결과 처리
+        results.forEach((data, index) => {
+          if (data && data.monthlyDonationUsed && data.monthlyDonationUsed.length > 0) {
+            const month = monthNumbers[index];
+            console.log(`${year}년 ${month}월 데이터 추가:`, data.monthlyDonationUsed);
+            monthlyData.push(...data.monthlyDonationUsed);
+          }
+        });
         
         console.log('연간 데이터 수집 완료:', { 
           totalMonths: monthlyData.length, 
@@ -336,36 +416,78 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     } finally {
       setLoadingStates(prev => ({ ...prev, yearly: false }));
     }
-  }, [farmUuid, yearlyCache]);
+  }, [farmUuid, yearlyCache, farmCreatedAt]);
 
 
+
+  // 초기 로딩 상태 관리
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // farmUuid 변경 시 초기화 상태 리셋
+  useEffect(() => {
+    setIsInitialized(false);
+    setLoading(true);
+  }, [farmUuid]);
 
   useEffect(() => {
     // 초기 로드 시 필요한 데이터만 가져옴
     const initializeData = async () => {
+      if (isInitialized) return; // 이미 초기화되었으면 스킵
+      
       setLoading(true);
       setError(null);
       
-      // 목장 정보 먼저 가져오기
-      await fetchFarmInfo();
-      
-      // 항상 연간 데이터를 먼저 가져옴 (막대그래프용)
-      await fetchYearlyData(selectedYear);
-      
-      // 전체 선택이면 연간 데이터 조회, 아니면 기존 로직
-      if (selectedMonth === 'all') {
-        // 전체 선택 시 연간 데이터 조회
-        await fetchDonationUsage(selectedYear, 'all');
-      } else {
-        // 특정 월 선택 시 해당 월 데이터 조회
-        await fetchDonationUsage(selectedYear, selectedMonth);
+      try {
+        // 병렬로 데이터 가져오기 (목장 정보는 먼저 가져와야 함)
+        const farmInfoPromise = fetchFarmInfo();
+        
+        // 목장 정보를 기다린 후 연간 데이터와 상세 데이터를 병렬로 가져오기
+        await farmInfoPromise;
+        
+        // 연간 데이터와 상세 데이터를 병렬로 가져오기
+        const promises = [
+          fetchYearlyData(selectedYear),
+          selectedMonth === 'all' 
+            ? fetchDonationUsage(selectedYear, 'all')
+            : fetchDonationUsage(selectedYear, selectedMonth)
+        ];
+        
+        await Promise.all(promises);
+        
+        setLoading(false);
+        setIsInitialized(true);
+      } catch (error) {
+        console.error('초기 데이터 로딩 실패:', error);
+        setLoading(false);
+        setIsInitialized(true);
       }
-      
-      setLoading(false);
     };
 
     initializeData();
-  }, [farmUuid, selectedYear, selectedMonth, fetchDonationUsage, fetchYearlyData, fetchFarmInfo]);
+  }, [farmUuid, isInitialized]); // farmUuid와 isInitialized를 의존성으로 유지
+
+  // 년도/월 변경 시에만 데이터 재조회
+  useEffect(() => {
+    if (!isInitialized) return; // 초기화가 완료되지 않았으면 스킵
+    
+    const updateData = async () => {
+      setLoadingStates(prev => ({ ...prev, monthly: true }));
+      
+      // 연간 데이터 업데이트
+      await fetchYearlyData(selectedYear);
+      
+      // 상세 데이터 업데이트
+      if (selectedMonth === 'all') {
+        await fetchDonationUsage(selectedYear, 'all');
+      } else {
+        await fetchDonationUsage(selectedYear, selectedMonth);
+      }
+      
+      setLoadingStates(prev => ({ ...prev, monthly: false }));
+    };
+
+    updateData();
+  }, [selectedYear, selectedMonth, isInitialized]);
 
 
   const handleYearChange = (year: number | 'all') => {
@@ -581,14 +703,28 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
   };
 
   // 전체 로딩 상태 (초기 로드 시에만)
-  const isInitialLoading = loading && !yearlyData.length && !selectedMonthData;
+  const isInitialLoading = loading && !isInitialized;
 
   if (isInitialLoading) {
     return (
       <section id="panel-donations" className="space-y-4">
         <div className="text-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">기부금 사용 내역을 불러오는 중...</p>
+          <p className="text-gray-600 mb-2">기부금 사용 내역을 불러오는 중...</p>
+          {loadingProgress.total > 0 && (
+            <div className="w-full max-w-xs mx-auto">
+              <div className="flex justify-between text-sm text-gray-500 mb-1">
+                <span>{loadingProgress.message}</span>
+                <span>{loadingProgress.current}/{loadingProgress.total}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${(loadingProgress.current / loadingProgress.total) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     );
@@ -658,22 +794,13 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       />
 
       {/* 2. 원형 그래프와 테이블 */}
-      {loadingStates.monthly ? (
-        <Card>
-          <CardContent className="px-4 py-6">
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">기부금 사용 비율을 불러오는 중...</p>
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <DonationUsageChart 
-          data={chartData}
-          totalAmount={totalAmount}
-          title={chartTitle}
-        />
-      )}
+      <DonationUsageChart 
+        data={loadingStates.monthly ? [] : chartData}
+        totalAmount={loadingStates.monthly ? 0 : totalAmount}
+        title={chartTitle}
+        isLoading={loadingStates.monthly}
+        loadingMessage="기부금 사용 비율을 불러오는 중..."
+      />
 
       {/* 3. 날짜 선택 가능한 상세 내역 */}
       <Card>
