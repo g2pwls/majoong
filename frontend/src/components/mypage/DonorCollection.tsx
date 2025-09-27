@@ -2,9 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Heart } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getCollection, type CollectionItem } from '@/services/collectionService';
 import HologramCard from '@/components/ui/HologramCard';
