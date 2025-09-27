@@ -287,7 +287,7 @@ export default function FarmRegisterPage() {
                   className={`w-full px-3 py-2 border ${errors.area ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  목장의 면적을 제곱미터(m²) 단위로 입력해주세요. (예: 3.3㎡, 1000m² 등)
+                  목장의 면적을 제곱미터(m²) 단위로 입력해주세요. (예: 3.3, 1000 등)
                 </p>
                 {errors.area && (
                   <p className="mt-1 text-sm text-red-500">{errors.area}</p>
