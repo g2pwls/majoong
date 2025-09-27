@@ -135,7 +135,7 @@ const FarmSlider = ({ farms, selectedFarm, onFarmSelect }: FarmSliderProps) => {
           width: 100%;
           display: flex;
           justify-content: center;
-          align-items: stretch;
+          align-items: center;
           user-select: none;
           position: relative;
           padding: 0 1rem;
@@ -221,7 +221,7 @@ const FarmSlider = ({ farms, selectedFarm, onFarmSelect }: FarmSliderProps) => {
           width: 88%;
           display: flex;
           justify-content: center;
-          align-items: stretch;
+          align-items: center;
           flex-direction: row;
           overflow: visible;
           position: relative;
