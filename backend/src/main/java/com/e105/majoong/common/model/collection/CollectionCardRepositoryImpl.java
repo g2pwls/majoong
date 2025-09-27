@@ -20,7 +20,7 @@ public class CollectionCardRepositoryImpl implements CollectionCardRepositoryCus
 
 
     @Override
-    public List<HorseInFarmResponseDto> getCollectionList(String memberUuid, String farmUuid) {
+    public List<HorseInFarmResponseDto> getCollectionList(String memberUuid) {
         return queryFactory.select(Projections.constructor(
                         HorseInFarmResponseDto.class,
                         farm.farmName,
@@ -40,7 +40,6 @@ public class CollectionCardRepositoryImpl implements CollectionCardRepositoryCus
                 .join(horse.farm, farm)
                 .where(
                         collectionCard.memberUuid.eq(memberUuid),
-                        farm.farmUuid.eq(farmUuid),
                         horse.deletedAt.isNull()
                 )
                 .orderBy(collectionCard.createdAt.desc())

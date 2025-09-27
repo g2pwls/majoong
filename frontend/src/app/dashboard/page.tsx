@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { getTokens, getUserRole } from '@/services/authService';
 import { getMyFarm } from '@/services/userService';
 import { MyFarmResponse } from '@/types/user';
+import AdminDashboard from '@/components/dashboard/AdminDashboard';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -44,9 +45,6 @@ export default function DashboardPage() {
     checkAuthorizationAndLoadFarm();
   }, []);
 
-  const handleNavigation = (path: string) => {
-    router.push(path);
-  };
 
   // 로딩 중
   if (isLoading) {
@@ -130,92 +128,5 @@ export default function DashboardPage() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-12">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* 페이지 헤더 */}
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            목장주 대시보드
-          </h1>
-          <p className="text-lg text-gray-600">
-            목장 운영에 필요한 주요 기능에 빠르게 접근하세요
-          </p>
-        </div>
-
-        {/* 바로가기 버튼 그리드 */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          
-          {/* 내 목장 조회 */}
-          <button
-            onClick={() => handleNavigation(`/support/${myFarmData?.farmUuid}`)}
-            className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 text-left border border-gray-200 hover:border-blue-300"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
-                <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                내 목장 조회
-              </h3>
-              <p className="text-gray-600 text-sm">
-                목장 정보와 상태를 확인하세요
-              </p>
-            </div>
-          </button>
-
-          {/* 운영 보고 */}
-          <button
-            onClick={() => handleNavigation(`/support/${myFarmData?.farmUuid}/report`)}
-            className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 text-left border border-gray-200 hover:border-green-300"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-green-200 transition-colors">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                운영 보고
-              </h3>
-              <p className="text-gray-600 text-sm">
-                목장 운영 현황을 보고하고<br />
-                후원금 사용 내역을 증빙하세요
-              </p>
-            </div>
-          </button>
-
-          {/* 마이페이지 */}
-          <button
-            onClick={() => handleNavigation('/mypage')}
-            className="group bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 text-left border border-gray-200 hover:border-orange-300"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-orange-200 transition-colors">
-                <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                마이페이지
-              </h3>
-              <p className="text-gray-600 text-sm">
-                개인 정보와 설정을 관리하세요
-              </p>
-            </div>
-          </button>
-
-        </div>
-
-        {/* 하단 안내 메시지 */}
-        <div className="text-center mt-12">
-          <p className="text-gray-500 text-sm">
-            각 버튼을 클릭하여 해당 기능으로 바로 이동할 수 있습니다
-          </p>
-        </div>
-      </div>
-    </div>
-  );
+  return <AdminDashboard farmData={myFarmData} />;
 }

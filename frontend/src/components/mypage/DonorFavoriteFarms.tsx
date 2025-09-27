@@ -40,14 +40,6 @@ export default function DonorFavoriteFarms() {
   }, []);
 
   const handleRemoveFavorite = async (farmUuid: string) => {
-    // 해당 목장의 이름을 찾기
-    const farm = favoriteFarms.find(f => f.farmUuid === farmUuid);
-    const farmName = farm?.farmName || '목장';
-    
-    if (!confirm(`"${farmName}"을 즐겨찾기에서 제거하시겠습니까?`)) {
-      return;
-    }
-
     try {
       console.log('즐겨찾기 삭제 요청:', farmUuid);
       await removeFavoriteFarm(farmUuid);
@@ -55,11 +47,18 @@ export default function DonorFavoriteFarms() {
       // 로컬 상태에서 해당 목장 제거
       setFavoriteFarms(prev => prev.filter(farm => farm.farmUuid !== farmUuid));
       
-      console.log('즐겨찾기 삭제 완료:', farmName);
-      // 완료 팝업 제거 - 확인 팝업만 표시하고 즉시 제거 처리
+      // localStorage에서 즐겨찾기 상태 제거
+      const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+      const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
+      localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
+      
+      // 커스텀 이벤트 발생시켜 다른 페이지에서 변경사항 감지
+      window.dispatchEvent(new CustomEvent('bookmarkChanged'));
+      
+      console.log('즐겨찾기 삭제 완료');
     } catch (error) {
       console.error('즐겨찾기 삭제 실패:', error);
-      alert('즐겨찾기 삭제에 실패했습니다. 다시 시도해주세요.');
+      // 에러 발생 시 사용자에게 알림하지 않고 콘솔에만 로그
     }
   };
 
@@ -134,11 +133,11 @@ export default function DonorFavoriteFarms() {
                 <h3 className="text-lg font-semibold text-gray-900">{farm.farmName}</h3>
                 <button
                   onClick={() => handleRemoveFavorite(farm.farmUuid)}
-                  className="text-red-500 hover:text-red-600 transition-colors p-1"
+                  className="text-yellow-500 hover:text-yellow-600 transition-colors p-1"
                   title="즐겨찾기에서 제거"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                 </button>
               </div>

@@ -287,6 +287,9 @@ export default function SupportPage() {
         const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
         const updatedBookmarks = bookmarkedFarms.filter((id: string) => id !== farmUuid);
         localStorage.setItem('bookmarkedFarms', JSON.stringify(updatedBookmarks));
+        
+        // 커스텀 이벤트 발생시켜 다른 페이지에서 변경사항 감지
+        window.dispatchEvent(new CustomEvent('bookmarkChanged'));
       } else {
         await addFarmBookmark(farmUuid);
         // farms 배열의 해당 농장의 bookmark 상태 업데이트
@@ -299,6 +302,9 @@ export default function SupportPage() {
           bookmarkedFarms.push(farmUuid);
           localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarms));
         }
+        
+        // 커스텀 이벤트 발생시켜 다른 페이지에서 변경사항 감지
+        window.dispatchEvent(new CustomEvent('bookmarkChanged'));
       }
     } catch (error) {
       console.error('즐겨찾기 토글 실패:', error);
@@ -383,8 +389,22 @@ export default function SupportPage() {
       }
     };
 
+    // 커스텀 이벤트 리스너 추가 (같은 탭 내에서의 변경 감지)
+    const handleCustomStorageChange = () => {
+      const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+      setFarms(prev => prev.map(farm => ({
+        ...farm,
+        bookmarked: bookmarkedFarms.includes(farm.id)
+      })));
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener('bookmarkChanged', handleCustomStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('bookmarkChanged', handleCustomStorageChange);
+    };
   }, []);
 
   const { filteredFarms, filteredHorses, paginatedFarms, paginatedHorses, totalPages, totalItems } = useMemo(() => {

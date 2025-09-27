@@ -11,6 +11,7 @@ import com.e105.majoong.common.model.farm.FarmRepository;
 import com.e105.majoong.common.model.horse.Horse;
 import com.e105.majoong.common.model.horse.HorseRepository;
 import com.e105.majoong.mypage.dto.in.DonatorCardCreateDto;
+import com.e105.majoong.mypage.dto.out.CollectionResponseDto;
 import com.e105.majoong.mypage.dto.out.HorseInFarmResponseDto;
 import java.util.Collection;
 import java.util.List;
@@ -42,12 +43,12 @@ public class DonatorCollectionServiceImpl implements DonatorCollectionService {
     }
 
     @Override
-    public List<HorseInFarmResponseDto> getCollectionList(String memberUuid, String farmUuid) {
+    public CollectionResponseDto getCollectionList(String memberUuid) {
         if (!donatorRepository.existsByMemberUuid(memberUuid)) {
             throw new BaseException(BaseResponseStatus.NO_EXIST_DONATOR);
         }
-
-        return collectionCardRepositoryCustom.getCollectionList(memberUuid, farmUuid);
+        List<HorseInFarmResponseDto> list = collectionCardRepositoryCustom.getCollectionList(memberUuid);
+        return CollectionResponseDto.toDto(list.size(), list);
     }
 
     @Override
