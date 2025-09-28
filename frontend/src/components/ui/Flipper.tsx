@@ -50,39 +50,27 @@ const Flipper: React.FC<FlipperProps> = ({
         
         .flipper-container {
           font-family: 'Oswald', sans-serif;
-          background-color: #212121;
-          min-height: 100vh;
+          background-color: transparent;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 20px;
         }
         
         .flipper-section {
-          width: 90%;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        
-        .flipper-row {
           display: flex;
           flex-wrap: wrap;
           gap: 20px;
           align-items: center;
-          min-height: 100vh;
           justify-content: center;
         }
         
         .flipper-card {
           position: relative;
-          height: 400px;
-          width: 100%;
-          max-width: 350px;
+          height: 300px;
+          width: 450px;
           margin: 10px 0;
           transition: ease all 2.3s;
           perspective: 1200px;
-          flex: 1;
-          min-width: 280px;
         }
         
         .flipper-card:hover .flipper-cover {
@@ -162,7 +150,7 @@ const Flipper: React.FC<FlipperProps> = ({
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 3;
-          font-size: 3em;
+          font-size: 1.5em;
           transform: translateZ(0px);
           margin: 0;
           line-height: 1.2;
@@ -179,7 +167,7 @@ const Flipper: React.FC<FlipperProps> = ({
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 4;
-          font-size: 2em;
+          font-size: 1.6em;
           transform: translateZ(0px);
           backface-visibility: hidden;
         }
@@ -201,35 +189,41 @@ const Flipper: React.FC<FlipperProps> = ({
         }
         
         .flipper-card-back-description {
-          font-weight: 600;
+          font-weight: normal;
           color: white;
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 3;
-          font-size: 2.5em;
+          font-size: 1rem;
           transform: translateZ(0px);
           margin: 0;
           line-height: 1.2;
           white-space: pre-line;
           text-align: center;
           margin-bottom: 10px;
+          padding: 0 20px;
+          max-width: 100%;
+          word-wrap: break-word;
           backface-visibility: hidden;
         }
         
         
         .flipper-card-back-address {
-          font-weight: 600;
+          font-weight: normal;
           color: #ffd700;
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 3;
-          font-size: 1.8em;
+          font-size: 1rem;
           transform: translateZ(0px);
           margin: 0;
           line-height: 1.2;
           white-space: pre-line;
           text-align: center;
           margin-bottom: 20px;
+          padding: 0 20px;
+          max-width: 100%;
+          word-wrap: break-word;
           text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
           backface-visibility: hidden;
         }
@@ -237,67 +231,84 @@ const Flipper: React.FC<FlipperProps> = ({
         
         /* 반응형 디자인 */
         @media (max-width: 768px) {
-          .flipper-row {
+          .flipper-section {
             flex-direction: column;
             align-items: center;
           }
           
           .flipper-card {
-            max-width: 100%;
-            width: 100%;
+            height: 240px;
+            width: 360px;
           }
           
           .flipper-cover h1 {
-            font-size: 2.5em;
+            font-size: 1.5em;
             bottom: 45px;
             left: 30px;
           }
           
           .flipper-score {
-            font-size: 1.8em;
+            font-size: 1.4em;
             top: 45px;
             right: 30px;
           }
           
           .flipper-card-back-description {
-            font-size: 2.2em;
+            font-size: 1rem;
+            padding: 0 15px;
           }
           
           
           .flipper-card-back-address {
-            font-size: 1.6em;
+            font-size: 1rem;
+            padding: 0 15px;
           }
         }
         
         @media (max-width: 480px) {
+          .flipper-card {
+            height: 180px;
+            width: 270px;
+          }
+          
           .flipper-cover h1 {
-            font-size: 2em;
+            font-size: 1.5em;
             bottom: 35px;
             left: 20px;
           }
           
           .flipper-score {
-            font-size: 1.5em;
+            font-size: 1.2em;
             top: 35px;
             right: 20px;
           }
           
           .flipper-card-back-description {
-            font-size: 2em;
+            font-size: 1rem;
+            padding: 0 10px;
           }
           
           
           .flipper-card-back-address {
-            font-size: 1.4em;
+            font-size: 1rem;
+            padding: 0 10px;
           }
+        }
+        
+        .flipper-instruction {
+          text-align: center;
+          margin-top: 16px;
+          color: #6b7280;
+          font-size: 0.875rem;
+          font-weight: 500;
         }
       `}</style>
       
       <div className="flipper-container">
         <section className="flipper-section">
-          <div className="flipper-row">
-            {cards.map((card) => (
-              <div key={card.id} className="flipper-card">
+          {cards.map((card) => (
+            <div key={card.id}>
+              <div className="flipper-card">
                 <div 
                   className="flipper-cover" 
                   style={{ 
@@ -316,8 +327,11 @@ const Flipper: React.FC<FlipperProps> = ({
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="flipper-instruction">
+                마우스를 올리면 뒤집어서 상세 정보를 확인할 수 있습니다
+              </div>
+            </div>
+          ))}
         </section>
       </div>
     </>

@@ -87,25 +87,25 @@ const FarmCard: React.FC<{
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <h3 className="text-lg sm:text-xl font-semibold">{farm.farm_name}</h3>
-                    {isDonator() && (
-                      <button 
-                        className={`rounded-full border p-1 transition-colors ${
-                          isBookmarked 
-                            ? 'border-yellow-400 bg-yellow-50' 
-                            : 'border-gray-300 hover:border-yellow-400'
-                        } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-                        aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                        onClick={handleBookmarkClick}
-                        disabled={isLoading}
-                      >
-                        <Star 
-                          className={`h-4 w-4 ${
-                            isBookmarked 
-                              ? 'fill-yellow-400 text-yellow-400' 
-                              : 'text-gray-400 hover:text-yellow-400'
-                          } ${isLoading ? 'animate-pulse' : ''}`} 
-                        />
-                      </button>
+                {isDonator() && (
+                  <button 
+                    className={`rounded-full border p-1 transition-colors ${
+                      isBookmarked 
+                        ? 'border-yellow-400 bg-yellow-50' 
+                        : 'border-gray-300 hover:border-yellow-400'
+                    } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                    aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                    onClick={handleBookmarkClick}
+                    disabled={isLoading}
+                  >
+                    <Star 
+                      className={`h-4 w-4 ${
+                        isBookmarked 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-400 hover:text-yellow-400'
+                      } ${isLoading ? 'animate-pulse' : ''}`} 
+                    />
+                  </button>
                     )}
                   </div>
                   {/* 모바일에서 기부하기 버튼을 여기에 배치 */}
@@ -120,18 +120,18 @@ const FarmCard: React.FC<{
                     >
                       기부하기
                     </Button>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-4 w-4 flex-shrink-0" /> 
-                    <span className="break-words">{farm.address}</span>
-                </p>
-                <p className="text-sm text-muted-foreground"> 말 {farm.horse_count}두</p>
-                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-                {farm.state && (
-                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
                 )}
               </div>
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="h-4 w-4 flex-shrink-0" /> 
+                    <span className="break-words">{farm.address}</span>
+              </p>
+                <p className="text-sm text-muted-foreground"> 말 {farm.horse_count}두</p>
+              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+              {farm.state && (
+                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+              )}
+            </div>
 
           {/* 오른쪽: 갤러리 + 버튼 */}
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
@@ -492,15 +492,15 @@ export default function SupportPage() {
 
           {/* 오른쪽: 검색 */}
           <div className="flex flex-row items-center gap-2">
-            <SearchTypeToggle value={searchType} onChange={setSearchType} />
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
+              <SearchTypeToggle value={searchType} onChange={setSearchType} />
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
                 className="w-[182px] sm:w-[200px] pl-8 h-9 text-sm"
-                placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-              />
+                  placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                />
             </div>
           </div>
         </div>
