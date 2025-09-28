@@ -10,7 +10,7 @@ const MainCand1Page: React.FC = () => {
       <style jsx global>{`
         body {
           font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Roboto", "Helvetica Neue", Arial, sans-serif;
-          background: linear-gradient(135deg, black, #220033);
+          background: #4D3A2C;
           margin: 0;
           padding: 0;
         }
@@ -82,11 +82,11 @@ const MainCand1Page: React.FC = () => {
       `}</style>
       
       <div className="layout">
-        <div className="box">
+        {/* <div className="box">
           High-end, full-service<br />
           visual content creation<br />
           for lifestyle branding.
-        </div>
+        </div> */}
       </div>
 
       <div className="cursor"></div>

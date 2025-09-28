@@ -166,7 +166,7 @@ export default function DonatorPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
             <p className="text-gray-600">데이터를 불러오는 중...</p>
           </div>
         </div>
@@ -215,7 +215,12 @@ export default function DonatorPage() {
                 </Button>
               </Link>
               <Link href="/godonate">
-                <Button className="bg-[#91745A] text-white hover:bg-[#7d6149] px-6 py-3 text-lg font-semibold">
+                <Button 
+                  className="text-white px-6 py-3 text-lg font-semibold transition-colors"
+                  style={{ backgroundColor: '#4D3A2C' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
+                >
                   바로 기부하기
                 </Button>
               </Link>
@@ -247,8 +252,8 @@ export default function DonatorPage() {
           <Card>
             <CardContent className="p-6 py-0">
               <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Gift className="h-6 w-6 text-blue-600" />
+                <div className="p-2 rounded-lg" style={{ backgroundColor: '#D3CAB8' }}>
+                  <Gift className="h-6 w-6" style={{ color: '#4D3A2C' }} />
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">기부 횟수</p>
@@ -285,7 +290,10 @@ export default function DonatorPage() {
               <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장</h2>
               <button
                 onClick={() => window.location.href = '/mypage'}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                className="text-sm font-medium transition-colors"
+                style={{ color: '#4D3A2C' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
               >
                 보러가기 →
               </button>
@@ -309,7 +317,11 @@ export default function DonatorPage() {
                     .slice(0, 3)
                     .map((farm) => (
                     <Link key={farm.farmUuid} href={`/support/${farm.farmUuid}`}>
-                      <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-blue-200 py-0 mt-2">
+                      <Card 
+                        className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 py-0 mt-2"
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4D3A2C'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                      >
                         <CardContent className="p-0">
                             <div className="flex">
                               <div className="w-40 h-32 relative flex-shrink-0">
@@ -366,7 +378,11 @@ export default function DonatorPage() {
                     .slice(0, 3)
                     .map((newsletter) => (
                       <Link key={newsletter.farmUuid} href={`/support/${newsletter.farmUuid}/report/${newsletter.latestReport?.reportId}`}>
-                        <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-blue-200 py-0 mt-2">
+                        <Card 
+                          className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 py-0 mt-2"
+                          onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4D3A2C'}
+                          onMouseLeave={(e) => e.currentTarget.style.borderColor = '#e5e7eb'}
+                        >
                           <CardContent className="p-0">
                             <div className="flex">
                               <div className="w-40 h-32 relative flex-shrink-0">
@@ -409,7 +425,10 @@ export default function DonatorPage() {
             <h2 className="text-2xl font-bold text-gray-900">내 컬렉션</h2>
             <button
               onClick={() => window.location.href = '/mypage'}
-              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              className="text-sm font-medium transition-colors"
+              style={{ color: '#4D3A2C' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+              onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
             >
               전체 보기 →
             </button>

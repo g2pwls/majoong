@@ -108,13 +108,29 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
   // 마우스 휠 핸들러
   const handleWheel = useCallback((e: WheelEvent) => {
     if (displayItems.length === 0) return;
-    console.log('Wheel event detected:', e.deltaY);
-    const wheelProgress = e.deltaY * speedWheel;
-    setProgress(prev => {
-      const newProgress = prev + wheelProgress;
-      console.log('Progress changed:', prev, '->', newProgress);
-      return newProgress;
-    });
+    
+    // 캐러셀 영역 내에서만 스크롤 처리
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+    
+    const rect = carousel.getBoundingClientRect();
+    const isInsideCarousel = (
+      e.clientX >= rect.left &&
+      e.clientX <= rect.right &&
+      e.clientY >= rect.top &&
+      e.clientY <= rect.bottom
+    );
+    
+    if (isInsideCarousel) {
+      e.preventDefault(); // 페이지 스크롤 방지
+      console.log('Wheel event detected inside carousel:', e.deltaY);
+      const wheelProgress = e.deltaY * speedWheel;
+      setProgress(prev => {
+        const newProgress = prev + wheelProgress;
+        console.log('Progress changed:', prev, '->', newProgress);
+        return newProgress;
+      });
+    }
   }, [displayItems.length, speedWheel]);
 
   // 마우스 이동 핸들러
@@ -153,24 +169,24 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
     console.log('Display items length:', displayItems.length);
     console.log('Farm items:', displayItems.map(item => ({ title: item.title, score: item.farmScore })));
 
-    // 이벤트 리스너 추가
+    // 캐러셀 컨테이너에만 이벤트 리스너 추가
     carousel.addEventListener('wheel', handleWheel);
-    document.addEventListener('mousedown', handleMouseDown);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('touchstart', handleMouseDown);
-    document.addEventListener('touchmove', handleMouseMove);
-    document.addEventListener('touchend', handleMouseUp);
+    carousel.addEventListener('mousedown', handleMouseDown);
+    carousel.addEventListener('mousemove', handleMouseMove);
+    carousel.addEventListener('mouseup', handleMouseUp);
+    carousel.addEventListener('touchstart', handleMouseDown);
+    carousel.addEventListener('touchmove', handleMouseMove);
+    carousel.addEventListener('touchend', handleMouseUp);
 
     return () => {
       console.log('Cleaning up event listeners');
       carousel.removeEventListener('wheel', handleWheel);
-      document.removeEventListener('mousedown', handleMouseDown);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('touchstart', handleMouseDown);
-      document.removeEventListener('touchmove', handleMouseMove);
-      document.removeEventListener('touchend', handleMouseUp);
+      carousel.removeEventListener('mousedown', handleMouseDown);
+      carousel.removeEventListener('mousemove', handleMouseMove);
+      carousel.removeEventListener('mouseup', handleMouseUp);
+      carousel.removeEventListener('touchstart', handleMouseDown);
+      carousel.removeEventListener('touchmove', handleMouseMove);
+      carousel.removeEventListener('touchend', handleMouseUp);
     };
   }, [handleWheel, handleMouseDown, handleMouseMove, handleMouseUp]);
 
@@ -207,7 +223,8 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
         .carousel {
           position: relative;
           z-index: 1;
-          height: 100vh;
+          height: 100%;
+          width: 100%;
           pointer-events: none;
         }
 
@@ -296,7 +313,7 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
          .carousel-farm-score {
            position: absolute;
            z-index: 2;
-           color: #00ff00;
+           color: #FFD700;
            bottom: 50px;
            left: 15px;
            right: 15px;
@@ -304,7 +321,7 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
            opacity: 0.9;
            line-height: 1.2;
            font-weight: 700;
-           text-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+           text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
          }
 
          .carousel-farm-info {
