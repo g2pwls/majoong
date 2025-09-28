@@ -8,7 +8,6 @@ import { MonthlyReport } from "@/types/farm";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText } from "lucide-react";
-import Image from "next/image";
 
 // 책 너비 스타일 매핑
 const getBookWidthStyle = (index: number) => {
