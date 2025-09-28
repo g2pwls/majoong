@@ -185,6 +185,9 @@ export default function DonorSupportHistory() {
 
   return (
     <div className="p-6">
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold text-gray-900">후원내역</h2>
+      </div>
       {/* 요약 정보 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
@@ -267,14 +270,14 @@ export default function DonorSupportHistory() {
                  >
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                  <h3 className="text-lg font-medium text-gray-900">{record.farmName}</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-1 sm:space-y-0">
+                  <h3 className="text-lg font-medium text-gray-900 break-words">{record.farmName}</h3>
                         <button
                           onClick={(e) => {
                             e.stopPropagation(); // 모달 열기 방지
                             handleVisitFarm(record.farmUuid);
                           }}
-                          className="text-blue-600 hover:text-blue-800 text-sm underline"
+                          className="text-blue-600 hover:text-blue-800 text-sm underline self-start sm:self-auto"
                         >
                           목장 보기
                         </button>

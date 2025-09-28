@@ -16,4 +16,5 @@ public class DonationHistoryDetailResponseDto {
     private Long donationToken;
     private String txHash;
     private String farmName;
+    private String farmVaultAdrress;
 }

@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Heart } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getCollection, type CollectionItem } from '@/services/collectionService';
+import HologramCard from '@/components/ui/HologramCard';
 
 export default function DonorCollection() {
   const [collections, setCollections] = useState<CollectionItem[]>([]);
@@ -43,12 +42,17 @@ export default function DonorCollection() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="p-6 bg-white rounded-lg shadow-lg" style={{ background: 'linear-gradient(135deg, #333844 0%, #2a2f3a 100%)' }}>
+        <div className="mb-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-600 rounded w-32 mb-2"></div>
+            <div className="h-4 bg-gray-600 rounded w-64"></div>
+          </div>
+        </div>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-72 bg-gray-600 rounded"></div>
             ))}
           </div>
         </div>
@@ -58,10 +62,13 @@ export default function DonorCollection() {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="p-6 bg-white rounded-lg shadow-lg" style={{ background: 'linear-gradient(135deg, #333844 0%, #2a2f3a 100%)' }}>
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-white">컬렉션</h2>
+        </div>
         <div className="text-center py-12">
-          <div className="text-red-500 text-xl mb-4">⚠️</div>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <div className="text-red-400 text-xl mb-4">⚠️</div>
+          <p className="text-gray-300 mb-4">{error}</p>
           <Button 
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -74,24 +81,32 @@ export default function DonorCollection() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white rounded-lg shadow-lg" style={{ background: 'linear-gradient(135deg, #333844 0%, #2a2f3a 100%)' }}>
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-900">내 컬렉션</h3>
-          <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+          <h2 className="text-2xl font-bold text-white" style={{ 
+            background: 'linear-gradient(45deg, #00e7ff, #ff00e7, #ffe759)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            textShadow: '0 0 30px rgba(0, 231, 255, 0.5)'
+          }}>
+            컬렉션
+          </h2>
+          <span className="text-sm font-medium text-blue-400 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-400/30">
             총 {totalCardCount}장
           </span>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-300">
           기부를 통해 얻은 말 카드들을 모아서 볼 수 있습니다.
         </p>
       </div>
 
       {collections.length === 0 ? (
         <div className="text-center py-12">
-          <Heart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">컬렉션이 비어있습니다</h3>
-          <p className="text-gray-600 mb-6">
+          <Heart className="mx-auto h-12 w-12 text-blue-400 mb-4" />
+          <h3 className="text-lg font-medium text-white mb-2">컬렉션이 비어있습니다</h3>
+          <p className="text-gray-300 mb-6">
             목장에 기부하여 말 카드를 수집해보세요.
           </p>
           <Link
@@ -102,62 +117,28 @@ export default function DonorCollection() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {collections.map((item) => (
-            <Card key={item.horseNumber} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <CardContent className="p-0">
-                <div className="relative">
-                  <div className="relative w-full h-48">
-                    <Image
-                      src={item.profileImage || '/horses/default.jpg'}
-                      alt={item.horseName}
-                      fill
-                      className="object-cover"
-                    />
-                    <div className="absolute top-2 left-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-blue-500 text-white">
-                        {item.farmName}
-                      </span>
-                    </div>
-                    <div className="absolute top-2 right-2">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-500 text-white">
-                        {item.cardCount}장
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4">
-                    <div className="mb-3">
-                      <h4 className="text-lg font-semibold text-gray-900 mb-1">
-                        {item.horseName}
-                      </h4>
-                      <div className="flex items-center text-sm text-gray-600 mb-1">
-                        <span className="font-medium">{item.breed}</span>
-                        <span className="mx-2">•</span>
-                        <span>{item.gender}</span>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        출생일: {item.birth}
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">경주 횟수:</span>
-                        <span className="font-medium">{item.raceCount}회</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">총 상금:</span>
-                        <span className="font-medium">
-                          {parseInt(item.totalPrize).toLocaleString()}원
-                        </span>
-                      </div>
-                    </div>
-                    
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div key={item.horseNumber} className="flex flex-col items-center">
+              <HologramCard
+                imageUrl={item.profileImage || '/horses/default.jpg'}
+                title={item.horseName}
+                subtitle={`${item.breed} • ${item.gender} • ${item.birth.split('-')[0]}년생`}
+                description={`${item.farmName} | 경주 ${item.raceCount}회 | 상금 ₩${parseInt(item.totalPrize).toLocaleString()}`}
+                width={200}
+                height={280}
+                className="compact"
+                onClick={() => {
+                  console.log(`Clicked on ${item.horseName} from ${item.farmName}`);
+                  // 여기에 카드 상세 정보 모달이나 페이지 이동 로직 추가 가능
+                }}
+              />
+              <div className="mt-2 text-center">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                  {item.cardCount}장
+                </span>
+              </div>
+            </div>
           ))}
         </div>
       )}

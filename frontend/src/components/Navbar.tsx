@@ -152,7 +152,7 @@ export default function Navbar() {
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
           <Link 
-            href={userRole === 'FARMER' ? '/dashboard' : '/'} 
+            href={userRole === 'FARMER' ? '/dashboard' : userRole === 'DONATOR' ? '/donator' : '/'} 
             className="flex items-center gap-2 font-bold text-xl"
           >
             마중

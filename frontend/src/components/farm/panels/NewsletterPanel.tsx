@@ -10,6 +10,168 @@ import { Button } from "@/components/ui/button";
 import { Calendar, FileText } from "lucide-react";
 import Image from "next/image";
 
+// 책장 스타일 CSS
+const bookShelfStyles = `
+  .shelf-container {
+    display: flex;
+    justify-content: center;
+    padding-top: 2rem;
+    min-height: 300px;
+    border-radius: 12px;
+    padding: 2rem;
+  }
+
+  .shelf {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  /* 책 바인딩 */
+  .book-bg {
+    overflow: hidden;
+    height: 18rem;
+    margin: 1px;
+    cursor: pointer;
+    transition: margin 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
+      transform 0.3s ease-in-out;
+    filter: grayscale(15%);
+    border-radius: 4px;
+    background: grey;
+    box-shadow: 0 0.5rem 1rem 0rem rgba(0, 0, 0, 0.4);
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-image: linear-gradient(
+      to right,
+      #333,
+      #333 15%,
+      antiquewhite 30%,
+      antiquewhite 70%,
+      #333 85%,
+      #333
+    );
+    border-image-slice: 1;
+    order: 200;
+  }
+
+  .book-bg:hover {
+    box-shadow: 0 0.5rem 3rem -0.5rem rgba(0, 0, 0, 0.4);
+    z-index: 10;
+    margin-top: -15px;
+    transform: scale(1.03, 1.03);
+  }
+
+  /* 책 너비 */
+  .report-0 { width: 3.5rem; }
+  .report-1 { width: 3.2rem; }
+  .report-2 { width: 3.8rem; }
+  .report-3 { width: 3rem; }
+  .report-4 { width: 3.5rem; }
+  .report-5 { width: 3.2rem; }
+
+  /* 제목 그림자 */
+  .book h1, .book h2, .book h3, .book h4, .book h5 {
+    text-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.8);
+  }
+
+  /* 기본 책 속성 */
+  .book {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    box-shadow: inset -0.35rem 0 0.5rem rgba(0, 0, 0, 0.4),
+      inset 0.35rem 0 0.5rem rgba(0, 0, 0, 0.4);
+    justify-content: center;
+    align-items: center;
+    writing-mode: vertical-rl;
+    position: relative;
+  }
+
+
+  /* 책 제목 */
+  .book-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    margin: 0;
+    padding: 0.3rem;
+    letter-spacing: 0.1em;
+  }
+
+  /* 책 배경 그라데이션 */
+  .report-0 .book {
+    background: radial-gradient(
+        ellipse at top,
+        rgba(0, 0, 0, 0.35),
+        rgba(0, 0, 0, 0.75)
+      ),
+      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
+    font-family: "Unica One", cursive;
+    color: darkorange;
+  }
+
+  .report-1 .book {
+    background: radial-gradient(
+        ellipse at top,
+        rgba(50, 10, 87, 0.55),
+        rgba(0, 0, 0, 0.75)
+      ),
+      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
+    font-family: "Smooch Sans", sans-serif;
+    color: rgb(221, 206, 206);
+  }
+
+  .report-2 .book {
+    background: radial-gradient(
+        ellipse at top,
+        rgba(189, 147, 189, 0.55),
+        rgba(0, 0, 0, 0.85)
+      ),
+      radial-gradient(ellipse at bottom, rgba(185, 154, 154, 0.5), transparent);
+    font-family: "Nothing You Could Do", cursive;
+    color: #212121;
+  }
+
+  .report-3 .book {
+    background: radial-gradient(
+        ellipse at top,
+        rgba(2, 95, 18, 0.55),
+        rgba(0, 0, 0, 0.75)
+      ),
+      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
+    font-family: "Fredericka the Great", cursive;
+    color: rgb(247, 229, 192);
+  }
+
+  .report-4 .book {
+    background: radial-gradient(
+        ellipse at top,
+        rgba(94, 15, 6, 0.76),
+        rgba(0, 0, 0, 0.75)
+      ),
+      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
+    font-family: "Lora", serif;
+    color: rgb(216, 191, 191);
+  }
+
+  .report-5 .book {
+    background: radial-gradient(
+        ellipse at top,
+        rgba(255, 255, 255, 0.63),
+        rgba(0, 0, 0, 0.75)
+      ),
+      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
+    font-family: "Inconsolata", monospace;
+    color: #333;
+  }
+
+`;
+
 interface NewsletterPanelProps {
   farmUuid: string;
 }
@@ -119,7 +281,8 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
     setSelectedYear(year);
   };
 
-  const handleViewReport = (reportId: number) => {
+  const handleBookClick = (reportId: number, index: number) => {
+    // 바로 리포트 페이지로 이동
     router.push(`/support/${farmUuid}/report/${reportId}`);
   };
 
@@ -151,22 +314,24 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
   }
 
   return (
-    <section id="panel-newsletter" className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-gray-500" />
-            <select
-              value={selectedYear}
-              onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="px-3 py-1 border rounded-md text-sm"
-            >
-              <option value="all">전체</option>
-              {availableYears.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
+    <>
+      <style dangerouslySetInnerHTML={{ __html: bookShelfStyles }} />
+      <section id="panel-newsletter" className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-gray-500" />
+              <select
+                value={selectedYear}
+                onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                className="px-3 py-1 border rounded-md text-sm"
+              >
+                <option value="all">전체</option>
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+          </div>
         </div>
-      </div>
 
       {reports.length === 0 ? (
         <Card>
@@ -181,55 +346,35 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {reports.map((report) => (
-            <Card key={report.reportId} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4 py-0">
-                <div className="space-y-3">
-                  {/* 썸네일 이미지 */}
-                  <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                    {report.thumbnail ? (
-                      <Image
-                        src={report.thumbnail}
-                        alt={`${report.year}년 ${report.month}월 보고서`}
-                        width={400}
-                        height={225}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <FileText className="h-8 w-8 text-gray-400" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 보고서 정보 */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">
-                        {report.year}년 {report.month}월 보고서
-                      </h4>
-                      <div className="flex items-center">
-                        <span className="text-sm font-medium">{report.score}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 액션 버튼 */}
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => handleViewReport(report.reportId)}
-                  >
-                    보고서 보기
-                  </Button>
+        <div className="shelf-container">
+          <div className="shelf">
+            {reports.map((report, index) => (
+              <div 
+                key={report.reportId} 
+                className={`book-bg report-${index % 6}`}
+                onClick={() => handleBookClick(report.reportId, index)}
+              >
+                <div 
+                  className="book"
+                  style={{
+                    backgroundImage: report.thumbnail 
+                      ? `url(${report.thumbnail})` 
+                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                >
+                  <div className="book-shading"></div>
+                  <h1 className="book-title">
+                    {report.year}년 {report.month}월
+                  </h1>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
       )}
-    </section>
+      </section>
+    </>
   );
 }

@@ -6,9 +6,10 @@ import { Shuffle } from "lucide-react";
 import { startKakaoPay } from "@/services/paymentService";
 import { getRecommendFarms, RecommendFarm } from "@/services/apiService";
 import DonationSection from "@/components/donation/DonationSection";
-import FarmCarousel3D from "@/components/farm/FarmCarousel3D";
+import FarmSlider from "@/components/ui/FarmSlider";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import LoginRequiredModal from "@/components/donation/LoginRequiredModal";
+import Toast from "@/components/ui/Toast";
 import { getTokens } from "@/services/authService";
 
 // Farm 인터페이스는 apiService에서 import하여 사용
@@ -26,6 +27,7 @@ export default function GoDonatePage() {
   const [paymentMethod, setPaymentMethod] = useState<'kakao'>('kakao');
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [toastMessages, setToastMessages] = useState<Array<{id: string, message: string, timestamp: number}>>([]);
 
   useEffect(() => {
     const fetchRecommendFarms = async () => {
@@ -35,9 +37,6 @@ export default function GoDonatePage() {
         console.log('추천 목장 조회 성공:', farms);
         
         setRecommendFarms(farms);
-        if (farms.length > 0) {
-          setSelectedFarm(farms[0]);
-        }
       } catch (error) {
         console.error("추천 목장 정보를 가져오는데 실패했습니다:", error);
       } finally {
@@ -181,8 +180,21 @@ export default function GoDonatePage() {
       const randomFarm = recommendFarms[randomIndex];
       setSelectedFarm(randomFarm);
       
+      // 토스트 알림 추가
+      const newToast = {
+        id: Date.now().toString(),
+        message: "새로운 목장이 선택되었습니다",
+        timestamp: Date.now()
+      };
+      setToastMessages(prev => [...prev, newToast]);
+      
       console.log('랜덤 선택된 농장:', randomFarm.farmName);
     }
+  };
+
+  // 토스트 제거 함수
+  const handleRemoveToast = (id: string) => {
+    setToastMessages(prev => prev.filter(toast => toast.id !== id));
   };
 
   // 미사용 함수들 제거됨 - 현재 handleConfirmDonation으로 대체됨
@@ -238,18 +250,19 @@ export default function GoDonatePage() {
         
         {/* 헤더 */}
         <div className="mb-6 flex flex-row">
-          <div className="flex items-centermb-4 flex flex-col">
+          <div className="flex items-center mb-4 flex flex-col">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">바로기부</h1>
             <div className="w-29 h-0.5 bg-gray-300"></div>
-                            </div>
-                          </div>
+          </div>
+        </div>
                           
         {/* 목장 선택과 후원 정보 섹션 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* 목장 선택 섹션 */}
             <div className="space-y-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">농장 선택</h2>
+            {/* 목장 선택 헤더 */}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold text-gray-900">목장 선택</h2>
               <Button
                 onClick={handleRandomSelect}
                 variant="outline"
@@ -259,10 +272,10 @@ export default function GoDonatePage() {
                 <Shuffle className="h-4 w-4" />
                 랜덤 선택
               </Button>
-              </div>
+            </div>
 
-            {/* 3D 캐러셀 */}
-            <FarmCarousel3D
+            {/* 목장 슬라이더 */}
+            <FarmSlider
               farms={recommendFarms}
               selectedFarm={selectedFarm}
               onFarmSelect={setSelectedFarm}
@@ -292,11 +305,18 @@ export default function GoDonatePage() {
             </div>
           </div>
 
-          {/* 로그인 필요 모달 */}
-          <LoginRequiredModal
-            isOpen={showLoginModal}
-            onClose={() => setShowLoginModal(false)}
-          />
+      {/* 로그인 필요 모달 */}
+      <LoginRequiredModal 
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+
+      {/* 토스트 알림 */}
+      <Toast
+        messages={toastMessages}
+        onRemove={handleRemoveToast}
+        duration={2000}
+      />
     </div>
   );
 }

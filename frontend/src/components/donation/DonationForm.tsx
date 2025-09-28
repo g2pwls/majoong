@@ -80,7 +80,7 @@ export default function DonationForm({
       />
 
       {/* 기부하기 버튼 */}
-      <div className="pt-4">
+      <div className="pt-2">
         <Button
           onClick={onDonateClick}
           className="w-full h-12 bg-green-500 hover:bg-green-600 text-white text-xl font-semibold"

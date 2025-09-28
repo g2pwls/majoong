@@ -62,7 +62,7 @@ export default function LoginPage() {
         <div className="max-w-md w-full space-y-4">
           <div className="text-center">
             <h2 className="text-2xl font-extrabold text-white" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
-              로그인
+              마중
             </h2>
             <p className="mt-1 text-sm text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
               카카오톡으로 간편하게 로그인하세요
@@ -102,7 +102,7 @@ export default function LoginPage() {
                   <>
                     <Image
                       src="/kakao_logo.png"
-                      alt="카카오톡 아이콘콘"
+                      alt="카카오톡 아이콘"
                       width={20}
                       height={20}
                       className="mr-2"

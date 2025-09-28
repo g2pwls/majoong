@@ -175,42 +175,54 @@ function KakaoPayApproveContent() {
           <>
             <div className="text-green-500 text-6xl mb-4">✓</div>
             <h2 className="text-xl font-semibold text-gray-900 mb-2">기부 완료!</h2>
-            <p className="text-gray-600 mb-4">{message}</p>
+            <p className="text-gray-600 mb-2">{message}</p>
             
             {showHorseSelection && horses.length > 0 ? (
-              <div className="mt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="mt-2">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   컬렉션에 추가할 말을 선택해주세요
                 </h3>
-                <div className="grid grid-cols-1 gap-3 max-h-96 overflow-y-auto p-2">
+                <div className="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
                   {horses.map((horse, index) => (
                     <Card 
                       key={index} 
-                      className={`cursor-pointer transition-all ${
+                      className={`cursor-pointer transition-all relative overflow-hidden ${
                         selectedHorse?.horseNumber === horse.horseNumber 
-                          ? 'border-2 border-blue-500 bg-blue-50' 
+                          ? 'border-2 border-blue-500' 
                           : 'hover:shadow-md border-2 border-transparent'
                       }`}
                       onClick={() => handleHorseSelect(horse)}
+                      style={{ padding: 0, margin: 0 }}
                     >
-                      <CardContent className="p-3">
-                        <div className="flex items-center space-x-3">
-                          <div className="relative w-12 h-12 flex-shrink-0">
+                      <CardContent className="p-0">
+                        <div className="flex flex-col">
+                          <div className="relative w-full h-48 overflow-hidden">
                             <Image
                               src={horse.profileImage || '/horses/default.jpg'}
                               alt={horse.horseName || '말'}
                               fill
-                              className="object-cover rounded-full"
+                              className="object-cover rounded-t-lg"
+                              style={{ 
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%'
+                              }}
                             />
+                            {selectedHorse?.horseNumber === horse.horseNumber && (
+                              <div className="absolute top-2 right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
                           </div>
-                          <div className="flex-1 text-left">
-                            <h4 className="font-semibold text-gray-900">{horse.horseName}</h4>
-                            <p className="text-sm text-gray-600">{horse.breed} • {horse.gender}</p>
+                          <div className="p-2 text-center">
+                            <h4 className="font-semibold text-gray-900 text-sm">{horse.horseName}</h4>
+                            <p className="text-xs text-gray-600">{horse.breed} • {horse.gender}</p>
                             <p className="text-xs text-gray-500">출생일: {horse.birth}</p>
                           </div>
-                          {selectedHorse?.horseNumber === horse.horseNumber && (
-                            <div className="text-blue-500">✓</div>
-                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -286,7 +298,6 @@ function KakaoPayApproveContent() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <div className="text-center">
-              <div className="text-green-500 text-6xl mb-4">✓</div>
               <h2 className="text-xl font-semibold text-gray-900 mb-2">컬렉션에 저장되었습니다!</h2>
               <p className="text-gray-600 mb-6">
                 선택한 말이 컬렉션에 추가되었습니다.<br />
