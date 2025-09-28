@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getFarms, getHorses, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
 import { isDonator, isFarmer, getUserRole, isGuest } from "@/services/authService";
+import { getFavoriteFarms } from "@/services/userService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -146,7 +147,7 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#228C22] hover:bg-[#1fad1f] min-w-[120px] text-sm sm:text-base items-center justify-center"
+                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#2ca82c] hover:bg-[#30ba30] min-w-[120px] text-sm sm:text-base items-center justify-center"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -371,13 +372,31 @@ export default function SupportPage() {
           setFarms(withHorses);
           setHorses(horseList);
           
-          // localStorage에서 즐겨찾기 상태를 읽어와서 farms 배열에 반영
-          const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
-          if (bookmarkedFarms.length > 0) {
-            setFarms(prev => prev.map(farm => ({
-              ...farm,
-              bookmarked: bookmarkedFarms.includes(farm.id)
-            })));
+          // 기부자인 경우 서버에서 실제 즐겨찾기 상태를 가져와서 farms 배열에 반영
+          if (isDonator()) {
+            try {
+              const favoriteResponse = await getFavoriteFarms();
+              if (favoriteResponse.isSuccess && favoriteResponse.result) {
+                const bookmarkedFarmUuids = favoriteResponse.result.map(farm => farm.farmUuid);
+                setFarms(prev => prev.map(farm => ({
+                  ...farm,
+                  bookmarked: bookmarkedFarmUuids.includes(farm.id)
+                })));
+                
+                // localStorage도 서버 상태와 동기화
+                localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarmUuids));
+              }
+            } catch (error) {
+              console.error('즐겨찾기 상태 조회 실패:', error);
+              // 서버 조회 실패 시 localStorage에서 읽어오기 (fallback)
+              const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+              if (bookmarkedFarms.length > 0) {
+                setFarms(prev => prev.map(farm => ({
+                  ...farm,
+                  bookmarked: bookmarkedFarms.includes(farm.id)
+                })));
+              }
+            }
           }
         }
       } catch (e) {

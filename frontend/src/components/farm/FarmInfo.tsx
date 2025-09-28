@@ -69,11 +69,11 @@ export default function FarmInfo({
           {/* 즐겨찾기 버튼 */}
           {isDonator() && farm_uuid && onBookmarkToggle && (
             <button 
-              className={`rounded-full border p-1 transition-colors ${
+              className={`rounded-full border p-1 transition-colors cursor-pointer ${
                 isBookmarked 
                   ? 'border-yellow-400 bg-yellow-50' 
                   : 'border-gray-300 hover:border-yellow-400'
-              } ${bookmarkLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
+              } ${bookmarkLoading ? 'opacity-50' : ''}`} 
               aria-label={isBookmarked ? "즐겨찾기 해제" : "즐겨찾기 추가"}
               onClick={handleBookmarkClick}
               disabled={bookmarkLoading}
