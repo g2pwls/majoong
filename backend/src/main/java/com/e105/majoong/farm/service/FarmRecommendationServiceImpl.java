@@ -13,6 +13,7 @@ import com.e105.majoong.farm.dto.out.RecentStateDto;
 import com.e105.majoong.farm.util.FarmCacheUtil;
 import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,7 +103,10 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
                     .filter(farm -> last.getOrDefault(farm.getFarmUuid(), 0L) <= cutoff)
                     .toList();
             if (eligible.isEmpty()) {
-                eligible = pool;
+                eligible = pool.stream()
+                        .sorted(Comparator.comparingLong(f -> last.getOrDefault(f.getFarmUuid(), 0L)))
+                        .limit(1)
+                        .toList();
             }
 
             double maxLogit = 0.0; // 후보 농장 점수 중 최대값
