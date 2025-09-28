@@ -357,6 +357,11 @@ export default function SupportPage() {
           })
         ]);
 
+        // API 응답 콘솔 로그
+        console.log('=== Support 페이지 API 응답 ===');
+        console.log('농장 목록 API 응답:', farmListResponse);
+        console.log('말 목록 API 응답:', horseListResponse);
+
         const farmList = farmListResponse.content || [];
         const horseList = horseListResponse.content || [];
 
@@ -471,10 +476,19 @@ export default function SupportPage() {
     if (sort === "recommended") {
       farmArr.sort((a, b) => b.total_score - a.total_score);
       horseArr.sort((a, b) => (b.horse.amt || 0) - (a.horse.amt || 0));
-    }
-    if (sort === "latest") {
-      farmArr.sort((a, b) => b.id.localeCompare(a.id));
-      horseArr.sort((a, b) => b.horse.id - a.horse.id);
+    } else if (sort === "latest") {
+      // 최신순: created_at 기준으로 내림차순 정렬 (최신이 먼저)
+      farmArr.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+      // 말 목록도 농장의 created_at 기준으로 정렬
+      horseArr.sort((a, b) => {
+        const dateA = new Date(a.farm.created_at || 0).getTime();
+        const dateB = new Date(b.farm.created_at || 0).getTime();
+        return dateB - dateA;
+      });
     }
     
     // 페이지네이션 계산
