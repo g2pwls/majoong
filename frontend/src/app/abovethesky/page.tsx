@@ -25,11 +25,12 @@ export default function AboveTheSkyPage() {
         isLoaded ? 'opacity-100' : 'opacity-0'
       }`}>
         <div className="text-center text-white z-10 max-w-4xl mx-auto px-4">
-          <h1 className="text-6xl md:text-8xl font-bold mb-6 text-shadow-lg">
+          {/* <h1 className="text-6xl md:text-8xl font-bold mb-6 text-shadow-lg">
             Above The Sky
-          </h1>
+          </h1> */}
           <p className="text-xl md:text-2xl mb-8 text-shadow-md opacity-90">
-            퇴역마의 새로운 시작을 함께 응원해주세요
+            이제는 자유롭게 달릴 시간 <br />
+            퇴역마의 새로운 시작을 마중합니다
           </p>
         </div>
       </div>

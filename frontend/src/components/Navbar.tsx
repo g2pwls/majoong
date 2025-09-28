@@ -148,13 +148,13 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-white/80 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b bg-[white/80] backdrop-blur">
       <nav className="mx-auto flex max-w-6xl items-center justify-between py-4 px-4 sm:px-6 lg:px-8">
         {/* Left: logo + nav */}
         <div className="flex items-center gap-6">
           <Link 
             href={userRole === 'FARMER' ? '/dashboard' : userRole === 'DONATOR' ? '/donator' : '/'} 
-            className="flex items-center gap-2 font-bold text-xl"
+            className="flex items-center gap-2 font-bold text-xl text-black"
           >
             <Image 
               src="/logo.png" 
@@ -167,20 +167,20 @@ export default function Navbar() {
           </Link>
 
           <ul className="hidden gap-5 sm:flex">
-            <li><Link href="/about" className="text-sm hover:opacity-70">소개</Link></li>
-            <li><Link href="/support" className="text-sm hover:opacity-70">
+            <li><Link href="/about" className="text-sm font-bold text-black hover:opacity-70">소개</Link></li>
+            <li><Link href="/support" className="text-sm font-bold text-black hover:opacity-70">
               {userRole === 'FARMER' ? '전체목장' : '목장후원'}
             </Link></li>
             {userRole === 'FARMER' && (
               <>
-                <li><button onClick={handleMyFarmClick} className="text-sm hover:opacity-70 cursor-pointer">나의목장</button></li>
-                <li><Link href="/mypage" className="text-sm hover:opacity-70">마이페이지</Link></li>
+                <li><button onClick={handleMyFarmClick} className="text-sm font-bold text-black hover:opacity-70 cursor-pointer">나의목장</button></li>
+                <li><Link href="/mypage" className="text-sm font-bold text-black hover:opacity-70">마이페이지</Link></li>
               </>
             )}
             {userRole !== 'FARMER' && (
               <>
-                <li><Link href="/godonate" className="text-sm hover:opacity-70">바로기부</Link></li>
-                <li><Link href="/mypage" className="text-sm hover:opacity-70">마이페이지</Link></li>
+                <li><Link href="/godonate" className="text-sm font-bold text-black hover:opacity-70">바로기부</Link></li>
+                <li><Link href="/mypage" className="text-sm font-bold text-black hover:opacity-70">마이페이지</Link></li>
               </>
             )}
           </ul>
@@ -192,13 +192,13 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 href="/mypage"
-                className="text-sm text-gray-600 hover:text-blue-600 hover:underline hover:font-semibold cursor-pointer transition-all duration-200"
+                className="text-sm text-black hover:font-semibold cursor-pointer transition-all duration-200"
               >
                 {userName ? `${userName}님` : ''}
               </Link>
               <button
                 onClick={handleLogout}
-                className="rounded border px-4 py-1 text-sm hover:bg-gray-50"
+                className="rounded border px-4 py-1 text-sm text-black hover:bg-gray-50"
               >
                 로그아웃
               </button>
@@ -206,7 +206,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/login"
-              className="rounded border px-4 py-1 text-sm hover:bg-gray-50"
+              className="rounded border px-4 py-1 text-sm text-black hover:bg-gray-50"
             >
               로그인
             </Link>
@@ -230,26 +230,26 @@ export default function Navbar() {
       {open && (
         <div className="sm:hidden border-t bg-white">
           <ul className="px-4 my-2 flex flex-col gap-2 py-2">
-            <li><Link href="/about" onClick={() => setOpen(false)}>소개</Link></li>
-            <li><Link href="/support" onClick={() => setOpen(false)}>
+            <li><Link href="/about" onClick={() => setOpen(false)} className="font-bold text-black">소개</Link></li>
+            <li><Link href="/support" onClick={() => setOpen(false)} className="font-bold text-black">
               {userRole === 'FARMER' ? '전체목장' : '목장후원'}
             </Link></li>
             {userRole === 'FARMER' && (
               <>
-                <li><button onClick={(e) => { handleMyFarmClick(e); setOpen(false); }} className="text-left w-full">나의목장</button></li>
-                <li><Link href="/mypage" onClick={() => setOpen(false)}>마이페이지</Link></li>
+                <li><button onClick={(e) => { handleMyFarmClick(e); setOpen(false); }} className="text-left w-full font-bold text-black">나의목장</button></li>
+                <li><Link href="/mypage" onClick={() => setOpen(false)} className="font-bold text-black">마이페이지</Link></li>
               </>
             )}
             {userRole !== 'FARMER' && (
               <>
-                <li><Link href="/godonate" onClick={() => setOpen(false)}>바로기부</Link></li>
-                <li><Link href="/mypage" onClick={() => setOpen(false)}>마이페이지</Link></li>
+                <li><Link href="/godonate" onClick={() => setOpen(false)} className="font-bold text-black">바로기부</Link></li>
+                <li><Link href="/mypage" onClick={() => setOpen(false)} className="font-bold text-black">마이페이지</Link></li>
               </>
             )}
             <li className="pt-2">
               {isLoggedIn ? (
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm text-black">
                     {userName ? `${userName}님` : ''}
                   </span>
                   <button
@@ -257,7 +257,7 @@ export default function Navbar() {
                       handleLogout();
                       setOpen(false);
                     }}
-                    className="rounded border px-4 py-1 text-sm"
+                    className="rounded border px-4 py-1 text-sm text-black"
                   >
                     로그아웃
                   </button>
@@ -265,7 +265,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="block w-full text-center rounded border px-4 py-2"
+                  className="block w-full text-center rounded border px-4 py-2 text-black"
                   onClick={() => setOpen(false)}
                 >
                   로그인
@@ -305,7 +305,10 @@ export default function Navbar() {
                     setShowFarmRegistrationModal(false);
                     router.push('/farm/register');
                   }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-white rounded-md transition-colors"
+                  style={{ backgroundColor: '#4D3A2C' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
                 >
                   목장 등록
                 </button>

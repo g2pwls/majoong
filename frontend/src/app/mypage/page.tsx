@@ -119,7 +119,7 @@ function MyPageContent() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderBottomColor: '#4D3A2C' }}></div>
       </div>
     );
   }
@@ -154,9 +154,10 @@ function MyPageContent() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'text-gray-500'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
+                style={activeTab === tab.id ? { borderBottomColor: '#4D3A2C', color: '#4D3A2C' } : {}}
               >
                 {tab.label}
               </button>
@@ -187,7 +188,7 @@ export default function MyPage() {
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
           <p className="text-gray-600">마이페이지를 불러오는 중...</p>
         </div>
       </div>

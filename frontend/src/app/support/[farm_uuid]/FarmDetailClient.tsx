@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import FarmInfo from "@/components/farm/FarmInfo";
@@ -145,7 +144,10 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
         {!isFarmer() && (
           <button
             onClick={() => window.location.href = `/support/${farm_uuid}/donate`}
-            className="lg:hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            className="lg:hidden text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            style={{ backgroundColor: '#4D3A2C' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
           >
             기부하기
           </button>

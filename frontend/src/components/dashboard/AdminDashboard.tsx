@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
 import { FarmService } from "@/services/farmService";
 import { getFarmerDonationHistory } from "@/services/userService";
-import { ScoreHistory, DonationUsageResponse, MonthlyDonationUsed, ReceiptHistory, Farm } from "@/types/farm";
+import { ScoreHistory, DonationUsageResponse, MonthlyDonationUsed, ReceiptHistory } from "@/types/farm";
 import { VaultHistoryDto } from "@/types/user";
 
 interface AdminDashboardProps {
@@ -675,7 +675,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ farmData }) => {
                        />
                        <Bar 
                          dataKey="amount" 
-                         fill="#10B981" 
+                         fill="#2563EB" 
                          radius={[4, 4, 0, 0]}
                          className="hover:opacity-80 transition-opacity"
                        />

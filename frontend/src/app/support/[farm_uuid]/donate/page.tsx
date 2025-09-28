@@ -6,9 +6,9 @@ import { getFarmDetail, FarmDetail } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
 import { getTokens } from "@/services/authService";
 import DonationSection from "@/components/donation/DonationSection";
-import Flipper from "@/components/ui/Flipper";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import LoginRequiredModal from "@/components/donation/LoginRequiredModal";
+import Image from "next/image";
 
 // FarmData 인터페이스는 apiService의 Farm 인터페이스를 사용
 
@@ -199,7 +199,10 @@ export default function DonatePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
+          <div className="text-lg text-gray-600">목장 정보를 불러오는 중...</div>
+        </div>
       </div>
     );
   }
@@ -215,7 +218,7 @@ export default function DonatePage() {
   return (
     <div>
       {/* 메인 컨텐츠 */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-15">
         {/* 브레드크럼 */}
         <div className="pt-4 pb-3">
           <Breadcrumbs items={[
@@ -226,27 +229,63 @@ export default function DonatePage() {
         </div>
 
         <div className="mb-6 flex flex-row">
-          <div className="flex items-centermb-4 flex flex-col">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">기부하기</h1>
-            <div className="w-29 h-0.2 bg-gray-300"></div>
-                </div>
-              </div>
-              
-        {/* 목장 정보와 후원 정보 섹션 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* 목장 정보 - Flipper 컴포넌트 */}
-          <div className="flex justify-center">
-            <Flipper 
-              cards={[{
-                id: farmDetail.farmUuid,
-                title: farmDetail.farmName,
-                score: `${farmDetail.totalScore.toFixed(1)}°C`,
-                image: farmDetail.profileImage,
-                backDescription: farmDetail.description,
-                backAddress: farmDetail.address
-              }]}
-            />
+          <div className="flex items-center mb-4 flex flex-col">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">기부하기</h1>
+            <div className="w-29 h-0.5 bg-gray-300"></div>
           </div>
+        </div>
+              
+         {/* 목장 정보와 후원 정보 섹션 */}
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+           {/* 목장 정보 섹션 */}
+           <div className="space-y-6">
+             {/* 목장 정보 헤더 */}
+             <div className="flex justify-between items-center">
+               <h2 className="text-xl font-semibold text-gray-900">목장 정보</h2>
+             </div>
+
+             {/* 목장 사진 카드 */}
+             <div className="relative mx-4">
+               <div 
+                 className="relative h-64 w-full rounded-lg overflow-hidden shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                 onClick={() => router.push(`/support/${farmDetail.farmUuid}`)}
+               >
+                 <Image
+                   src={farmDetail.profileImage}
+                   alt={farmDetail.farmName}
+                   fill
+                   className="object-cover transition-transform duration-300 hover:scale-105"
+                   sizes="(max-width: 768px) 100vw, 50vw"
+                 />
+                 {/* 신뢰도 점수 오버레이 - 왼쪽 상단 */}
+                 <div className="absolute top-4 left-4 bg-black/70 text-yellow-400 px-3 py-2 rounded-full text-sm font-semibold">
+                   {farmDetail.totalScore.toFixed(1)}℃
+                 </div>
+                 {/* 목장명 오버레이 - 왼쪽 하단 */}
+                 <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-2 rounded-lg text-lg font-semibold">
+                   {farmDetail.farmName}
+                 </div>
+               </div>
+             </div>
+
+             {/* 목장 설명 카드 - 바로기부 페이지 스타일 */}
+             <div className="mt-[-1rem] mx-4 p-4 bg-white/95 rounded-lg shadow-lg min-h-[6rem]">
+               {/* 주소 */}
+               <div className="flex items-start gap-2 mb-3">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#666" className="mt-0.5 flex-shrink-0">
+                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                 </svg>
+                 <span className="text-gray-600 text-sm">{farmDetail.address}</span>
+               </div>
+               
+               {/* 목장 설명 */}
+               {farmDetail.description && (
+                 <div className="text-gray-700 text-sm leading-relaxed">
+                   {farmDetail.description}
+                 </div>
+               )}
+             </div>
+           </div>
 
           {/* 후원 정보 섹션 */}
           <DonationSection

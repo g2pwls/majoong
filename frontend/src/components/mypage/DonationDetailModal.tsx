@@ -98,7 +98,7 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
         <div className="flex-1 overflow-y-auto p-6">
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderBottomColor: '#4D3A2C' }}></div>
               <span className="ml-2 text-gray-600">로딩 중...</span>
             </div>
           ) : error ? (
@@ -110,7 +110,10 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
               <p className="mt-1 text-sm text-gray-500">{error}</p>
               <button 
                 onClick={fetchDonationDetail}
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+                className="mt-4 text-white px-4 py-2 rounded-md text-sm transition-colors"
+                style={{ backgroundColor: '#4D3A2C' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
               >
                 다시 시도
               </button>
@@ -159,12 +162,25 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                 <div className="border-t border-gray-200 pt-6">
                   <label className="block text-sm font-semibold text-gray-700 mb-1">내 지갑 주소</label>
                   <div className="flex items-center space-x-2">
-                    <p className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer">
+                    <p 
+                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border transition-colors cursor-pointer"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#D3CAB8';
+                        e.currentTarget.style.borderColor = '#4D3A2C';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb';
+                        e.currentTarget.style.borderColor = '#d1d5db';
+                      }}
+                    >
                       {donationDetail.donatorWalletAddress}
                     </p>
                     <button
                       onClick={() => copyToClipboard(donationDetail.donatorWalletAddress)}
-                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                      className="flex-shrink-0"
+                      style={{ color: '#4D3A2C' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
                       title="복사"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -185,13 +201,24 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                         href={`https://sepolia.etherscan.io/token/0x7d961fee8b404296a45e141874feb1ca955ef816?a=${donationDetail.farmVaultAdrress}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                        className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border transition-colors cursor-pointer"
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#D3CAB8';
+                          e.currentTarget.style.borderColor = '#4D3A2C';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f9fafb';
+                          e.currentTarget.style.borderColor = '#d1d5db';
+                        }}
                       >
                         {donationDetail.farmVaultAdrress}
                       </a>
                       <button
                         onClick={() => copyToClipboard(donationDetail.farmVaultAdrress)}
-                        className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                        className="flex-shrink-0"
+                        style={{ color: '#4D3A2C' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
                         title="복사"
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -212,13 +239,24 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                       href={`https://sepolia.etherscan.io/tx/${donationDetail.txHash}#eventlog`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border transition-colors cursor-pointer"
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#D3CAB8';
+                        e.currentTarget.style.borderColor = '#4D3A2C';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb';
+                        e.currentTarget.style.borderColor = '#d1d5db';
+                      }}
                     >
                       {donationDetail.txHash}
                     </a>
                     <button
                       onClick={() => copyToClipboard(donationDetail.txHash)}
-                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                      className="flex-shrink-0"
+                      style={{ color: '#4D3A2C' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
                       title="복사"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -233,18 +271,18 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
               </div>
 
               {/* 안내 메시지 */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#D3CAB8', border: '1px solid #4D3A2C' }}>
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5" style={{ color: '#4D3A2C' }} viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-blue-800">
+                    <h3 className="text-sm font-medium" style={{ color: '#4D3A2C' }}>
                       기부 정보 안내
                     </h3>
-                    <div className="mt-2 text-sm text-blue-700">
+                    <div className="mt-2 text-sm" style={{ color: '#6B4E3D' }}>
                       <p>이 기부는 블록체인에 기록되었으며, MARON 토큰으로 지급되었습니다. (1 MARON = 100원)</p>
                     </div>
                   </div>

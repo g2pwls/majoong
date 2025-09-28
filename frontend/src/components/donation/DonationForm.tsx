@@ -83,7 +83,10 @@ export default function DonationForm({
       <div className="pt-2">
         <Button
           onClick={onDonateClick}
-          className="w-full h-12 bg-green-500 hover:bg-green-600 text-white text-xl font-semibold"
+          className="w-full h-12 text-white text-xl font-semibold"
+          style={{ backgroundColor: '#91745A' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7d6149'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#91745A'}
           disabled={selectedAmount <= 0 || !selectedFarm}
         >
           기부하기

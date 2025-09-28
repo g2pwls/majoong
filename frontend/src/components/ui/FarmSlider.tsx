@@ -397,8 +397,8 @@ const FarmSlider = ({ farms, selectedFarm, onFarmSelect }: FarmSliderProps) => {
         }
 
         .slide.selected{
-          border: 3px solid #3b82f6;
-          box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+          border: 3px solid #4D3A2C;
+          box-shadow: 0 0 0 2px rgba(77, 58, 44, 0.3);
         }
 
         .check-icon{
@@ -418,8 +418,8 @@ const FarmSlider = ({ farms, selectedFarm, onFarmSelect }: FarmSliderProps) => {
         }
 
         .check-icon.selected {
-          background: #3b82f6;
-          border-color: #3b82f6;
+          background: #4D3A2C;
+          border-color: #4D3A2C;
         }
 
         .check-icon svg{

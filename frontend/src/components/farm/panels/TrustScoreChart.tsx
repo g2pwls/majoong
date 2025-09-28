@@ -15,8 +15,6 @@ interface TrustScoreChartProps {
 
 // 점수에 따른 색상 결정
 const getScoreColor = (score: number) => {
-  if (score >= 80) return "text-green-600";
-  if (score >= 60) return "text-yellow-600";
   return "text-red-600";
 };
 
@@ -78,7 +76,7 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
           </div>
           <div className="flex items-center gap-2">
             <p className="text-sm text-gray-500">현재 신뢰도</p>
-            <p className={`text-2xl font-bold ${getScoreColor(currentScore)}`}>
+            <p className={`text-2xl font-bold text-red-500 ${getScoreColor(currentScore)}`}>
               {currentScore.toFixed(1)}점
             </p>
           </div>
@@ -131,17 +129,17 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
                   />
                   <ReferenceLine 
                     y={38} 
-                    stroke="#ef4444" 
+                    stroke="#7B6A53" 
                     strokeDasharray="5 5" 
                     strokeWidth={2}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="score" 
-                    stroke="#3B82F6" 
+                    stroke="#7B6A53" 
                     strokeWidth={3}
-                    dot={{ fill: '#3B82F6', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#3B82F6', strokeWidth: 2 }}
+                    dot={{ fill: '#7B6A53', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#7B6A53', strokeWidth: 2 }}
                     connectNulls={false}
                   />
                 </LineChart>

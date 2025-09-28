@@ -242,7 +242,16 @@ export default function FarmerMyFarm() {
                     type="text"
                     value={editedInfo.name}
                     onChange={(e) => setEditedInfo(prev => ({ ...prev, name: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ '--focus-ring': '#4D3A2C' } as React.CSSProperties}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#4D3A2C';
+                      e.currentTarget.style.boxShadow = '0 0 0 2px rgba(77, 58, 44, 0.2)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                     placeholder="목장명을 입력하세요"
                   />
                 ) : (
@@ -257,7 +266,14 @@ export default function FarmerMyFarm() {
                 {!isEditing && (
                   <button
                     onClick={() => router.push(`/support/${myFarmData?.farmUuid}`)}
-                    className="px-3 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors text-sm"
+                    className="px-3 py-2 border rounded-md transition-colors text-sm"
+                    style={{ 
+                      borderColor: '#4D3A2C', 
+                      color: '#4D3A2C',
+                      '--hover-bg': '#D3CAB8'
+                    } as React.CSSProperties}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#D3CAB8'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     내 목장 가기
                   </button>
@@ -343,7 +359,16 @@ export default function FarmerMyFarm() {
                     onChange={(e) => handlePhoneNumberChange(e.target.value)}
                     placeholder="010-1234-5678"
                     maxLength={13}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:border-transparent"
+                    style={{ '--focus-ring': '#4D3A2C' } as React.CSSProperties}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#4D3A2C';
+                      e.currentTarget.style.boxShadow = '0 0 0 2px rgba(77, 58, 44, 0.2)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   />
                 ) : (
                   <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-900">
@@ -364,7 +389,16 @@ export default function FarmerMyFarm() {
                     value={editedInfo.description}
                     onChange={(e) => setEditedInfo(prev => ({ ...prev, description: e.target.value }))}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:border-transparent resize-none"
+                    style={{ '--focus-ring': '#4D3A2C' } as React.CSSProperties}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor = '#4D3A2C';
+                      e.currentTarget.style.boxShadow = '0 0 0 2px rgba(77, 58, 44, 0.2)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                     placeholder="목장에 대한 설명을 입력하세요"
                   />
                 ) : (
@@ -401,7 +435,10 @@ export default function FarmerMyFarm() {
             <div className="pt-4 flex justify-end">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="px-4 py-2 text-white rounded-md transition-colors"
+                  style={{ backgroundColor: '#4D3A2C' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
                 >
                   정보 수정
                 </button>
@@ -417,8 +454,19 @@ export default function FarmerMyFarm() {
                   className={`px-4 py-2 text-white rounded-md transition-colors flex items-center ${
                     isSaving
                       ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      : ''
                   }`}
+                  style={!isSaving ? { backgroundColor: '#4D3A2C' } : {}}
+                  onMouseEnter={(e) => {
+                    if (!isSaving) {
+                      e.currentTarget.style.backgroundColor = '#3d2f24';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSaving) {
+                      e.currentTarget.style.backgroundColor = '#4D3A2C';
+                    }
+                  }}
                 >
                   {isSaving ? (
                     <>
@@ -441,18 +489,18 @@ export default function FarmerMyFarm() {
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+      <div className="mt-8 p-4 rounded-lg" style={{ backgroundColor: '#D3CAB8' }}>
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="h-5 w-5" style={{ color: '#4D3A2C' }} viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium" style={{ color: '#4D3A2C' }}>
               목장 관리 안내
             </h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <div className="mt-2 text-sm" style={{ color: '#6B4E3D' }}>
               <p>목장명과 설명은 언제든지 수정할 수 있습니다. 정확한 정보를 제공하여 후원자들이 목장을 더 잘 이해할 수 있도록 도와주세요.</p>
             </div>
           </div>

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Breadcrumbs from "@/components/common/Breadcrumb";
-import { Search, Star, MapPin, Users } from "lucide-react";
+import { Search, Star, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,14 +26,14 @@ const SearchTypeToggle: React.FC<{
   <div className="flex items-center gap-2 rounded-xl border px-2 py-1">
     <button
       onClick={() => onChange("farm")}
-      className={`px-3 py-1 rounded-lg text-sm transition ${value === "farm" ? "bg-black text-white" : "hover:bg-muted"}`}
+      className={`px-3 py-1 rounded-lg text-sm transition ${value === "farm" ? "bg-[#4D3A2C] text-white" : "hover:bg-muted"}`}
       aria-pressed={value === "farm"}
     >
       목장이름
     </button>
     <button
       onClick={() => onChange("horse")}
-      className={`px-3 py-1 rounded-lg text-sm transition ${value === "horse" ? "bg-black text-white" : "hover:bg-muted"}`}
+      className={`px-3 py-1 rounded-lg text-sm transition ${value === "horse" ? "bg-[#4D3A2C] text-white" : "hover:bg-muted"}`}
       aria-pressed={value === "horse"}
     >
       마명
@@ -91,7 +91,7 @@ const FarmCard: React.FC<{
                   <div className="flex items-center gap-2">
                     {rank && (
                       <div className="flex items-center gap-1">
-                        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                        <div className="text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm" style={{ backgroundColor: '#4D3A2C' }}>
                           {rank}위
                         </div>
                       </div>
@@ -121,7 +121,7 @@ const FarmCard: React.FC<{
                   {/* 모바일에서 기부하기 버튼을 여기에 배치 */}
                   {!isFarmer() && (
                     <Button 
-                      className="lg:hidden whitespace-nowrap bg-red-500 hover:bg-red-600 text-sm sm:text-sm px-3 py-1.5"
+                      className="lg:hidden whitespace-nowrap bg-[#91745A] hover:bg-[#91745A] text-sm sm:text-sm px-3 py-1.5"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -147,7 +147,10 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#2ca82c] hover:bg-[#30ba30] min-w-[120px] text-sm sm:text-base items-center justify-center"
+                    className="hidden lg:flex ml-2 whitespace-nowrap min-w-[120px] text-sm sm:text-base items-center justify-center text-white"
+                    style={{ backgroundColor: '#91745A' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7d6149'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#91745A'}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -195,8 +198,8 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ hors
   // 평균 색상 계산 (이미지에서 추출된 색상 사용)
   const getAverageColor = (index: number) => {
     const colors = [
-      '#b0b6a9', '#afa294', '#3c3c3d', '#b47460', 
-      '#60a6ce', '#46666f', '#8e898f', '#8d516e'
+      '#4D3A2C', '#7B6A53', '#91745A', '#D3CAB8', 
+      '#D5BFA8', '#837A5E', '#4D3A2C', '#7B6A53'
     ];
     return colors[index % colors.length];
   };
@@ -562,7 +565,7 @@ export default function SupportPage() {
           {loading && (
             <div className="rounded-2xl border bg-white p-8 text-center">
               <div className="flex flex-col items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
                 <div className="text-sm text-muted-foreground">불러오는 중…</div>
               </div>
             </div>
