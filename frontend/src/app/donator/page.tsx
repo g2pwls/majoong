@@ -21,6 +21,7 @@ import { isDonator } from "@/services/authService";
 import { FavoriteFarmsResponse } from "@/types/user";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReport } from "@/types/farm";
+import { getCollection } from "@/services/collectionService";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -61,6 +62,7 @@ export default function DonatorPage() {
   const [favoriteFarms, setFavoriteFarms] = useState<FavoriteFarm[]>([]);
   const [donationHistory, setDonationHistory] = useState<DonationHistory[]>([]);
   const [farmNewsletters, setFarmNewsletters] = useState<FarmNewsletter[]>([]);
+  const [collectionCount, setCollectionCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,10 +132,11 @@ export default function DonatorPage() {
         setLoading(true);
         setError(null);
 
-        const [donatorResponse, favoritesResponse, donationsResponse] = await Promise.all([
+        const [donatorResponse, favoritesResponse, donationsResponse, collectionsResponse] = await Promise.all([
           getDonatorInfo(),
           getFavoriteFarms(),
-          getDonationHistory({ page: 0, size: 10 })
+          getDonationHistory({ page: 0, size: 10 }),
+          getCollection()
         ]);
 
         if (donatorResponse.isSuccess) {
@@ -151,6 +154,10 @@ export default function DonatorPage() {
         if (donationsResponse.isSuccess) {
           setDonationHistory(donationsResponse.result.donationHistory.content);
         }
+
+        // 컬렉션 총 카드 수 계산
+        const totalCards = collectionsResponse.reduce((sum, item) => sum + item.cardCount, 0);
+        setCollectionCount(totalCards);
       } catch (err) {
         console.error('데이터 로드 실패:', err);
         setError('데이터를 불러오는 중 오류가 발생했습니다.');
@@ -166,7 +173,7 @@ export default function DonatorPage() {
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
       currency: 'KRW'
-    }).format(amount);
+    }).format(amount * 100);
   };
 
   const formatDate = (dateString: string) => {
@@ -283,9 +290,9 @@ export default function DonatorPage() {
                   <Star className="h-6 w-6 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">즐겨찾기 목장</p>
+                  <p className="text-sm font-medium text-gray-600">컬렉션 개수</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {favoriteFarms.length}개
+                    {collectionCount}개
                   </p>
                 </div>
               </div>

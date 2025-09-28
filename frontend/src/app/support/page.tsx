@@ -28,7 +28,7 @@ const SearchTypeToggle: React.FC<{
       className={`px-3 py-1 rounded-lg text-sm transition ${value === "farm" ? "bg-black text-white" : "hover:bg-muted"}`}
       aria-pressed={value === "farm"}
     >
-      농장이름
+      목장이름
     </button>
     <button
       onClick={() => onChange("horse")}
@@ -127,9 +127,9 @@ const FarmCard: React.FC<{
                     <span className="break-words">{farm.address}</span>
                 </p>
                 <p className="text-sm text-muted-foreground"> 말 {farm.horse_count}두</p>
-                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+                <p className="text-sm text-muted-foreground">목장주: {farm.name}</p>
                 {farm.state && (
-                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+                  <p className="text-sm text-muted-foreground">목장 상태: {farm.state}</p>
                 )}
               </div>
 
@@ -497,7 +497,7 @@ export default function SupportPage() {
               <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="w-[182px] sm:w-[200px] pl-8 h-9 text-sm"
-                placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
+                placeholder={searchType === "farm" ? "목장이름 검색" : "마명 검색"}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
               />
