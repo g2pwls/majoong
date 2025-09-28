@@ -96,6 +96,22 @@ export default function CardAnimation() {
       if (window.gsap) {
         const gsap = window.gsap;
         
+        // 화면 크기에 따른 카드 위치 계산
+        const getCardPosition = () => {
+          const width = window.innerWidth;
+          if (width <= 480) {
+            return { x: 0, y: 0, scale: 0.9 };
+          } else if (width <= 768) {
+            return { x: 0, y: 0, scale: 0.9 };
+          } else if (width <= 1024) {
+            return { x: 50, y: 20, scale: 0.9 };
+          } else {
+            return { x: 200, y: 40, scale: 1 };
+          }
+        };
+
+        const cardPos = getCardPosition();
+        
         gsap.timeline()
           .set('.logo', { x: 215, y: 482 })
           .set('.chip', { x: 148, y: 66 })
@@ -114,40 +130,67 @@ export default function CardAnimation() {
             stagger: 0.2
           }, 0)
           .fromTo('.card', {
-            x: 200,
-            y: 40,
+            x: cardPos.x,
+            y: cardPos.y,
             transformOrigin: '50% 50%',
             rotation: -4,
             skewX: 10,
             skewY: 4,
-            scale: 2,
+            scale: cardPos.scale * 2,
             opacity: 0
           }, {
             duration: 1.3,
             skewX: 0,
             skewY: 0,
-            scale: 1,
+            scale: cardPos.scale,
             opacity: 1,
             ease: 'power4.inOut'
           }, 0.2)
-          .to('.donation-text-1', { duration: 1, opacity: 1, x: 30, ease: "power2.out" }, 1.5)
-          .to('.donation-text-2', { duration: 1, opacity: 1, x: 30, ease: "power2.out" }, 1.8);
+          .to('.donation-text-1', { duration: 1, opacity: 1, x: 0, ease: "power2.out" }, 1.5)
+          .to('.donation-text-2', { duration: 1, opacity: 1, x: 0, ease: "power2.out" }, 1.8);
 
         function centerMain() {
           gsap.set('.main', { x: '50%', xPercent: -50, y: '50%', yPercent: -50 });
         }
-        window.onresize = centerMain;
+        
+        function handleResize() {
+          centerMain();
+          const newCardPos = getCardPosition();
+          gsap.set('.card', { 
+            x: newCardPos.x, 
+            y: newCardPos.y,
+            scale: newCardPos.scale
+          });
+        }
+        
+        window.onresize = handleResize;
 
         window.onmousemove = (e) => {
           const winPercent = { x: e.clientX / window.innerWidth, y: e.clientY / window.innerHeight };
           const distFromCenter = 1 - Math.abs((e.clientX - window.innerWidth / 2) / window.innerWidth * 2);
           
+          // 화면 크기에 따른 마우스 반응 강도 조정
+          const getMouseSensitivity = () => {
+            const width = window.innerWidth;
+            if (width <= 480) {
+              return { rotation: 3, bgX: 30, bgY: 10 };
+            } else if (width <= 768) {
+              return { rotation: 5, bgX: 50, bgY: 15 };
+            } else if (width <= 1024) {
+              return { rotation: 7, bgX: 80, bgY: 20 };
+            } else {
+              return { rotation: 9, bgX: 100, bgY: 20 };
+            }
+          };
+
+          const sensitivity = getMouseSensitivity();
+          
           gsap.timeline({ defaults: { duration: 0.5, overwrite: 'auto' } })
-            .to('.card', { rotation: -7 + 9 * winPercent.x }, 0)
+            .to('.card', { rotation: -7 + sensitivity.rotation * winPercent.x }, 0)
             .to('.fillLight', { opacity: distFromCenter }, 0)
-            .to('.bg', { x: 100 - 200 * winPercent.x, y: 20 - 40 * winPercent.y }, 0)
-            .to('.donation-text-1', { opacity: 1, x: 30, duration: 1, ease: "power2.out" }, 0)
-            .to('.donation-text-2', { opacity: 1, x: 30, duration: 1, ease: "power2.out" }, 0.2);
+            .to('.bg', { x: sensitivity.bgX - sensitivity.bgX * 2 * winPercent.x, y: sensitivity.bgY - sensitivity.bgY * 2 * winPercent.y }, 0)
+            .to('.donation-text-1', { opacity: 1, x: 0, duration: 1, ease: "power2.out" }, 0)
+            .to('.donation-text-2', { opacity: 1, x: 0, duration: 1, ease: "power2.out" }, 0.2);
         };
       }
     };
@@ -172,6 +215,107 @@ export default function CardAnimation() {
           overflow: hidden;
           font-family: 'Space Mono', monospace;
           letter-spacing: 1.6px;
+          position: relative;
+        }
+        
+        .donation-text {
+          position: absolute;
+          transition: all 0.3s ease;
+        }
+        
+        .donation-text-1 {
+          top: 200px;
+          left: calc(50% - 50px);
+          font-size: 35px;
+          font-weight: bold;
+          color: #ffffff;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+          text-align: start;
+          max-width: 500px;
+          line-height: 1.2;
+          white-space: nowrap;
+        }
+        
+        .donation-text-2 {
+          top: 260px;
+          left: calc(50% - 50px);
+          font-size: 35px;
+          font-weight: bold;
+          color: #ffffff;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+          text-align: start;
+          max-width: 500px;
+          line-height: 1.2;
+          white-space: nowrap;
+        }
+        
+        /* 태블릿 크기 (1024px 이하) */
+        @media (max-width: 1024px) {
+          .donation-text-1 {
+            top: 300px;
+            left: 50%;
+            transform: translateX(30px);
+            font-size: 30px;
+            max-width: 400px;
+            white-space: normal;
+          }
+          
+          .donation-text-2 {
+            top: 360px;
+            left: 50%;
+            transform: translateX(30px);
+            font-size: 30px;
+            max-width: 400px;
+            white-space: normal;
+          }
+        }
+        
+        /* 모바일 크기 (768px 이하) */
+        @media (max-width: 768px) {
+          .donation-text-1 {
+            top: 500px;
+            left: 20px;
+            right: 20px;
+            transform: none;
+            font-size: 24px;
+            max-width: none;
+            text-align: center;
+            white-space: normal;
+          }
+          
+          .donation-text-2 {
+            top: 550px;
+            left: 20px;
+            right: 20px;
+            transform: none;
+            font-size: 24px;
+            max-width: none;
+            text-align: center;
+            white-space: normal;
+          }
+        }
+        
+        /* 작은 모바일 크기 (480px 이하) */
+        @media (max-width: 480px) {
+          .donation-text-1 {
+            top: 560px;
+            left: 10px;
+            right: 10px;
+            transform: none;
+            font-size: 20px;
+            padding: 0 10px;
+            white-space: normal;
+          }
+          
+          .donation-text-2 {
+            top: 610px;
+            left: 10px;
+            right: 10px;
+            transform: none;
+            font-size: 20px;
+            padding: 0 10px;
+            white-space: normal;
+          }
         }
       `}</style>
       
@@ -240,10 +384,15 @@ export default function CardAnimation() {
             </g>
           </g>
           
-          {/* 기부 문구 - 카드 오른쪽 */}
-          <text className="donation-text-1" fill="#ffffff" fontSize="35" x="700" y="200" textAnchor="start" fontWeight="bold" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Roboto', 'Helvetica Neue', Arial, sans-serif">기부할 때마다 나만의 말 카드를 모으는 즐거움</text>
-          <text className="donation-text-2" fill="#ffffff" fontSize="35" x="700" y="260" textAnchor="start" fontWeight="bold" fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', 'Malgun Gothic', 'Apple SD Gothic Neo', 'Roboto', 'Helvetica Neue', Arial, sans-serif">후원할수록 늘어나는 특별한 컬렉션을 만나보세요</text>
         </svg>
+        
+        {/* 기부 문구 - 반응형으로 위치 조정 */}
+        <div className="donation-text donation-text-1">
+          기부할 때마다 나만의 말 카드를 모으는 즐거움
+        </div>
+        <div className="donation-text donation-text-2">
+          후원할수록 늘어나는 특별한 컬렉션을 만나보세요
+        </div>
       </div>
       
     </>
