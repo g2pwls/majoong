@@ -675,7 +675,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ farmData }) => {
                        />
                        <Bar 
                          dataKey="amount" 
-                         fill="#10B981" 
+                         fill="#2563EB" 
                          radius={[4, 4, 0, 0]}
                          className="hover:opacity-80 transition-opacity"
                        />
