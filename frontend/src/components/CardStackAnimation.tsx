@@ -799,7 +799,7 @@ export default function CardStackAnimation() {
                 </div>
                 <div className="card-number">4505 7389 6378 5628</div>
                 <div className="personal-info">
-                  <p>Pack Ji Hyun</p>
+                  <p>Park Ji Hyun</p>
                   <p>07/2027</p>
                 </div>
               </div>
