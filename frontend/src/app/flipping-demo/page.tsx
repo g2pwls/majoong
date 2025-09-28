@@ -1,9 +1,9 @@
-import FlippingDemo from '@/components/ui/FlippingDemo';
+import Flipper from '@/components/ui/Flipper';
 
 export default function FlippingDemoPage() {
   return (
     <div>
-      <FlippingDemo />
+      <Flipper />
     </div>
   );
 }
