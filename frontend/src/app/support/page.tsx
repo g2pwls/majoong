@@ -146,7 +146,7 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#228C22] hover:bg-[#1fad1f] min-w-[120px] text-sm sm:text-base items-center justify-center"
+                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#2ca82c] hover:bg-[#30ba30] min-w-[120px] text-sm sm:text-base items-center justify-center"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
