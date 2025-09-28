@@ -64,6 +64,9 @@ export default function DonatorPage() {
   const [donationHistory, setDonationHistory] = useState<DonationHistory[]>([]);
   const [farmNewsletters, setFarmNewsletters] = useState<FarmNewsletter[]>([]);
   const [collectionCount, setCollectionCount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [totalCoin, setTotalCoin] = useState(0);
+  const [totalDonationCount, setTotalDonationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -154,6 +157,9 @@ export default function DonatorPage() {
 
         if (donationsResponse.isSuccess) {
           setDonationHistory(donationsResponse.result.donationHistory.content);
+          setTotalAmount(donationsResponse.result.totalAmount || 0);
+          setTotalCoin(donationsResponse.result.totalCoin || 0);
+          setTotalDonationCount(donationsResponse.result.donationHistory.totalElements || 0);
         }
 
         // 컬렉션 총 카드 수 계산
@@ -174,7 +180,11 @@ export default function DonatorPage() {
     return new Intl.NumberFormat('ko-KR', {
       style: 'currency',
       currency: 'KRW'
-    }).format(amount * 100);
+    }).format(amount);
+  };
+
+  const formatTotalAmount = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
   const formatDate = (dateString: string) => {
@@ -261,7 +271,7 @@ export default function DonatorPage() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">총 기부금액</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(donationHistory.reduce((sum, donation) => sum + donation.donationToken, 0))}
+                    {formatTotalAmount(totalAmount)}
                   </p>
                 </div>
               </div>
@@ -277,7 +287,7 @@ export default function DonatorPage() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">기부 횟수</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {donationHistory.length}회
+                    {totalDonationCount}회
                   </p>
                 </div>
               </div>

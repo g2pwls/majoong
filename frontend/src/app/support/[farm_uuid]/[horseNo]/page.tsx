@@ -54,6 +54,11 @@ export default function HorseDetailPage({ params }: PageProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  
+  // 목장 정보와 동적 년도 범위
+  const [farmCreatedAt, setFarmCreatedAt] = useState<string | null>(null);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<number[]>([]);
 
   // 말 상세 정보 가져오기 (주간 보고서 포함)
   const fetchHorseDetail = useCallback(async (year: number, month: number) => {
@@ -71,26 +76,76 @@ export default function HorseDetailPage({ params }: PageProps) {
     }
   }, [farm_uuid, horseNo]);
 
-  // 목장 정보 가져오기
+  // 목장 정보 가져오기 및 년도 범위 설정
   const fetchFarmInfo = useCallback(async () => {
     try {
       const farmData = await FarmService.getFarm(farm_uuid);
       setFarm(farmData);
+      
+      if (farmData.created_at) {
+        setFarmCreatedAt(farmData.created_at);
+        
+        // 목장 생성일부터 현재까지의 년도 범위 생성
+        const createdDate = new Date(farmData.created_at);
+        const currentDate = new Date();
+        const years = [];
+        
+        for (let year = createdDate.getFullYear(); year <= currentDate.getFullYear(); year++) {
+          years.push(year);
+        }
+        setAvailableYears(years);
+      }
     } catch (e: unknown) {
       console.error("Farm fetch error:", e);
     }
   }, [farm_uuid]);
 
+  // 선택된 년도에 따른 월 범위 설정
+  const updateAvailableMonths = useCallback((year: number) => {
+    const currentDate = new Date();
+    const months = [];
+    
+    // 현재 년도인 경우 현재 월까지만, 과거 년도인 경우 12월까지
+    const maxMonth = year === currentDate.getFullYear() ? currentDate.getMonth() + 1 : 12;
+    
+    for (let month = 1; month <= maxMonth; month++) {
+      months.push(month);
+    }
+    
+    setAvailableMonths(months);
+    
+    // 현재 선택된 월이 유효하지 않으면 첫 번째 월로 설정
+    if (selectedMonth > maxMonth) {
+      setSelectedMonth(1);
+    }
+  }, [selectedMonth]);
+
   useEffect(() => {
-    fetchHorseDetail(selectedYear, selectedMonth);
     fetchFarmInfo();
-  }, [fetchHorseDetail, fetchFarmInfo, selectedYear, selectedMonth]);
+  }, [fetchFarmInfo]);
+
+  useEffect(() => {
+    if (availableYears.length > 0) {
+      updateAvailableMonths(selectedYear);
+    }
+  }, [availableYears, selectedYear, updateAvailableMonths]);
+
+  useEffect(() => {
+    if (availableMonths.length > 0) {
+      fetchHorseDetail(selectedYear, selectedMonth);
+    }
+  }, [fetchHorseDetail, selectedYear, selectedMonth, availableMonths]);
 
   const handleBack = () => {
     router.push(`/support/${farm_uuid}`);
   };
 
-  if (loading) {
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year);
+    updateAvailableMonths(year);
+  };
+
+  if (loading && !horse) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -275,35 +330,47 @@ export default function HorseDetailPage({ params }: PageProps) {
                       {selectedYear}년 {selectedMonth}월의 주간 보고서를 확인하세요
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <select 
-                      className="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <select
                       value={selectedYear}
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                      onChange={(e) => handleYearChange(parseInt(e.target.value))}
+                      className="pl-3 pr-8 py-1 border rounded-md text-sm appearance-none bg-white"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.4rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.5em 1.5em'
+                      }}
+                      disabled={availableYears.length === 0}
                     >
-                      <option value={2025}>2025</option>
-                      <option value={2024}>2024</option>
-                      <option value={2023}>2023</option>
-                      <option value={2022}>2022</option>
-                      <option value={2021}>2021</option>
+                      {availableYears.length === 0 ? (
+                        <option value="">년도 로딩 중...</option>
+                      ) : (
+                        availableYears.map(year => (
+                          <option key={year} value={year}>{year}년</option>
+                        ))
+                      )}
                     </select>
-                    <select 
-                      className="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    <select
                       value={selectedMonth}
                       onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                      className="pl-3 pr-8 py-1 border rounded-md text-sm appearance-none bg-white"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.4rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.5em 1.5em'
+                      }}
+                      disabled={availableMonths.length === 0}
                     >
-                      <option value={12}>12월</option>
-                      <option value={11}>11월</option>
-                      <option value={10}>10월</option>
-                      <option value={9}>9월</option>
-                      <option value={8}>8월</option>
-                      <option value={7}>7월</option>
-                      <option value={6}>6월</option>
-                      <option value={5}>5월</option>
-                      <option value={4}>4월</option>
-                      <option value={3}>3월</option>
-                      <option value={2}>2월</option>
-                      <option value={1}>1월</option>
+                      {availableMonths.length === 0 ? (
+                        <option value="">월 로딩 중...</option>
+                      ) : (
+                        availableMonths.map(month => (
+                          <option key={month} value={month}>{month}월</option>
+                        ))
+                      )}
                     </select>
                   </div>
                 </div>
