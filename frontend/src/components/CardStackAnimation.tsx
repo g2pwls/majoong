@@ -791,7 +791,7 @@ export default function CardStackAnimation() {
             <div className="swiper-container">
               <div className="slide slide-1">
                 <div className="bank-name">
-                  <p> monobank | <span>Universal Bank</span></p>
+                  <p> majoongbank | <span>Universal Bank</span></p>
                   <img src="https://img.icons8.com/bubbles/50/000000/visa.png" alt="Visa" />
                 </div>
                 <div className="card-chip">
@@ -799,13 +799,13 @@ export default function CardStackAnimation() {
                 </div>
                 <div className="card-number">4505 7389 6378 5628</div>
                 <div className="personal-info">
-                  <p>Visnu Ravichandran</p>
-                  <p>07/2023</p>
+                  <p>Pack Ji Hyun</p>
+                  <p>07/2027</p>
                 </div>
               </div>
               <div className="slide slide-2">
                 <div className="bank-name">
-                  <p> monobank | <span>Town Bank</span></p>
+                  <p> majoongbank | <span>Town Bank</span></p>
                   <img src="https://img.icons8.com/color/48/000000/mastercard.png" alt="Mastercard" />
                 </div>
                 <div className="card-chip">
@@ -813,13 +813,13 @@ export default function CardStackAnimation() {
                 </div>
                 <div className="card-number">4729 7837 9829 7828</div>
                 <div className="personal-info">
-                  <p>Visnu Ravichandran</p>
-                  <p>02/2022</p>
+                  <p>Yun Hye Jin</p>
+                  <p>05/2026</p>
                 </div>
               </div>
               <div className="slide slide-3">
                 <div className="bank-name">
-                  <p> monobank | <span>Gold Card</span></p>
+                  <p> majoongbank | <span>Gold Card</span></p>
                   <img src="https://img.icons8.com/bubbles/50/000000/visa.png" alt="Visa" />
                 </div>
                 <div className="card-chip">
@@ -827,7 +827,7 @@ export default function CardStackAnimation() {
                 </div>
                 <div className="card-number">4183 9737 1283 0837</div>
                 <div className="personal-info">
-                  <p>Visnu Ravichandran</p>
+                  <p>Kin Na Keong</p>
                   <p>05/2025</p>
                 </div>
               </div>
