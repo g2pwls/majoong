@@ -56,14 +56,14 @@ export default function AboutPage() {
         <CarShowroomSlider />
       </div>
 
-      {/* Card Animation */}
-      <div className="w-full">
-        <CardAnimation />
-      </div>
-
       {/* Card Stack Animation */}
       <div className="w-full overflow-hidden">
         <CardStackAnimation />
+      </div>
+
+      {/* Card Animation */}
+      <div className="w-full">
+        <CardAnimation />
       </div>
       
       <div className="py-16 bg-gradient-to-r from-blue-50 to-indigo-50">

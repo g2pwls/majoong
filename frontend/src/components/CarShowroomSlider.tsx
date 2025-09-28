@@ -474,7 +474,7 @@ export default function CarShowroomSlider() {
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">환율 (Exchange Rate):</span>
-                  <span className="spec-value">1 KRW = 100 Maron</span>
+                  <span className="spec-value">100 KRW = 1 Maron</span>
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">결제 구조 (Donation Flow):</span>
@@ -523,10 +523,6 @@ export default function CarShowroomSlider() {
                 </div>
                 <div className="spec-row">
                   <span className="spec-label">점수 산정 (Scoring):</span>
-                  <span className="spec-value">농장 사진 업로드 → +1점</span>
-                </div>
-                <div className="spec-row">
-                  <span className="spec-label"></span>
                   <span className="spec-value">말 전체 사진 업로드 → +5점</span>
                 </div>
                 <div className="spec-row">
