@@ -828,7 +828,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                 onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                 className="px-3 py-1 border rounded-md text-sm"
               >
-                <option value="all">전체</option>
+                <option value="all">년</option>
                 {availableYears.map(year => (
                   <option key={year} value={year}>{year}</option>
                 ))}
@@ -838,7 +838,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
                 onChange={(e) => handleMonthChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                 className="px-3 py-1 border rounded-md text-sm"
               >
-                <option value="all">전체</option>
+                <option value="all">월</option>
                 {availableMonths.map(month => (
                   <option key={month} value={month}>{month}월</option>
                 ))}

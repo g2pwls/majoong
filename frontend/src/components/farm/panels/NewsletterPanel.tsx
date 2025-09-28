@@ -10,167 +10,44 @@ import { Button } from "@/components/ui/button";
 import { Calendar, FileText } from "lucide-react";
 import Image from "next/image";
 
-// 책장 스타일 CSS
-const bookShelfStyles = `
-  .shelf-container {
-    display: flex;
-    justify-content: center;
-    padding-top: 2rem;
-    min-height: 300px;
-    border-radius: 12px;
-    padding: 2rem;
-  }
+// 책 너비 스타일 매핑
+const getBookWidthStyle = (index: number) => {
+  const widths = [
+    '3.5rem', // report-0
+    '3.2rem', // report-1
+    '3.8rem', // report-2
+    '3rem',   // report-3
+    '3.5rem', // report-4
+    '3.2rem', // report-5
+  ];
+  return { width: widths[index % 6] };
+};
 
-  .shelf {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    max-width: 100%;
-  }
+// 책 스타일 클래스 매핑
+const getBookStyleClass = (index: number) => {
+  const styleClasses = [
+    'text-orange-600', // report-0
+    'text-gray-200', // report-1
+    'text-gray-800', // report-2
+    'text-yellow-100', // report-3
+    'text-red-200', // report-4
+    'text-gray-700', // report-5
+  ];
+  return styleClasses[index % 6];
+};
 
-  /* 책 바인딩 */
-  .book-bg {
-    overflow: hidden;
-    height: 18rem;
-    margin: 1px;
-    cursor: pointer;
-    transition: margin 0.3s ease-in-out, box-shadow 0.3s ease-in-out,
-      transform 0.3s ease-in-out;
-    filter: grayscale(15%);
-    border-radius: 4px;
-    background: grey;
-    box-shadow: 0 0.5rem 1rem 0rem rgba(0, 0, 0, 0.4);
-    border-top-style: solid;
-    border-top-width: 1px;
-    border-image: linear-gradient(
-      to right,
-      #333,
-      #333 15%,
-      antiquewhite 30%,
-      antiquewhite 70%,
-      #333 85%,
-      #333
-    );
-    border-image-slice: 1;
-    order: 200;
-  }
-
-  .book-bg:hover {
-    box-shadow: 0 0.5rem 3rem -0.5rem rgba(0, 0, 0, 0.4);
-    z-index: 10;
-    margin-top: -15px;
-    transform: scale(1.03, 1.03);
-  }
-
-  /* 책 너비 */
-  .report-0 { width: 3.5rem; }
-  .report-1 { width: 3.2rem; }
-  .report-2 { width: 3.8rem; }
-  .report-3 { width: 3rem; }
-  .report-4 { width: 3.5rem; }
-  .report-5 { width: 3.2rem; }
-
-  /* 제목 그림자 */
-  .book h1, .book h2, .book h3, .book h4, .book h5 {
-    text-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.8);
-  }
-
-  /* 기본 책 속성 */
-  .book {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    box-shadow: inset -0.35rem 0 0.5rem rgba(0, 0, 0, 0.4),
-      inset 0.35rem 0 0.5rem rgba(0, 0, 0, 0.4);
-    justify-content: center;
-    align-items: center;
-    writing-mode: vertical-rl;
-    position: relative;
-  }
-
-
-  /* 책 제목 */
-  .book-title {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: white;
-    text-align: center;
-    writing-mode: vertical-rl;
-    text-orientation: upright;
-    margin: 0;
-    padding: 0.3rem;
-    letter-spacing: 0.1em;
-  }
-
-  /* 책 배경 그라데이션 */
-  .report-0 .book {
-    background: radial-gradient(
-        ellipse at top,
-        rgba(0, 0, 0, 0.35),
-        rgba(0, 0, 0, 0.75)
-      ),
-      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
-    font-family: "Unica One", cursive;
-    color: darkorange;
-  }
-
-  .report-1 .book {
-    background: radial-gradient(
-        ellipse at top,
-        rgba(50, 10, 87, 0.55),
-        rgba(0, 0, 0, 0.75)
-      ),
-      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
-    font-family: "Smooch Sans", sans-serif;
-    color: rgb(221, 206, 206);
-  }
-
-  .report-2 .book {
-    background: radial-gradient(
-        ellipse at top,
-        rgba(189, 147, 189, 0.55),
-        rgba(0, 0, 0, 0.85)
-      ),
-      radial-gradient(ellipse at bottom, rgba(185, 154, 154, 0.5), transparent);
-    font-family: "Nothing You Could Do", cursive;
-    color: #212121;
-  }
-
-  .report-3 .book {
-    background: radial-gradient(
-        ellipse at top,
-        rgba(2, 95, 18, 0.55),
-        rgba(0, 0, 0, 0.75)
-      ),
-      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
-    font-family: "Fredericka the Great", cursive;
-    color: rgb(247, 229, 192);
-  }
-
-  .report-4 .book {
-    background: radial-gradient(
-        ellipse at top,
-        rgba(94, 15, 6, 0.76),
-        rgba(0, 0, 0, 0.75)
-      ),
-      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
-    font-family: "Lora", serif;
-    color: rgb(216, 191, 191);
-  }
-
-  .report-5 .book {
-    background: radial-gradient(
-        ellipse at top,
-        rgba(255, 255, 255, 0.63),
-        rgba(0, 0, 0, 0.75)
-      ),
-      radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent);
-    font-family: "Inconsolata", monospace;
-    color: #333;
-  }
-
-`;
+// 책 그라데이션 배경 생성
+const getBookGradientBackground = (index: number) => {
+  const gradients = [
+    'radial-gradient(ellipse at top, rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.75)), radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent)',
+    'radial-gradient(ellipse at top, rgba(50, 10, 87, 0.55), rgba(0, 0, 0, 0.75)), radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent)',
+    'radial-gradient(ellipse at top, rgba(189, 147, 189, 0.55), rgba(0, 0, 0, 0.85)), radial-gradient(ellipse at bottom, rgba(185, 154, 154, 0.5), transparent)',
+    'radial-gradient(ellipse at top, rgba(2, 95, 18, 0.55), rgba(0, 0, 0, 0.75)), radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent)',
+    'radial-gradient(ellipse at top, rgba(94, 15, 6, 0.76), rgba(0, 0, 0, 0.75)), radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent)',
+    'radial-gradient(ellipse at top, rgba(255, 255, 255, 0.63), rgba(0, 0, 0, 0.75)), radial-gradient(ellipse at bottom, rgba(70, 70, 70, 0.5), transparent)',
+  ];
+  return gradients[index % 6];
+};
 
 interface NewsletterPanelProps {
   farmUuid: string;
@@ -314,67 +191,94 @@ export default function NewsletterPanel({ farmUuid }: NewsletterPanelProps) {
   }
 
   return (
-    <>
-      <style dangerouslySetInnerHTML={{ __html: bookShelfStyles }} />
-      <section id="panel-newsletter" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-500" />
-              <select
-                value={selectedYear}
-                onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                className="px-3 py-1 border rounded-md text-sm"
-              >
-                <option value="all">전체</option>
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year}</option>
-                ))}
-              </select>
-          </div>
+    <section id="panel-newsletter" className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-gray-500" />
+            <select
+              value={selectedYear}
+              onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+              className="pl-3 pr-8 py-1 border rounded-md text-sm appearance-none bg-white"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                backgroundPosition: 'right 0.4rem center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '1.5em 1.5em'
+              }}
+            >
+              <option value="all">전체 연도</option>
+              {availableYears.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
         </div>
+      </div>
 
-      {reports.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-center">
-            <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500">
-              {selectedYear === 'all' 
-                ? '월간 보고서가 없습니다.' 
-                : '해당 연도의 월간 보고서가 없습니다.'
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="shelf-container">
-          <div className="shelf">
-            {reports.map((report, index) => (
+    {reports.length === 0 ? (
+      <Card>
+        <CardContent className="p-6 text-center">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-500">
+            {selectedYear === 'all' 
+              ? '월간 보고서가 없습니다.' 
+              : '해당 연도의 월간 보고서가 없습니다.'
+            }
+          </p>
+        </CardContent>
+      </Card>
+    ) : (
+      <div className="flex justify-center pt-8 min-h-[300px] rounded-xl p-8">
+        <div className="flex justify-center flex-wrap gap-2 max-w-full">
+          {reports.map((report, index) => (
+            <div 
+              key={report.reportId} 
+              className="
+                overflow-hidden h-72 m-px cursor-pointer 
+                transition-all duration-300 ease-in-out
+                grayscale-[15%] rounded
+                bg-gray-500 shadow-[0_0.5rem_1rem_0rem_rgba(0,0,0,0.4)]
+                border-t border-solid
+                hover:shadow-[0_0.5rem_3rem_-0.5rem_rgba(0,0,0,0.4)]
+                hover:z-10 hover:-mt-4 hover:scale-[1.03]
+              "
+              onClick={() => handleBookClick(report.reportId, index)}
+              style={{
+                ...getBookWidthStyle(index),
+                borderImage: 'linear-gradient(to right, #333, #333 15%, antiquewhite 30%, antiquewhite 70%, #333 85%, #333) 1'
+              }}
+            >
               <div 
-                key={report.reportId} 
-                className={`book-bg report-${index % 6}`}
-                onClick={() => handleBookClick(report.reportId, index)}
+                className={`
+                  flex h-full w-full justify-center items-center
+                  relative
+                  shadow-[inset_-0.35rem_0_0.5rem_rgba(0,0,0,0.4),inset_0.35rem_0_0.5rem_rgba(0,0,0,0.4)]
+                  ${getBookStyleClass(index)}
+                `}
+                style={{
+                  writingMode: 'vertical-rl',
+                  backgroundImage: report.thumbnail 
+                    ? `url(${report.thumbnail})` 
+                    : getBookGradientBackground(index),
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center'
+                }}
               >
-                <div 
-                  className="book"
+                <h1 
+                  className="text-sm font-bold text-white text-center m-0 p-3 tracking-wider"
                   style={{
-                    backgroundImage: report.thumbnail 
-                      ? `url(${report.thumbnail})` 
-                      : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
+                    writingMode: 'vertical-rl',
+                    textOrientation: 'upright',
+                    textShadow: '0 0 0.5rem rgba(0, 0, 0, 0.8)'
                   }}
                 >
-                  <div className="book-shading"></div>
-                  <h1 className="book-title">
-                    {report.year}년 {report.month}월
-                  </h1>
-                </div>
+                  {report.year}년 {report.month}월
+                </h1>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
-      )}
-      </section>
-    </>
+      </div>
+    )}
+    </section>
   );
 }
