@@ -8,7 +8,7 @@ import { FarmService } from "@/services/farmService";
 import { Card, CardContent } from "@/components/ui/card";
 import { getUserRole } from "@/services/authService";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, FileText, AlertTriangle, Flag } from "lucide-react";
+import { ArrowLeft, Calendar, FileText, Flag } from "lucide-react";
 
 // 날짜 포맷팅 함수
 const formatDate = (dateString: string) => {

@@ -6,19 +6,12 @@ import { Button } from "@/components/ui/button";
 import { 
   Heart, 
   Star, 
-  TrendingUp, 
   Calendar, 
-  MapPin, 
-  Users,
   Gift,
-  BarChart3,
-  Clock,
-  CheckCircle,
   FileText
 } from "lucide-react";
 import { getDonatorInfo, getFavoriteFarms, getDonationHistory } from "@/services/userService";
 import { isDonator } from "@/services/authService";
-import { FavoriteFarmsResponse } from "@/types/user";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReport } from "@/types/farm";
 import { getCollection } from "@/services/collectionService";
@@ -41,14 +34,6 @@ interface FavoriteFarm {
   imageUrl: string;
 }
 
-interface DonationHistory {
-  donationHistoryId: number;
-  farmUuid: string;
-  farmName: string;
-  donationToken: number;
-  donationDate: string;
-  profileImage?: string;
-}
 
 interface FarmNewsletter {
   farmUuid: string;
@@ -61,11 +46,9 @@ export default function DonatorPage() {
   const router = useRouter();
   const [donatorInfo, setDonatorInfo] = useState<DonatorInfo | null>(null);
   const [favoriteFarms, setFavoriteFarms] = useState<FavoriteFarm[]>([]);
-  const [donationHistory, setDonationHistory] = useState<DonationHistory[]>([]);
   const [farmNewsletters, setFarmNewsletters] = useState<FarmNewsletter[]>([]);
   const [collectionCount, setCollectionCount] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [totalCoin, setTotalCoin] = useState(0);
   const [totalDonationCount, setTotalDonationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -156,9 +139,7 @@ export default function DonatorPage() {
         }
 
         if (donationsResponse.isSuccess) {
-          setDonationHistory(donationsResponse.result.donationHistory.content);
           setTotalAmount(donationsResponse.result.totalAmount || 0);
-          setTotalCoin(donationsResponse.result.totalCoin || 0);
           setTotalDonationCount(donationsResponse.result.donationHistory.totalElements || 0);
         }
 
@@ -176,23 +157,8 @@ export default function DonatorPage() {
     loadData();
   }, []);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('ko-KR', {
-      style: 'currency',
-      currency: 'KRW'
-    }).format(amount);
-  };
-
   const formatTotalAmount = (amount: number) => {
     return new Intl.NumberFormat('ko-KR').format(amount) + '원';
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
   };
 
   if (loading) {
