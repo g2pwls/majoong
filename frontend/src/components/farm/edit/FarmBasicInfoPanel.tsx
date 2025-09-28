@@ -266,7 +266,7 @@ export default function FarmBasicInfoPanel({
           )}
           <button
             type="button"
-            className="rounded-2xl border bg-neutral-900 px-4 py-2 text-white hover:opacity-90 disabled:opacity-50"
+            className="rounded-2xl border bg-[#7d6149] px-4 py-2 text-white hover:bg-[#91745A] disabled:opacity-50"
             onClick={handleSubmit}
             disabled={!farm_uuid}
           >

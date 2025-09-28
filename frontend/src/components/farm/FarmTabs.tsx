@@ -92,7 +92,7 @@ export default function FarmTabs({
           {showEditButton && farmUuid && (
             <Link 
               href={`/support/${farmUuid}/edit`}
-              className="bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 transition-colors text-sm font-medium"
+              className="bg-[#7d6149] text-white py-2 px-4 rounded-md hover:bg-[#91745A] transition-colors text-sm font-medium"
             >
               목장 정보 수정
             </Link>
