@@ -52,16 +52,25 @@ export default function HorseDetailPage({ params }: PageProps) {
   const [farm, setFarm] = useState<Farm | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number | 'all'>('all');
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  
+  // 목장 정보와 동적 년도/월 범위
+  const [farmCreatedAt, setFarmCreatedAt] = useState<string | null>(null);
+  const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [availableMonths, setAvailableMonths] = useState<number[]>([]);
 
   // 말 상세 정보 가져오기 (주간 보고서 포함)
-  const fetchHorseDetail = useCallback(async (year: number, month: number) => {
+  const fetchHorseDetail = useCallback(async (year: number | 'all', month: number | null) => {
     try {
       setLoading(true);
       setError(null);
       
-      const response = await FarmService.getHorseWeeklyReports(farm_uuid, horseNo, year, month);
+      // 'all'이거나 null인 경우 현재 년월로 처리
+      const targetYear = year === 'all' ? new Date().getFullYear() : year;
+      const targetMonth = month || new Date().getMonth() + 1;
+      
+      const response = await FarmService.getHorseWeeklyReports(farm_uuid, horseNo, targetYear, targetMonth);
       setHorse(response.result);
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "말 정보를 불러오는 중 오류가 발생했어요.";
@@ -71,15 +80,104 @@ export default function HorseDetailPage({ params }: PageProps) {
     }
   }, [farm_uuid, horseNo]);
 
-  // 목장 정보 가져오기
+  // 목장 정보 가져오기 및 년도/월 범위 설정
   const fetchFarmInfo = useCallback(async () => {
     try {
       const farmData = await FarmService.getFarm(farm_uuid);
       setFarm(farmData);
+      
+      if (farmData.created_at) {
+        setFarmCreatedAt(farmData.created_at);
+        
+        // 목장 생성일부터 현재까지의 년도 범위 생성
+        const createdDate = new Date(farmData.created_at);
+        const currentDate = new Date();
+        const years = [];
+        
+        for (let year = createdDate.getFullYear(); year <= currentDate.getFullYear(); year++) {
+          years.push(year);
+        }
+        setAvailableYears(years);
+        
+        // 현재 년도가 선택된 년도와 같으면 생성일 이후부터 현재 월까지, 아니면 1-12월
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+        const months = [];
+        
+        if (selectedYear === currentYear && createdDate.getFullYear() === currentYear) {
+          // 같은 년도면 생성일 이후부터 현재 월까지
+          for (let month = createdDate.getMonth() + 1; month <= currentMonth; month++) {
+            months.push(month);
+          }
+        } else if (selectedYear === createdDate.getFullYear()) {
+          // 생성년도면 생성일 이후부터 12월까지 (미래가 아닌 경우)
+          for (let month = createdDate.getMonth() + 1; month <= 12; month++) {
+            months.push(month);
+          }
+        } else if (selectedYear === currentYear) {
+          // 현재 년도면 1월부터 현재 월까지
+          for (let month = 1; month <= currentMonth; month++) {
+            months.push(month);
+          }
+        } else {
+          // 다른 년도면 1-12월
+          for (let month = 1; month <= 12; month++) {
+            months.push(month);
+          }
+        }
+        
+        setAvailableMonths(months);
+      }
     } catch (e: unknown) {
       console.error("Farm fetch error:", e);
     }
-  }, [farm_uuid]);
+  }, [farm_uuid, selectedYear]);
+
+  // 년도 변경 핸들러
+  const handleYearChange = (year: number | 'all') => {
+    setSelectedYear(year);
+    setSelectedMonth(null); // 년도 변경 시 월 선택 초기화
+  };
+
+  // 월 변경 핸들러
+  const handleMonthChange = (month: number | null) => {
+    setSelectedMonth(month);
+  };
+
+  // 년도 변경 시 월 범위 업데이트
+  useEffect(() => {
+    if (farmCreatedAt) {
+      const createdDate = new Date(farmCreatedAt);
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const currentMonth = currentDate.getMonth() + 1; // getMonth()는 0부터 시작하므로 +1
+      const months = [];
+      
+      if (selectedYear === currentYear && createdDate.getFullYear() === currentYear) {
+        // 같은 년도면 생성일 이후부터 현재 월까지
+        for (let month = createdDate.getMonth() + 1; month <= currentMonth; month++) {
+          months.push(month);
+        }
+      } else if (selectedYear === createdDate.getFullYear()) {
+        // 생성년도면 생성일 이후부터 12월까지 (미래가 아닌 경우)
+        for (let month = createdDate.getMonth() + 1; month <= 12; month++) {
+          months.push(month);
+        }
+      } else if (selectedYear === currentYear) {
+        // 현재 년도면 1월부터 현재 월까지
+        for (let month = 1; month <= currentMonth; month++) {
+          months.push(month);
+        }
+      } else {
+        // 다른 년도면 1-12월
+        for (let month = 1; month <= 12; month++) {
+          months.push(month);
+        }
+      }
+      
+      setAvailableMonths(months);
+    }
+  }, [selectedYear, farmCreatedAt]);
 
   useEffect(() => {
     fetchHorseDetail(selectedYear, selectedMonth);
@@ -272,38 +370,47 @@ export default function HorseDetailPage({ params }: PageProps) {
                   <div>
                     <h2 className="text-xl font-semibold">주간 소식</h2>
                     <p className="text-sm text-gray-500 mt-1">
-                      {selectedYear}년 {selectedMonth}월의 주간 보고서를 확인하세요
+                      {selectedYear === 'all' 
+                        ? '전체 기간의 주간 보고서를 확인하세요'
+                        : selectedMonth 
+                          ? `${selectedYear}년 ${selectedMonth}월의 주간 보고서를 확인하세요`
+                          : `${selectedYear}년의 주간 보고서를 확인하세요`
+                      }
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <select 
-                      className="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <select
                       value={selectedYear}
-                      onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                      onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
+                      className="pl-3 pr-8 py-2 border rounded-md text-sm appearance-none bg-white"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.4rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.5em 1.5em'
+                      }}
                     >
-                      <option value={2025}>2025</option>
-                      <option value={2024}>2024</option>
-                      <option value={2023}>2023</option>
-                      <option value={2022}>2022</option>
-                      <option value={2021}>2021</option>
+                      <option value="all">년</option>
+                      {availableYears.map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
                     </select>
-                    <select 
-                      className="px-3 py-2 border rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
+                    <select
+                      value={selectedMonth || ''}
+                      onChange={(e) => handleMonthChange(e.target.value ? parseInt(e.target.value) : null)}
+                      className="pl-3 pr-8 py-2 border rounded-md text-sm appearance-none bg-white"
+                      style={{
+                        backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                        backgroundPosition: 'right 0.4rem center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundSize: '1.5em 1.5em'
+                      }}
                     >
-                      <option value={12}>12월</option>
-                      <option value={11}>11월</option>
-                      <option value={10}>10월</option>
-                      <option value={9}>9월</option>
-                      <option value={8}>8월</option>
-                      <option value={7}>7월</option>
-                      <option value={6}>6월</option>
-                      <option value={5}>5월</option>
-                      <option value={4}>4월</option>
-                      <option value={3}>3월</option>
-                      <option value={2}>2월</option>
-                      <option value={1}>1월</option>
+                      <option value="">월</option>
+                      {availableMonths.map(month => (
+                        <option key={month} value={month}>{month}월</option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -352,7 +459,12 @@ export default function HorseDetailPage({ params }: PageProps) {
                     </div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">주간 소식이 없습니다</h3>
                     <p className="text-gray-500 mb-4">
-                      {selectedYear}년 {selectedMonth}월에는 아직 주간 보고서가 작성되지 않았습니다.
+                      {selectedYear === 'all' 
+                        ? '아직 주간 보고서가 작성되지 않았습니다.'
+                        : selectedMonth 
+                          ? `${selectedYear}년 ${selectedMonth}월에는 아직 주간 보고서가 작성되지 않았습니다.`
+                          : `${selectedYear}년에는 아직 주간 보고서가 작성되지 않았습니다.`
+                      }
                     </p>
                     <p className="text-sm text-gray-400">
                       목장 관리자가 운영 보고를 통해 주간 보고서를 작성하면 여기에 표시됩니다.

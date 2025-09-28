@@ -6,7 +6,7 @@ import { getFarmDetail, FarmDetail } from "@/services/apiService";
 import { startKakaoPay } from "@/services/paymentService";
 import { getTokens } from "@/services/authService";
 import DonationSection from "@/components/donation/DonationSection";
-import FarmDetailCard from "@/components/farm/FarmDetailCard";
+import Flipper from "@/components/ui/Flipper";
 import Breadcrumbs from "@/components/common/Breadcrumb";
 import LoginRequiredModal from "@/components/donation/LoginRequiredModal";
 
@@ -228,14 +228,25 @@ export default function DonatePage() {
         <div className="mb-6 flex flex-row">
           <div className="flex items-centermb-4 flex flex-col">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">기부하기</h1>
-            <div className="w-29 h-0.5 bg-gray-300"></div>
+            <div className="w-29 h-0.2 bg-gray-300"></div>
                 </div>
               </div>
               
         {/* 목장 정보와 후원 정보 섹션 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* 목장 정보 */}
-          <FarmDetailCard farmDetail={farmDetail} />
+          {/* 목장 정보 - Flipper 컴포넌트 */}
+          <div className="flex justify-center">
+            <Flipper 
+              cards={[{
+                id: farmDetail.farmUuid,
+                title: farmDetail.farmName,
+                score: `${farmDetail.totalScore.toFixed(1)}°C`,
+                image: farmDetail.profileImage,
+                backDescription: farmDetail.description,
+                backAddress: farmDetail.address
+              }]}
+            />
+          </div>
 
           {/* 후원 정보 섹션 */}
           <DonationSection

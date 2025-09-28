@@ -181,7 +181,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             value={tab} 
             onChange={onChangeTab} 
             farmUuid={farm_uuid}
-            showDonateButton={isDonator() && !isFarmer()}
+            showDonateButton={!isFarmer()}
             showEditButton={isMyFarm}
           />
           <div className="mt-4.5">

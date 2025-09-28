@@ -48,8 +48,9 @@ export default function HorsesPanel({ farmUuid, isMyFarm = false }: Props) {
   if (loading) {
     return (
       <section id="panel-horses" className="flex flex-col">
-        <div className="flex justify-center items-center py-8">
-          <div className="text-gray-500">말 목록을 불러오는 중...</div>
+        <div className="flex flex-col justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <div className="text-gray-500 text-lg">말 목록을 불러오는 중...</div>
         </div>
       </section>
     );

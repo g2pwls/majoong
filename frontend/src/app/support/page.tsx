@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getFarms, getHorses, Farm, Horse, addFarmBookmark, removeFarmBookmark } from "@/services/apiService";
-import { isDonator, isFarmer, getUserRole } from "@/services/authService";
+import { isDonator, isFarmer, getUserRole, isGuest } from "@/services/authService";
+import { getFavoriteFarms } from "@/services/userService";
 
 // ------------------------------------------------------------------
 // /support (목장 후원) 페이지
@@ -28,7 +29,7 @@ const SearchTypeToggle: React.FC<{
       className={`px-3 py-1 rounded-lg text-sm transition ${value === "farm" ? "bg-black text-white" : "hover:bg-muted"}`}
       aria-pressed={value === "farm"}
     >
-      농장이름
+      목장이름
     </button>
     <button
       onClick={() => onChange("horse")}
@@ -56,8 +57,10 @@ const FarmCard: React.FC<{
   farm: Farm; 
   isBookmarked: boolean; 
   onBookmarkToggle: (farmUuid: string) => void;
+  onDonateClick: (farmId: string) => void;
+  rank?: number;
   isLoading?: boolean;
-}> = ({ farm, isBookmarked, onBookmarkToggle, isLoading = false }) => {
+}> = ({ farm, isBookmarked, onBookmarkToggle, onDonateClick, rank, isLoading = false }) => {
   const handleBookmarkClick = (e: React.MouseEvent) => {
     e.preventDefault(); // Link 클릭 방지
     e.stopPropagation(); // 이벤트 버블링 방지
@@ -86,10 +89,17 @@ const FarmCard: React.FC<{
               <div className="flex flex-col justify-center gap-2 lg:min-w-0 lg:flex-1">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
+                    {rank && (
+                      <div className="flex items-center gap-1">
+                        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                          {rank}위
+                        </div>
+                      </div>
+                    )}
                     <h3 className="text-lg sm:text-xl font-semibold">{farm.farm_name}</h3>
                     {isDonator() && (
                       <button 
-                        className={`rounded-full border p-1 transition-colors ${
+                        className={`rounded-full border p-1 transition-colors cursor-pointer ${
                           isBookmarked 
                             ? 'border-yellow-400 bg-yellow-50' 
                             : 'border-gray-300 hover:border-yellow-400'
@@ -115,7 +125,7 @@ const FarmCard: React.FC<{
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        window.location.href = `/support/${farm.id}/donate`;
+                        onDonateClick(farm.id);
                       }}
                     >
                       기부하기
@@ -127,9 +137,9 @@ const FarmCard: React.FC<{
                     <span className="break-words">{farm.address}</span>
                 </p>
                 <p className="text-sm text-muted-foreground"> 말 {farm.horse_count}두</p>
-                <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
+                <p className="text-sm text-muted-foreground">목장주: {farm.name}</p>
                 {farm.state && (
-                  <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
+                  <p className="text-sm text-muted-foreground">목장 상태: {farm.state}</p>
                 )}
               </div>
 
@@ -137,11 +147,11 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="hidden lg:flex ml-2 whitespace-nowrap bg-red-500 hover:bg-red-600 min-w-[120px] text-sm sm:text-base items-center justify-center"
+                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#2ca82c] hover:bg-[#30ba30] min-w-[120px] text-sm sm:text-base items-center justify-center"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      window.location.href = `/support/${farm.id}/donate`;
+                      onDonateClick(farm.id);
                     }}
                   >
                   이 목장에 기부하기
@@ -263,6 +273,17 @@ export default function SupportPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = searchType === "horse" ? 24 : 10; // 마명 검색 시 30개, 농장 검색 시 10개
 
+  // 기부하기 버튼 클릭 핸들러
+  const handleDonateClick = (farmId: string) => {
+    if (isGuest()) {
+      // 비회원이면 로그인 페이지로 리다이렉트
+      window.location.href = '/login';
+    } else {
+      // 회원이면 기부 페이지로 이동
+      window.location.href = `/support/${farmId}/donate`;
+    }
+  };
+
   // 즐겨찾기 토글 함수
   const handleBookmarkToggle = async (farmUuid: string) => {
     if (!isDonator()) return;
@@ -336,6 +357,11 @@ export default function SupportPage() {
           })
         ]);
 
+        // API 응답 콘솔 로그
+        console.log('=== Support 페이지 API 응답 ===');
+        console.log('농장 목록 API 응답:', farmListResponse);
+        console.log('말 목록 API 응답:', horseListResponse);
+
         const farmList = farmListResponse.content || [];
         const horseList = horseListResponse.content || [];
 
@@ -351,13 +377,31 @@ export default function SupportPage() {
           setFarms(withHorses);
           setHorses(horseList);
           
-          // localStorage에서 즐겨찾기 상태를 읽어와서 farms 배열에 반영
-          const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
-          if (bookmarkedFarms.length > 0) {
-            setFarms(prev => prev.map(farm => ({
-              ...farm,
-              bookmarked: bookmarkedFarms.includes(farm.id)
-            })));
+          // 기부자인 경우 서버에서 실제 즐겨찾기 상태를 가져와서 farms 배열에 반영
+          if (isDonator()) {
+            try {
+              const favoriteResponse = await getFavoriteFarms();
+              if (favoriteResponse.isSuccess && favoriteResponse.result) {
+                const bookmarkedFarmUuids = favoriteResponse.result.map(farm => farm.farmUuid);
+                setFarms(prev => prev.map(farm => ({
+                  ...farm,
+                  bookmarked: bookmarkedFarmUuids.includes(farm.id)
+                })));
+                
+                // localStorage도 서버 상태와 동기화
+                localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarmUuids));
+              }
+            } catch (error) {
+              console.error('즐겨찾기 상태 조회 실패:', error);
+              // 서버 조회 실패 시 localStorage에서 읽어오기 (fallback)
+              const bookmarkedFarms = JSON.parse(localStorage.getItem('bookmarkedFarms') || '[]');
+              if (bookmarkedFarms.length > 0) {
+                setFarms(prev => prev.map(farm => ({
+                  ...farm,
+                  bookmarked: bookmarkedFarms.includes(farm.id)
+                })));
+              }
+            }
           }
         }
       } catch (e) {
@@ -432,10 +476,19 @@ export default function SupportPage() {
     if (sort === "recommended") {
       farmArr.sort((a, b) => b.total_score - a.total_score);
       horseArr.sort((a, b) => (b.horse.amt || 0) - (a.horse.amt || 0));
-    }
-    if (sort === "latest") {
-      farmArr.sort((a, b) => b.id.localeCompare(a.id));
-      horseArr.sort((a, b) => b.horse.id - a.horse.id);
+    } else if (sort === "latest") {
+      // 최신순: created_at 기준으로 내림차순 정렬 (최신이 먼저)
+      farmArr.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateB - dateA;
+      });
+      // 말 목록도 농장의 created_at 기준으로 정렬
+      horseArr.sort((a, b) => {
+        const dateA = new Date(a.farm.created_at || 0).getTime();
+        const dateB = new Date(b.farm.created_at || 0).getTime();
+        return dateB - dateA;
+      });
     }
     
     // 페이지네이션 계산
@@ -497,7 +550,7 @@ export default function SupportPage() {
               <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 className="w-[182px] sm:w-[200px] pl-8 h-9 text-sm"
-                placeholder={searchType === "farm" ? "농장이름 검색" : "마명 검색"}
+                placeholder={searchType === "farm" ? "목장이름 검색" : "마명 검색"}
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
               />
@@ -507,17 +560,39 @@ export default function SupportPage() {
 
         <div className="mt-4 space-y-4">
           {loading && (
-            <div className="rounded-2xl border bg-white p-8 text-center text-sm text-muted-foreground">불러오는 중…</div>
+            <div className="rounded-2xl border bg-white p-8 text-center">
+              <div className="flex flex-col items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <div className="text-sm text-muted-foreground">불러오는 중…</div>
+              </div>
+            </div>
           )}
-          {!loading && searchType === "farm" && paginatedFarms.map((farm) => (
-            <FarmCard 
-              key={farm.id} 
-              farm={farm} 
-              isBookmarked={farm.bookmarked || false}
-              onBookmarkToggle={handleBookmarkToggle}
-              isLoading={bookmarkLoading.has(farm.id)}
-            />
-          ))}
+          {!loading && searchType === "farm" && paginatedFarms.map((farm, index) => {
+            // 신뢰도 순위 계산 (전체 목록에서의 신뢰도 순위)
+            const currentRank = (() => {
+              if (sort === "recommended") {
+                // 신뢰도순 정렬일 때는 현재 페이지 기준 순위
+                return (currentPage - 1) * itemsPerPage + index + 1;
+              } else {
+                // 최신순 정렬일 때는 전체 목록에서의 신뢰도 순위 계산
+                const sortedByScore = [...filteredFarms].sort((a, b) => b.total_score - a.total_score);
+                const rankIndex = sortedByScore.findIndex(f => f.id === farm.id);
+                return rankIndex !== -1 ? rankIndex + 1 : undefined;
+              }
+            })();
+            
+            return (
+              <FarmCard 
+                key={farm.id} 
+                farm={farm} 
+                isBookmarked={farm.bookmarked || false}
+                onBookmarkToggle={handleBookmarkToggle}
+                onDonateClick={handleDonateClick}
+                rank={currentRank}
+                isLoading={bookmarkLoading.has(farm.id)}
+              />
+            );
+          })}
           {!loading && searchType === "horse" && (
             <div className="relative">
               <div className="mb-6">

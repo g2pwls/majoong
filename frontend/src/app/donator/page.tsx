@@ -21,9 +21,11 @@ import { isDonator } from "@/services/authService";
 import { FavoriteFarmsResponse } from "@/types/user";
 import { FarmService } from "@/services/farmService";
 import { MonthlyReport } from "@/types/farm";
+import { getCollection } from "@/services/collectionService";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import DonorCollection from "@/components/mypage/DonorCollection";
 
 interface DonatorInfo {
   role: string;
@@ -61,6 +63,10 @@ export default function DonatorPage() {
   const [favoriteFarms, setFavoriteFarms] = useState<FavoriteFarm[]>([]);
   const [donationHistory, setDonationHistory] = useState<DonationHistory[]>([]);
   const [farmNewsletters, setFarmNewsletters] = useState<FarmNewsletter[]>([]);
+  const [collectionCount, setCollectionCount] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [totalCoin, setTotalCoin] = useState(0);
+  const [totalDonationCount, setTotalDonationCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,10 +136,11 @@ export default function DonatorPage() {
         setLoading(true);
         setError(null);
 
-        const [donatorResponse, favoritesResponse, donationsResponse] = await Promise.all([
+        const [donatorResponse, favoritesResponse, donationsResponse, collectionsResponse] = await Promise.all([
           getDonatorInfo(),
           getFavoriteFarms(),
-          getDonationHistory({ page: 0, size: 10 })
+          getDonationHistory({ page: 0, size: 10 }),
+          getCollection()
         ]);
 
         if (donatorResponse.isSuccess) {
@@ -150,7 +157,14 @@ export default function DonatorPage() {
 
         if (donationsResponse.isSuccess) {
           setDonationHistory(donationsResponse.result.donationHistory.content);
+          setTotalAmount(donationsResponse.result.totalAmount || 0);
+          setTotalCoin(donationsResponse.result.totalCoin || 0);
+          setTotalDonationCount(donationsResponse.result.donationHistory.totalElements || 0);
         }
+
+        // 컬렉션 총 카드 수 계산
+        const totalCards = collectionsResponse.reduce((sum, item) => sum + item.cardCount, 0);
+        setCollectionCount(totalCards);
       } catch (err) {
         console.error('데이터 로드 실패:', err);
         setError('데이터를 불러오는 중 오류가 발생했습니다.');
@@ -167,6 +181,10 @@ export default function DonatorPage() {
       style: 'currency',
       currency: 'KRW'
     }).format(amount);
+  };
+
+  const formatTotalAmount = (amount: number) => {
+    return new Intl.NumberFormat('ko-KR').format(amount) + '원';
   };
 
   const formatDate = (dateString: string) => {
@@ -222,7 +240,7 @@ export default function DonatorPage() {
               어서오세요 {donatorInfo?.nameString} 님
             </h1>
             <p className="text-lg md:text-xl mb-10">
-                이번 달에도 말들이 건강히 지내고 있어요!
+                이번 달 퇴역마들의 근황도 살펴보세요!
             </p>
             <div className="flex gap-4 justify-end">
               <Link href="/support">
@@ -253,7 +271,7 @@ export default function DonatorPage() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">총 기부금액</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {formatCurrency(donationHistory.reduce((sum, donation) => sum + donation.donationToken, 0))}
+                    {formatTotalAmount(totalAmount)}
                   </p>
                 </div>
               </div>
@@ -269,7 +287,7 @@ export default function DonatorPage() {
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">기부 횟수</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {donationHistory.length}회
+                    {totalDonationCount}회
                   </p>
                 </div>
               </div>
@@ -283,9 +301,9 @@ export default function DonatorPage() {
                   <Star className="h-6 w-6 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">즐겨찾기 목장</p>
+                  <p className="text-sm font-medium text-gray-600">컬렉션</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {favoriteFarms.length}개
+                    {collectionCount}장
                   </p>
                 </div>
               </div>
@@ -293,126 +311,148 @@ export default function DonatorPage() {
           </Card>
         </div>
 
-        {/* 즐겨찾기 목장 섹션 */}
-        <div className="space-y-6 mt-5">
+        {/* 즐겨찾기 목장과 최신 소식 가로 배치 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-5">
+          {/* 즐겨찾기 목장 섹션 */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장</h2>
+              <button
+                onClick={() => window.location.href = '/mypage'}
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                보러가기 →
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {favoriteFarms.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">즐겨찾기한 목장이 없습니다</p>
+                    <Link href="/support">
+                      <Button>목장 둘러보기</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {favoriteFarms
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, 3)
+                    .map((farm) => (
+                    <Link key={farm.farmUuid} href={`/support/${farm.farmUuid}`}>
+                      <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-blue-200 py-0 mt-2">
+                        <CardContent className="p-0">
+                            <div className="flex">
+                              <div className="w-40 h-32 relative flex-shrink-0">
+                                {farm.imageUrl && farm.imageUrl.trim() !== '' ? (
+                                  <Image
+                                    src={farm.imageUrl}
+                                    alt={farm.farmName}
+                                    fill
+                                    className="object-cover rounded-l-lg"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-l-lg">
+                                    <span className="text-gray-500 text-sm">이미지 없음</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-5 flex-1">
+                                <h3 className="font-semibold text-xl mb-3">{farm.farmName}</h3>
+                                <Button className="w-full" variant="outline">
+                                  {farm.farmName} 보러가기
+                                </Button>
+                              </div>
+                            </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 즐겨찾는 목장의 최신 소식지 섹션 */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장의 최근 소식</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {farmNewsletters.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4">즐겨찾기한 목장이 없습니다</p>
+                    <Link href="/support">
+                      <Button>목장 둘러보기</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {farmNewsletters
+                    .filter(newsletter => newsletter.latestReport !== null)
+                    .slice(0, 3)
+                    .map((newsletter) => (
+                      <Link key={newsletter.farmUuid} href={`/support/${newsletter.farmUuid}/report/${newsletter.latestReport?.reportId}`}>
+                        <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-blue-200 py-0 mt-2">
+                          <CardContent className="p-0">
+                            <div className="flex">
+                              <div className="w-40 h-32 relative flex-shrink-0">
+                                {newsletter.latestReport?.thumbnail ? (
+                                  <Image
+                                    src={newsletter.latestReport.thumbnail}
+                                    alt={`${newsletter.farmName} ${newsletter.latestReport.year}년 ${newsletter.latestReport.month}월 소식지`}
+                                    fill
+                                    className="object-cover rounded-l-lg"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-l-lg">
+                                    <span className="text-gray-500 text-sm">이미지 없음</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="p-5 flex-1">
+                                <div className="flex items-center justify-between mb-3">
+                                  <h3 className="font-semibold text-xl">{newsletter.farmName}</h3>
+                                  <div className="flex items-center text-sm text-gray-500">
+                                    <Calendar className="h-4 w-4 mr-1" />
+                                    {newsletter.latestReport?.year}년 {newsletter.latestReport?.month}월
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 내 컬렉션 섹션 */}
+        <div className="space-y-6 mt-8">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장</h2>
+            <h2 className="text-2xl font-bold text-gray-900">내 컬렉션</h2>
             <button
               onClick={() => window.location.href = '/mypage'}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"
             >
-              보러가기 →
+              전체 보기 →
             </button>
           </div>
           
-          <div className="space-y-4">
-            {favoriteFarms.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">즐겨찾기한 목장이 없습니다</p>
-                  <Link href="/support">
-                    <Button>목장 둘러보기</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {favoriteFarms
-                  .sort(() => Math.random() - 0.5)
-                  .slice(0, 3)
-                  .map((farm) => (
-                  <Link key={farm.farmUuid} href={`/support/${farm.farmUuid}`}>
-                    <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-blue-200 py-0">
-                      <CardContent className="p-0">
-                        <div className="aspect-video relative">
-                          {farm.imageUrl && farm.imageUrl.trim() !== '' ? (
-                            <Image
-                              src={farm.imageUrl}
-                              alt={farm.farmName}
-                              fill
-                              className="object-cover rounded-t-lg"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-                              <span className="text-gray-500 text-sm">이미지 없음</span>
-                            </div>
-                          )}
-                        </div>
-                        <div className="p-4">
-                          <h3 className="font-semibold text-lg mb-2">{farm.farmName}</h3>
-                          <div className="mt-4">
-                            <Button className="w-full" variant="outline">
-                              {farm.farmName} 보러가기
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                  ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 즐겨찾는 목장의 최신 소식지 섹션 */}
-        <div className="space-y-6 mt-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-2xl font-bold text-gray-900">즐겨찾는 목장의 최신 소식</h2>
-          </div>
-          
-          <div className="space-y-4">
-            {farmNewsletters.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">즐겨찾기한 목장이 없습니다</p>
-                  <Link href="/support">
-                    <Button>목장 둘러보기</Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {farmNewsletters
-                  .filter(newsletter => newsletter.latestReport !== null)
-                  .map((newsletter) => (
-                    <Link key={newsletter.farmUuid} href={`/support/${newsletter.farmUuid}/report/${newsletter.latestReport?.reportId}`}>
-                      <Card className="hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer border-2 hover:border-blue-200 py-0">
-                        <CardContent className="p-0">
-                          <div className="aspect-video relative">
-                            {newsletter.latestReport?.thumbnail ? (
-                              <Image
-                                src={newsletter.latestReport.thumbnail}
-                                alt={`${newsletter.farmName} ${newsletter.latestReport.year}년 ${newsletter.latestReport.month}월 소식지`}
-                                fill
-                                className="object-cover rounded-t-lg"
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-t-lg">
-                                <span className="text-gray-500 text-sm">이미지 없음</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <h3 className="font-semibold text-lg">{newsletter.farmName}</h3>
-                              <div className="flex items-center text-sm text-gray-500">
-                                <Calendar className="h-4 w-4 mr-1" />
-                                {newsletter.latestReport?.year}년 {newsletter.latestReport?.month}월
-                              </div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-              </div>
-            )}
-          </div>
+          <DonorCollection />
         </div>
       </div>
     </div>
   );
 }
+

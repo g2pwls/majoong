@@ -1,5 +1,7 @@
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { isGuest } from "@/services/authService";
 export type FarmTabValue = "intro" | "horses" | "newsletter" | "donations" | "trust";
 
 export type TabItem = {
@@ -36,6 +38,19 @@ export default function FarmTabs({
   showDonateButton = false,
   showEditButton = false,
 }: Props) {
+  const router = useRouter();
+
+  // 기부하기 버튼 클릭 핸들러
+  const handleDonateClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isGuest()) {
+      // 비회원이면 로그인 페이지로 리다이렉트
+      router.push('/login');
+    } else {
+      // 회원이면 기부 페이지로 이동
+      window.location.href = `/support/${farmUuid}/donate`;
+    }
+  };
   return (
     <div className={`w-full${className}`}>
       {/* 탭과 버튼이 같은 줄에 배치 */}
@@ -85,12 +100,12 @@ export default function FarmTabs({
           
           {/* 기부하기 버튼 */}
           {showDonateButton && farmUuid && (
-            <Link 
-              href={`/support/${farmUuid}/donate`}
-              className="hidden lg:block bg-red-500 text-white py-2 px-4 rounded-md hover:bg-green-600 transition-colors text-sm font-medium"
+            <button 
+              onClick={handleDonateClick}
+              className="hidden lg:block bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
             >
               기부하기
-            </Link>
+            </button>
           )}
         </div>
       </div>
