@@ -269,8 +269,6 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
 
   // 점수에 따른 색상 결정 - 메모이제이션
   const getScoreColor = useCallback((score: number) => {
-    if (score >= 80) return "text-green-600";
-    if (score >= 60) return "text-yellow-600";
     return "text-red-600";
   }, []);
 

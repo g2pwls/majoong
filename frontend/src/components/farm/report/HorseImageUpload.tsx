@@ -489,7 +489,7 @@ export default function HorseImageUpload({
        <button 
          className={`mt-6 px-4 py-2 rounded-lg ml-auto block ${
            isAllImagesValidated() && !isSubmitting
-             ? 'bg-blue-600 text-white hover:bg-blue-700' 
+             ? 'bg-[#7d6149] text-white hover:bg-[#91745A]' 
              : 'bg-gray-400 text-gray-200 cursor-not-allowed'
          }`}
          disabled={!isAllImagesValidated() || isSubmitting}

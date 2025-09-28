@@ -392,7 +392,7 @@ export default function HorseInfoPanel({
                 <button
                   onClick={fetchHorseInfo}
                   disabled={loading}
-                  className="rounded-lg bg-blue-500 text-white px-4 py-2 text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-lg bg-[#7d6149] text-white px-4 py-2 text-sm hover:bg-[#91745A] focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {loading ? "조회 중..." : "조회"}
                 </button>
@@ -481,8 +481,8 @@ export default function HorseInfoPanel({
             </button>
           )}
           <button
-            className={`rounded-2xl px-4 py-2 text-white hover:opacity-90 ${
-              isButtonDisabled || loading ? "bg-gray-500" : "bg-neutral-900"
+            className={`rounded-2xl px-4 py-2 text-white bg-[#7d6149] hover:opacity-90 ${
+              isButtonDisabled || loading ? "bg-[#7d6149]" : "bg-neutral-900"
             }`}
             disabled={isButtonDisabled || loading} // 버튼 비활성화 처리
             onClick={registerHorse} // 말 등록

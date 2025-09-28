@@ -153,16 +153,14 @@ export default function IntroPanel({ farm, isMyFarm = false }: { farm: Farm; isM
       // 총 금액 계산
       const totalAmount = Array.from(categoryMap.values()).reduce((sum, item) => sum + item.amount, 0);
 
-      // 색상 팔레트 (파란색 계열)
+      // 색상 팔레트 (브라운 계열)
       const colors = [
-        '#3B82F6', // blue-500
-        '#60A5FA', // blue-400  
-        '#93C5FD', // blue-300
-        '#DBEAFE', // blue-100
-        '#1E40AF', // blue-800
-        '#1D4ED8', // blue-700
-        '#2563EB', // blue-600
-        '#1E3A8A', // blue-900
+        '#4D3A2C', // 다크 브라운
+        '#7B6A53', // 미디엄 브라운
+        '#91745A', // 라이트 브라운
+        '#D3CAB8', // 연한 브라운
+        '#D5BFA8', // 크림 브라운
+        '#837A5E', // 올리브 브라운
       ];
 
       // DonationUsageItem 배열로 변환

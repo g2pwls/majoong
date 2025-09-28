@@ -26,14 +26,14 @@ const SearchTypeToggle: React.FC<{
   <div className="flex items-center gap-2 rounded-xl border px-2 py-1">
     <button
       onClick={() => onChange("farm")}
-      className={`px-3 py-1 rounded-lg text-sm transition ${value === "farm" ? "bg-black text-white" : "hover:bg-muted"}`}
+      className={`px-3 py-1 rounded-lg text-sm transition ${value === "farm" ? "bg-[#4D3A2C] text-white" : "hover:bg-muted"}`}
       aria-pressed={value === "farm"}
     >
       목장이름
     </button>
     <button
       onClick={() => onChange("horse")}
-      className={`px-3 py-1 rounded-lg text-sm transition ${value === "horse" ? "bg-black text-white" : "hover:bg-muted"}`}
+      className={`px-3 py-1 rounded-lg text-sm transition ${value === "horse" ? "bg-[#4D3A2C] text-white" : "hover:bg-muted"}`}
       aria-pressed={value === "horse"}
     >
       마명
@@ -121,7 +121,7 @@ const FarmCard: React.FC<{
                   {/* 모바일에서 기부하기 버튼을 여기에 배치 */}
                   {!isFarmer() && (
                     <Button 
-                      className="lg:hidden whitespace-nowrap bg-red-500 hover:bg-red-600 text-sm sm:text-sm px-3 py-1.5"
+                      className="lg:hidden whitespace-nowrap bg-[#91745A] hover:bg-[#91745A] text-sm sm:text-sm px-3 py-1.5"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -198,8 +198,8 @@ const HorseCard: React.FC<{ horse: Horse; farm: Farm; index: number }> = ({ hors
   // 평균 색상 계산 (이미지에서 추출된 색상 사용)
   const getAverageColor = (index: number) => {
     const colors = [
-      '#b0b6a9', '#afa294', '#3c3c3d', '#b47460', 
-      '#60a6ce', '#46666f', '#8e898f', '#8d516e'
+      '#4D3A2C', '#7B6A53', '#91745A', '#D3CAB8', 
+      '#D5BFA8', '#837A5E', '#4D3A2C', '#7B6A53'
     ];
     return colors[index % colors.length];
   };

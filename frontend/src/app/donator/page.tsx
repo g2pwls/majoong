@@ -215,12 +215,16 @@ export default function DonatorPage() {
                 </Button>
               </Link>
               <Link href="/godonate">
+<<<<<<< HEAD
                 <Button 
                   className="text-white px-6 py-3 text-lg font-semibold transition-colors"
                   style={{ backgroundColor: '#4D3A2C' }}
                   onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
                   onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
                 >
+=======
+                <Button className="bg-[#91745A] text-white hover:bg-[#7d6149] px-6 py-3 text-lg font-semibold">
+>>>>>>> 92e3d7609fa2190b3ef8fb39f515edfca61495ff
                   바로 기부하기
                 </Button>
               </Link>
