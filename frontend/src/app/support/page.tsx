@@ -91,7 +91,7 @@ const FarmCard: React.FC<{
                   <div className="flex items-center gap-2">
                     {rank && (
                       <div className="flex items-center gap-1">
-                        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm">
+                        <div className="text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm" style={{ backgroundColor: '#4D3A2C' }}>
                           {rank}위
                         </div>
                       </div>
@@ -147,7 +147,10 @@ const FarmCard: React.FC<{
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
             {!isFarmer() && (
                   <Button 
-                    className="hidden lg:flex ml-2 whitespace-nowrap bg-[#2ca82c] hover:bg-[#30ba30] min-w-[120px] text-sm sm:text-base items-center justify-center"
+                    className="hidden lg:flex ml-2 whitespace-nowrap min-w-[120px] text-sm sm:text-base items-center justify-center text-white"
+                    style={{ backgroundColor: '#91745A' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7d6149'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#91745A'}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -562,7 +565,7 @@ export default function SupportPage() {
           {loading && (
             <div className="rounded-2xl border bg-white p-8 text-center">
               <div className="flex flex-col items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
                 <div className="text-sm text-muted-foreground">불러오는 중…</div>
               </div>
             </div>

@@ -635,16 +635,16 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       // 총 금액 계산
       const totalAmount = Array.from(categoryMap.values()).reduce((sum, item) => sum + item.amount, 0);
 
-      // 색상 팔레트 (파란색 계열)
+      // 색상 팔레트 (브라운 계열)
       const colors = [
-        '#3B82F6', // blue-500
-        '#60A5FA', // blue-400  
-        '#93C5FD', // blue-300
-        '#DBEAFE', // blue-100
-        '#1E40AF', // blue-800
-        '#1D4ED8', // blue-700
-        '#2563EB', // blue-600
-        '#1E3A8A', // blue-900
+        '#4D3A2C', // 다크 브라운
+        '#6B4E3D', // 미디엄 브라운
+        '#8B6F47', // 라이트 브라운
+        '#A68A5A', // 연한 브라운
+        '#3D2F24', // 매우 어두운 브라운
+        '#5A4030', // 어두운 브라운
+        '#7D6149', // 중간 브라운
+        '#2F2419', // 가장 어두운 브라운
       ];
 
       // DonationUsageItem 배열로 변환
@@ -680,16 +680,16 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       // 총 금액 계산
       const totalAmount = Array.from(categoryMap.values()).reduce((sum, item) => sum + item.amount, 0);
 
-      // 색상 팔레트 (파란색 계열)
+      // 색상 팔레트 (브라운 계열)
       const colors = [
-        '#3B82F6', // blue-500
-        '#60A5FA', // blue-400  
-        '#93C5FD', // blue-300
-        '#DBEAFE', // blue-100
-        '#1E40AF', // blue-800
-        '#1D4ED8', // blue-700
-        '#2563EB', // blue-600
-        '#1E3A8A', // blue-900
+        '#4D3A2C', // 다크 브라운
+        '#6B4E3D', // 미디엄 브라운
+        '#8B6F47', // 라이트 브라운
+        '#A68A5A', // 연한 브라운
+        '#3D2F24', // 매우 어두운 브라운
+        '#5A4030', // 어두운 브라운
+        '#7D6149', // 중간 브라운
+        '#2F2419', // 가장 어두운 브라운
       ];
 
       // DonationUsageItem 배열로 변환
@@ -713,7 +713,7 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
     return (
       <section id="panel-donations" className="space-y-4">
         <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
           <p className="text-gray-600 mb-2">기부금 사용 내역을 불러오는 중...</p>
           {loadingProgress.total > 0 && (
             <div className="w-full max-w-xs mx-auto">
@@ -723,8 +723,11 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${(loadingProgress.current / loadingProgress.total) * 100}%` }}
+                  className="h-2 rounded-full transition-all duration-300"
+                  style={{ 
+                    width: `${(loadingProgress.current / loadingProgress.total) * 100}%`,
+                    backgroundColor: '#4D3A2C'
+                  }}
                 ></div>
               </div>
             </div>

@@ -16,6 +16,7 @@
     "axios": "^1.12.2",
     "beasties": "^0.3.5",
     "boxicons": "^2.1.4",
+    "canvallax": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "critters": "^0.0.25",

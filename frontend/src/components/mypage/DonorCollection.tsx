@@ -71,7 +71,10 @@ export default function DonorCollection() {
           <p className="text-gray-600 mb-4">{error}</p>
           <Button 
             onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+            className="text-white px-4 py-2 rounded-md transition-colors"
+            style={{ backgroundColor: '#4D3A2C' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
           >
             다시 시도
           </Button>
@@ -87,7 +90,7 @@ export default function DonorCollection() {
           <h2 className="text-xl font-semibold text-gray-900">
             컬렉션
           </h2>
-          <span className="text-sm font-medium text-blue-600 bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
+          <span className="text-sm font-medium px-3 py-1 rounded-full" style={{ color: '#4D3A2C', backgroundColor: '#D3CAB8', border: '1px solid #4D3A2C' }}>
             총 {totalCardCount}장
           </span>
         </div>
@@ -98,14 +101,17 @@ export default function DonorCollection() {
 
       {collections.length === 0 ? (
         <div className="text-center py-12">
-          <Heart className="mx-auto h-12 w-12 text-blue-500 mb-4" />
+          <Heart className="mx-auto h-12 w-12 mb-4" style={{ color: '#4D3A2C' }} />
           <h3 className="text-lg font-medium text-gray-900 mb-2">컬렉션이 비어있습니다</h3>
           <p className="text-gray-600 mb-6">
             목장에 기부하여 말 카드를 수집해보세요.
           </p>
           <Link
             href="/support"
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center px-4 py-2 text-white rounded-md transition-colors"
+            style={{ backgroundColor: '#4D3A2C' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
           >
             목장 둘러보기
           </Link>
@@ -128,7 +134,7 @@ export default function DonorCollection() {
                 }}
               />
               <div className="mt-2 text-center">
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#D3CAB8', color: '#4D3A2C', border: '1px solid #4D3A2C' }}>
                   {item.cardCount}장
                 </span>
               </div>

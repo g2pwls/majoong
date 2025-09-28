@@ -174,7 +174,10 @@ export default function DonorSupportHistory() {
           <p className="mt-1 text-sm text-gray-500">{error}</p>
           <button 
             onClick={() => fetchDonationHistory(currentPage)} 
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition-colors"
+            className="mt-4 text-white px-4 py-2 rounded-md text-sm transition-colors"
+            style={{ backgroundColor: '#4D3A2C' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
           >
             다시 시도
           </button>
@@ -190,9 +193,9 @@ export default function DonorSupportHistory() {
       </div>
       {/* 요약 정보 카드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-1">총 기부금</h3>
-          <p className="text-2xl font-bold text-blue-900">{formatTotalAmount(totalAmount)}</p>
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg p-4">
+          <h3 className="text-sm font-medium text-amber-800 mb-1">총 기부금</h3>
+          <p className="text-2xl font-bold text-amber-900">{formatTotalAmount(totalAmount)}</p>
         </div>
         <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-green-800 mb-1">총 MARON</h3>
@@ -224,7 +227,10 @@ export default function DonorSupportHistory() {
           <div className="flex gap-2 sm:flex-shrink-0">
             <button
               onClick={handleDateFilter}
-              className="px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors flex-1 sm:flex-initial"
+              className="px-4 py-1 text-white rounded-md text-sm transition-colors flex-1 sm:flex-initial"
+              style={{ backgroundColor: '#4D3A2C' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
             >
               조회
             </button>
@@ -241,7 +247,7 @@ export default function DonorSupportHistory() {
       {/* 리스트 영역 로딩 인디케이터 */}
       {isListLoading && (
         <div className="flex justify-center items-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderBottomColor: '#4D3A2C' }}></div>
           <span className="ml-2 text-gray-600">로딩 중...</span>
         </div>
       )}
@@ -256,7 +262,7 @@ export default function DonorSupportHistory() {
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">후원 내역이 없습니다</h3>
           <p className="mt-1 text-sm text-gray-500 mb-4">아직 후원한 목장이 없습니다. 목장을 후원해보세요.</p>
-           <Link href="/support" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+           <Link href="/support" className="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-md transition-colors" style={{ backgroundColor: '#4D3A2C' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}>
              후원하러 가기
            </Link>
         </div>
@@ -277,7 +283,10 @@ export default function DonorSupportHistory() {
                             e.stopPropagation(); // 모달 열기 방지
                             handleVisitFarm(record.farmUuid);
                           }}
-                          className="text-blue-600 hover:text-blue-800 text-sm underline self-start sm:self-auto"
+                          className="text-sm underline self-start sm:self-auto"
+                          style={{ color: '#4D3A2C' }}
+                          onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                          onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
                         >
                           목장 보기
                         </button>
@@ -286,7 +295,7 @@ export default function DonorSupportHistory() {
                 </div>
                 <div className="text-right">
                       <p className="text-lg font-semibold text-gray-900">{formatAmount(record.donationToken)}</p>
-                      <p className="text-sm text-blue-600">{formatCoin(record.donationToken)}</p>
+                      <p className="text-sm" style={{ color: '#4D3A2C' }}>{formatCoin(record.donationToken)}</p>
                   <div className="mt-1">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           완료
@@ -339,9 +348,10 @@ export default function DonorSupportHistory() {
                   onClick={() => handlePageChange(pageNum)}
                   className={`px-3 py-2 text-sm font-medium border rounded-md ${
                     currentPage === pageNum
-                      ? 'text-blue-600 bg-blue-50 border-blue-300'
+                      ? 'bg-amber-50 border-amber-300'
                       : 'text-gray-500 bg-white border-gray-300 hover:bg-gray-50'
                   }`}
+                  style={currentPage === pageNum ? { color: '#4D3A2C' } : {}}
                 >
                   {pageNum + 1}
                 </button>
@@ -373,18 +383,18 @@ export default function DonorSupportHistory() {
         </div>
       )}
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+      <div className="mt-8 p-4 bg-amber-50 rounded-lg">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="h-5 w-5" style={{ color: '#4D3A2C' }} viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium" style={{ color: '#4D3A2C' }}>
               후원 내역 안내
             </h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <div className="mt-2 text-sm" style={{ color: '#6B4E3D' }}>
               <p>모든 후원은 블록체인에 기록되며, 투명하게 관리됩니다. 거래 해시를 통해 블록체인에서 확인할 수 있습니다.</p>
             </div>
           </div>

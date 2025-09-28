@@ -210,7 +210,7 @@ const Flipper: React.FC<FlipperProps> = ({
         
         .flipper-card-back-address {
           font-weight: normal;
-          color: #ffd700;
+          color: white;
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 3;
@@ -224,8 +224,18 @@ const Flipper: React.FC<FlipperProps> = ({
           padding: 0 20px;
           max-width: 100%;
           word-wrap: break-word;
-          text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
           backface-visibility: hidden;
+        }
+
+        .pin-icon {
+          display: inline-block;
+          margin-right: 8px;
+          width: 16px;
+          height: 16px;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z'/%3E%3C/svg%3E");
+          background-size: contain;
+          background-repeat: no-repeat;
+          background-position: center;
         }
         
         
@@ -322,7 +332,10 @@ const Flipper: React.FC<FlipperProps> = ({
                       <h2 className="flipper-card-back-description">{card.backDescription}</h2>
                     )}
                     {card.backAddress && (
-                      <div className="flipper-card-back-address">{card.backAddress}</div>
+                      <div className="flipper-card-back-address">
+                        <span className="pin-icon"></span>
+                        {card.backAddress}
+                      </div>
                     )}
                   </div>
                 </div>

@@ -29,7 +29,7 @@ export default function DonationUsageChart({ data, totalAmount, title, isLoading
         <CardContent className="px-4">
           <h3 className="text-lg font-semibold mb-4">{title}</h3>
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
             <p className="text-gray-600">{loadingMessage}</p>
           </div>
         </CardContent>
