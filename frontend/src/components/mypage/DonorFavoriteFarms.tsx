@@ -27,6 +27,10 @@ export default function DonorFavoriteFarms() {
         
         if (response.isSuccess && response.result) {
           setFavoriteFarms(response.result);
+          
+          // localStorage도 서버 상태와 동기화
+          const bookmarkedFarmUuids = response.result.map(farm => farm.farmUuid);
+          localStorage.setItem('bookmarkedFarms', JSON.stringify(bookmarkedFarmUuids));
         } else {
           setError('즐겨찾기 목장 목록을 불러올 수 없습니다.');
         }
