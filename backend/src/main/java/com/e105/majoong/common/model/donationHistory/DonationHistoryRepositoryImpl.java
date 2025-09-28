@@ -2,6 +2,7 @@ package com.e105.majoong.common.model.donationHistory;
 
 import com.e105.majoong.common.model.donator.QDonator;
 import com.e105.majoong.common.model.farm.QFarm;
+import com.e105.majoong.common.model.farmVault.QFarmVault;
 import com.e105.majoong.common.model.farmer.QFarmer;
 import com.e105.majoong.common.model.settlementHistory.QSettlementHistory;
 import com.e105.majoong.mypage.dto.out.DonationHistoryDetailResponseDto;
@@ -40,6 +41,7 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
     private static final QFarm farm = QFarm.farm;
     private static final QDonator donator = QDonator.donator;
     private static final QFarmer farmer = QFarmer.farmer;
+    private static final QFarmVault farmVault = QFarmVault.farmVault;
 
     @Override
     public DonationResponseDto findDonationHistoryByPage(
@@ -108,15 +110,17 @@ public class DonationHistoryRepositoryImpl implements DonationHistoryRepositoryC
                         farmer.walletAddress,
                         donationHistory.donationToken,
                         donationHistory.txHash,
-                        farm.farmName))
+                        farm.farmName,
+                        farmVault.vaultAddress
+                ))
                 .from(donationHistory)
                 .join(donator).on(donationHistory.donatorUuid.eq(donator.memberUuid))
                 .join(farm).on(donationHistory.farmUuid.eq(farm.farmUuid))
                 .join(farmer).on(donationHistory.farmerUuid.eq(farmer.memberUuid))
+                .join(farmVault).on(farmVault.farmUuid.eq(farm.farmUuid))
                 .where(donationHistory.id.eq(donationHistoryId)
                         .and(donator.memberUuid.eq(memberUuid)))
                 .fetchOne();
-
     }
 
     @Override
