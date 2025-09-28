@@ -121,7 +121,7 @@ const FarmCard: React.FC<{
                   {/* 모바일에서 기부하기 버튼을 여기에 배치 */}
                   {!isFarmer() && (
                     <Button 
-                      className="lg:hidden whitespace-nowrap bg-red-500 hover:bg-red-600 text-sm sm:text-sm px-3 py-1.5"
+                      className="lg:hidden whitespace-nowrap bg-[#91745A] hover:bg-[#91745A] text-sm sm:text-sm px-3 py-1.5"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();

@@ -102,7 +102,7 @@ export default function FarmTabs({
           {showDonateButton && farmUuid && (
             <button 
               onClick={handleDonateClick}
-              className="hidden lg:block bg-red-500 text-white py-2 px-4 rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+              className="hidden lg:block bg-[#91745A] text-white py-2 px-4 rounded-md hover:bg-[#7d6149] transition-colors text-sm font-medium"
             >
               기부하기
             </button>

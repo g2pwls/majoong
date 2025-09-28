@@ -131,17 +131,17 @@ export default function TrustScoreChart({ scoreHistory, selectedYear, currentSco
                   />
                   <ReferenceLine 
                     y={38} 
-                    stroke="#4D3A2C" 
+                    stroke="#7B6A53" 
                     strokeDasharray="5 5" 
                     strokeWidth={2}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="score" 
-                    stroke="#4D3A2C" 
+                    stroke="#7B6A53" 
                     strokeWidth={3}
-                    dot={{ fill: '#4D3A2C', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: '#4D3A2C', strokeWidth: 2 }}
+                    dot={{ fill: '#7B6A53', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#7B6A53', strokeWidth: 2 }}
                     connectNulls={false}
                   />
                 </LineChart>

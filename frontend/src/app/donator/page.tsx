@@ -215,7 +215,7 @@ export default function DonatorPage() {
                 </Button>
               </Link>
               <Link href="/godonate">
-                <Button className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-3 text-lg font-semibold">
+                <Button className="bg-[#91745A] text-white hover:bg-[#7d6149] px-6 py-3 text-lg font-semibold">
                   바로 기부하기
                 </Button>
               </Link>

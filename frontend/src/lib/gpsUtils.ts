@@ -32,7 +32,7 @@ function toRadians(degrees: number): number {
 }
 
 /**
- * 이미지 촬영 날짜 검증 (이번 주의 수요일, 목요일, 금요일, 토요일, 일요일 여부 확인)
+ * 이미지 촬영 날짜 검증 (이번 주의 월요일, 수요일, 목요일, 금요일, 토요일, 일요일 여부 확인)
  * @param imageDate 이미지의 촬영 날짜
  * @returns 검증 결과
  */
@@ -53,16 +53,16 @@ export function validateImageDate(imageDate: Date): {
   const now = new Date();
   const isFutureDate = imageDate > now;
   
-  // 이번 주의 수요일, 목요일, 금요일, 토요일, 일요일인지 확인
-  const isThisWeekend = isThisWeekWednesdayThursdayFridaySaturdaySunday(imageDate, now);
+  // 이번 주의 월요일, 수요일, 목요일, 금요일, 토요일, 일요일인지 확인
+  const isThisWeekend = isThisWeekMondayWednesdayThursdayFridaySaturdaySunday(imageDate, now);
   
   let message = '';
   if (isFutureDate) {
     message = `❌ 촬영 날짜 검증 실패! ${imageDateStr} (${dayName})는 미래 날짜입니다.`;
   } else if (isThisWeekend) {
-    message = `✅ 촬영 날짜 검증 성공! ${imageDateStr} (${dayName}) 촬영된 사진입니다. (이번 주 수요일~일요일)`;
+    message = `✅ 촬영 날짜 검증 성공! ${imageDateStr} (${dayName}) 촬영된 사진입니다. (이번 주 월요일, 수요일~일요일)`;
   } else {
-    message = `❌ 촬영 날짜 검증 실패! ${imageDateStr} (${dayName})는 이번 주 수요일~일요일이 아닙니다. (이번 주 수요일, 목요일, 금요일, 토요일, 일요일만 허용)`;
+    message = `❌ 촬영 날짜 검증 실패! ${imageDateStr} (${dayName})는 이번 주 월요일, 수요일~일요일이 아닙니다. (이번 주 월요일, 수요일, 목요일, 금요일, 토요일, 일요일만 허용)`;
   }
   
   return {
@@ -72,12 +72,12 @@ export function validateImageDate(imageDate: Date): {
 }
 
 /**
- * 해당 날짜가 이번 주의 수요일, 목요일, 금요일, 토요일, 일요일인지 확인
+ * 해당 날짜가 이번 주의 월요일, 수요일, 목요일, 금요일, 토요일, 일요일인지 확인
  * @param targetDate 확인할 날짜
  * @param currentDate 현재 날짜 (기본값: new Date())
- * @returns 이번 주 수요일~일요일 여부
+ * @returns 이번 주 월요일, 수요일~일요일 여부
  */
-function isThisWeekWednesdayThursdayFridaySaturdaySunday(targetDate: Date, currentDate: Date = new Date()): boolean {
+function isThisWeekMondayWednesdayThursdayFridaySaturdaySunday(targetDate: Date, currentDate: Date = new Date()): boolean {
   // 현재 날짜의 주 시작일 (월요일) 계산
   const currentWeekStart = new Date(currentDate);
   currentWeekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // 월요일로 설정
@@ -91,9 +91,9 @@ function isThisWeekWednesdayThursdayFridaySaturdaySunday(targetDate: Date, curre
   // 대상 날짜가 이번 주 범위에 있는지 확인
   const isInThisWeek = targetDate >= currentWeekStart && targetDate <= currentWeekEnd;
   
-  // 이번 주 범위에 있고, 수요일(3), 목요일(4), 금요일(5), 토요일(6), 일요일(0) 중 하나인지 확인
+  // 이번 주 범위에 있고, 월요일(1), 수요일(3), 목요일(4), 금요일(5), 토요일(6), 일요일(0) 중 하나인지 확인
   const dayOfWeek = targetDate.getDay();
-  const isWeekendDay = dayOfWeek === 3 || dayOfWeek === 4 || dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0;
+  const isWeekendDay = dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 4 || dayOfWeek === 5 || dayOfWeek === 6 || dayOfWeek === 0;
   
   return isInThisWeek && isWeekendDay;
 }
