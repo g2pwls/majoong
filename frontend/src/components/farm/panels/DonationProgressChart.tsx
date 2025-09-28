@@ -83,7 +83,7 @@ export default function DonationProgressChart({
       <div className="flex items-center gap-3">
         <div className="flex-1 bg-gray-200 rounded-full h-6 relative overflow-hidden">
           <div 
-            className={`bg-red-500 h-full rounded-full transition-all duration-1000 ease-out ${
+            className={`bg-[#7B6A53] h-full rounded-full transition-all duration-1000 ease-out ${
               isVisible ? 'opacity-100' : 'opacity-0'
             }`}
             style={{ 

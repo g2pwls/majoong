@@ -209,7 +209,7 @@ export function MonthlyBarChart({ data, title }: MonthlyBarChartProps) {
               />
               <Bar 
                 dataKey="amount" 
-                fill="#3B82F6" 
+                fill="#7B6A53" 
                 radius={[4, 4, 0, 0]}
                 className="hover:opacity-80 transition-opacity"
               />

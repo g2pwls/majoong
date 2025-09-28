@@ -638,13 +638,11 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       // 색상 팔레트 (브라운 계열)
       const colors = [
         '#4D3A2C', // 다크 브라운
-        '#6B4E3D', // 미디엄 브라운
-        '#8B6F47', // 라이트 브라운
-        '#A68A5A', // 연한 브라운
-        '#3D2F24', // 매우 어두운 브라운
-        '#5A4030', // 어두운 브라운
-        '#7D6149', // 중간 브라운
-        '#2F2419', // 가장 어두운 브라운
+        '#7B6A53', // 미디엄 브라운
+        '#91745A', // 라이트 브라운
+        '#D3CAB8', // 연한 브라운
+        '#D5BFA8', // 크림 브라운
+        '#837A5E', // 올리브 브라운
       ];
 
       // DonationUsageItem 배열로 변환
@@ -683,13 +681,11 @@ export default function DonationPanel({ farmUuid }: DonationPanelProps) {
       // 색상 팔레트 (브라운 계열)
       const colors = [
         '#4D3A2C', // 다크 브라운
-        '#6B4E3D', // 미디엄 브라운
-        '#8B6F47', // 라이트 브라운
-        '#A68A5A', // 연한 브라운
-        '#3D2F24', // 매우 어두운 브라운
-        '#5A4030', // 어두운 브라운
-        '#7D6149', // 중간 브라운
-        '#2F2419', // 가장 어두운 브라운
+        '#7B6A53', // 미디엄 브라운
+        '#91745A', // 라이트 브라운
+        '#D3CAB8', // 연한 브라운
+        '#D5BFA8', // 크림 브라운
+        '#837A5E', // 올리브 브라운
       ];
 
       // DonationUsageItem 배열로 변환
