@@ -14,7 +14,7 @@ import NewsletterPanel from "@/components/farm/panels/NewsletterPanel";
 import DonationPanel from "@/components/farm/panels/DonationPanel";
 import TrustPanel from "@/components/farm/panels/TrustPanel";
 import { getFarm, Farm, addFarmBookmark, removeFarmBookmark, isMyFarm as checkIsMyFarm } from "@/services/apiService";
-import { isDonator, isFarmer, getUserRole, isGuest } from "@/services/authService";
+import { isDonator, isFarmer, getUserRole } from "@/services/authService";
 
 const TABS: FarmTabValue[] = ["intro", "horses", "newsletter", "donations", "trust"];
 
@@ -98,17 +98,6 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
     router.replace(`?${sp.toString()}`);
   };
 
-  // 기부하기 버튼 클릭 핸들러
-  const handleDonateClick = () => {
-    if (isGuest()) {
-      // 비회원이면 로그인 페이지로 리다이렉트
-      router.push('/login');
-    } else {
-      // 회원이면 기부 페이지로 이동
-      window.location.href = `/support/${farm_uuid}/donate`;
-    }
-  };
-
   // 즐겨찾기 토글 핸들러
   const handleBookmarkToggle = async (farmUuid: string) => {
     if (!isDonator()) return;
@@ -152,10 +141,10 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
       {/* 브레드크럼 */}
       <div className="flex items-center justify-between">
         <Breadcrumbs items={[{ label: getUserRole() === 'FARMER' ? "전체목장" : "목장후원", href: "/support" }, { label: farm.farm_name }]} />
-        {/* 모바일에서만 기부하기 버튼 표시 - 비회원도 가능 */}
+        {/* 모바일에서만 기부하기 버튼 표시 */}
         {!isFarmer() && (
           <button
-            onClick={handleDonateClick}
+            onClick={() => window.location.href = `/support/${farm_uuid}/donate`}
             className="lg:hidden bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
             기부하기
@@ -192,7 +181,7 @@ export default function FarmDetailClient({ farm_uuid }: { farm_uuid: string }) {
             value={tab} 
             onChange={onChangeTab} 
             farmUuid={farm_uuid}
-            showDonateButton={!isFarmer()}
+            showDonateButton={isDonator() && !isFarmer()}
             showEditButton={isMyFarm}
           />
           <div className="mt-4.5">

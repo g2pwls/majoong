@@ -176,7 +176,7 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">목장 지갑 주소</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">목장 금고 주소</label>
                   <div className="flex items-center space-x-2">
                     <a
                       href={`https://sepolia.etherscan.io/token/0x7d961fee8b404296a45e141874feb1ca955ef816?a=${donationDetail.farmWalletAddress}`}

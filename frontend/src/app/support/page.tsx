@@ -142,16 +142,6 @@ const FarmCard: React.FC<{
                   <p className="text-sm text-muted-foreground">목장 상태: {farm.state}</p>
                 )}
               </div>
-              <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="h-4 w-4 flex-shrink-0" /> 
-                    <span className="break-words">{farm.address}</span>
-              </p>
-                <p className="text-sm text-muted-foreground"> 말 {farm.horse_count}두</p>
-              <p className="text-sm text-muted-foreground">농장주: {farm.name}</p>
-              {farm.state && (
-                <p className="text-sm text-muted-foreground">농장 상태: {farm.state}</p>
-              )}
-            </div>
 
           {/* 오른쪽: 갤러리 + 버튼 */}
               <div className={`flex flex-col items-end gap-3 lg:flex-shrink-0 ${isFarmer() ? 'justify-end' : ''}`}>
@@ -185,6 +175,7 @@ const FarmCard: React.FC<{
             </div>
           </div>
         </div>
+          </div>
         </div>
     </Card>
     </Link>
@@ -554,10 +545,10 @@ export default function SupportPage() {
 
           {/* 오른쪽: 검색 */}
           <div className="flex flex-row items-center gap-2">
-              <SearchTypeToggle value={searchType} onChange={setSearchType} />
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+            <SearchTypeToggle value={searchType} onChange={setSearchType} />
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
                 className="w-[182px] sm:w-[200px] pl-8 h-9 text-sm"
                 placeholder={searchType === "farm" ? "목장이름 검색" : "마명 검색"}
                 value={keyword}
