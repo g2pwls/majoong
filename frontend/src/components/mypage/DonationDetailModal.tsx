@@ -24,6 +24,8 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
       const response: DonationDetailResponse = await getDonationDetail(donationHistoryId);
       
       if (response.isSuccess && response.result) {
+        console.log('기부 상세 정보 API 응답:', response.result);
+        console.log('farmVaultAdrress 필드:', response.result.farmVaultAdrress);
         setDonationDetail(response.result);
       } else {
         setError('기부 상세 정보를 불러올 수 없습니다.');
@@ -175,31 +177,33 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                   </p>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">목장 금고 주소</label>
-                  <div className="flex items-center space-x-2">
-                    <a
-                      href={`https://sepolia.etherscan.io/token/0x7d961fee8b404296a45e141874feb1ca955ef816?a=${donationDetail.farmWalletAddress}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
-                    >
-                      {donationDetail.farmWalletAddress}
-                    </a>
-                    <button
-                      onClick={() => copyToClipboard(donationDetail.farmWalletAddress)}
-                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
-                      title="복사"
-                    >
-                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </button>
+                {donationDetail.farmVaultAdrress && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">목장 금고 주소</label>
+                    <div className="flex items-center space-x-2">
+                      <a
+                        href={`https://sepolia.etherscan.io/token/0x7d961fee8b404296a45e141874feb1ca955ef816?a=${donationDetail.farmVaultAdrress}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                      >
+                        {donationDetail.farmVaultAdrress}
+                      </a>
+                      <button
+                        onClick={() => copyToClipboard(donationDetail.farmVaultAdrress)}
+                        className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                        title="복사"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      클릭하면 Etherscan에서 목장 금고를 확인할 수 있습니다
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    클릭하면 Etherscan에서 목장 금고를 확인할 수 있습니다
-                  </p>
-                </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">거래 해시</label>

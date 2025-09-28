@@ -72,7 +72,6 @@ export interface DonationHistoryResponse {
         farmName: string;
         donationToken: number;
         donationDate: string;
-        profileImage?: string;
       }[];
       pageable: {
         pageNumber: number;
@@ -116,6 +115,7 @@ export interface DonationDetailResponse {
     donationDate: string;
     donatorWalletAddress: string;
     farmWalletAddress: string;
+    farmVaultAdrress: string; // 목장 금고 주소 추가
     txHash: string;
     receiptId: string;
     imageUrl?: string; // 선택적 필드로 추가
