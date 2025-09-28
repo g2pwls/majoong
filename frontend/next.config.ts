@@ -47,6 +47,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "img.freepik.com",
       },
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+      },
     ],
 
     // 방법 2: 간단히 도메인만 허용하고 싶다면 아래 사용 (위와 중복 사용 X)

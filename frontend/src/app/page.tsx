@@ -1,10 +1,13 @@
+'use client';
+
 import Link from "next/link";
+import Carousel from '@/components/ui/Carousel';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 py-20">
+      <div className="bg-gradient-to-br from-amber-50 to-amber-100 py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">
             마중
@@ -15,7 +18,10 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/support"
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+              className="px-8 py-3 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
+              style={{ backgroundColor: '#4D3A2C' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
             >
               목장 후원하기
             </Link>
@@ -26,6 +32,24 @@ export default function Home() {
               서비스 소개
             </Link>
           </div>
+        </div>
+      </div>
+
+      {/* Carousel Section */}
+      <div className="relative py-20" style={{ backgroundColor: '#4D3A2C' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            추천 목장
+          </h2>
+          <p className="text-xl text-amber-100 mb-8">
+            신뢰도가 높은 목장들을 만나보세요
+          </p>
+          <p className="text-sm text-amber-200 mb-8">
+            카드 영역에서 마우스 휠을 사용하여 목장을 둘러보세요
+          </p>
+        </div>
+        <div className="h-[600px] overflow-hidden">
+          <Carousel useApiData={true} />
         </div>
       </div>
 
@@ -43,7 +67,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#D3CAB8' }}>
                 <span className="text-2xl">🔒</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">안전한 후원</h3>
@@ -51,7 +75,7 @@ export default function Home() {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#D3CAB8' }}>
                 <span className="text-2xl">🌱</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">직접 후원</h3>
@@ -59,7 +83,7 @@ export default function Home() {
             </div>
             
             <div className="text-center p-6">
-              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#D3CAB8' }}>
                 <span className="text-2xl">📱</span>
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">간편한 이용</h3>
@@ -70,17 +94,17 @@ export default function Home() {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-blue-600 py-16">
+      <div className="py-16" style={{ backgroundColor: '#4D3A2C' }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">
             지금 시작해보세요
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-amber-100 mb-8">
             마음을 나누는 따뜻한 후원에 참여하세요
           </p>
           <Link
             href="/login"
-            className="inline-block px-8 py-3 bg-yellow-300 text-black rounded-lg hover:bg-yellow-400 transition-colors duration-200 shadow-md hover:shadow-lg font-medium"
+            className="inline-block px-8 py-3 bg-amber-300 text-black rounded-lg hover:bg-amber-400 transition-colors duration-200 shadow-md hover:shadow-lg font-medium"
           >
             카카오톡으로 시작하기
           </Link>
