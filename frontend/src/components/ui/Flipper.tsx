@@ -5,13 +5,10 @@ import React from 'react';
 interface FlipperCard {
   id: string;
   title: string;
-  price: string;
+  score: string;
   image: string;
-  actions?: Array<{
-    label: string;
-    href: string;
-    onClick?: () => void;
-  }>;
+  backDescription?: string;
+  backAddress?: string;
 }
 
 interface FlipperProps {
@@ -23,30 +20,26 @@ const Flipper: React.FC<FlipperProps> = ({
     {
       id: '1',
       title: 'Little\nBonsai',
-      price: '$79',
+      score: '38.2℃',
       image: 'https://images.unsplash.com/photo-1520412099551-62b6bafeb5bb?auto=format&fit=crop&w=600&q=80',
-      actions: [
-        { label: 'Add to cart', href: '#' },
-        { label: 'View detail', href: '#' }
-      ]
+      backDescription: 'Little\nBonsai',
+      backAddress: 'Premium\nQuality'
     },
     {
       id: '2',
       title: 'Tropical\nLeaf',
-      price: '$35',
+      score: '38.2℃',
       image: 'https://images.unsplash.com/photo-1497250681960-ef046c08a56e?auto=format&fit=crop&w=600&q=80',
-      actions: [
-        { label: 'Add to cart', href: '#' }
-      ]
+      backDescription: 'Tropical\nLeaf',
+      backAddress: 'Natural\nFresh'
     },
     {
       id: '3',
       title: 'Marijuana\nChill',
-      price: '$155',
+      score: '38.2℃',
       image: 'https://images.unsplash.com/photo-1525945518069-b924046d1385?auto=format&fit=crop&w=600&q=80',
-      actions: [
-        { label: 'Add to cart', href: '#' }
-      ]
+      backDescription: 'Marijuana\nChill',
+      backAddress: 'Pure\nEssence'
     }
   ]
 }) => {
@@ -57,39 +50,27 @@ const Flipper: React.FC<FlipperProps> = ({
         
         .flipper-container {
           font-family: 'Oswald', sans-serif;
-          background-color: #212121;
-          min-height: 100vh;
+          background-color: transparent;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 20px;
         }
         
         .flipper-section {
-          width: 90%;
-          max-width: 1200px;
-          margin: 0 auto;
-        }
-        
-        .flipper-row {
           display: flex;
           flex-wrap: wrap;
           gap: 20px;
           align-items: center;
-          min-height: 100vh;
           justify-content: center;
         }
         
         .flipper-card {
           position: relative;
-          height: 400px;
-          width: 100%;
-          max-width: 350px;
+          height: 300px;
+          width: 450px;
           margin: 10px 0;
           transition: ease all 2.3s;
           perspective: 1200px;
-          flex: 1;
-          min-width: 280px;
         }
         
         .flipper-card:hover .flipper-cover {
@@ -108,12 +89,17 @@ const Flipper: React.FC<FlipperProps> = ({
           transform: translateZ(100px);
         }
         
-        .flipper-card:hover .flipper-cover .flipper-price {
+        .flipper-card:hover .flipper-cover .flipper-score {
           transform: translateZ(60px);
         }
         
-        .flipper-card:hover .flipper-card-back a {
-          transform: translateZ(-60px) rotatey(-180deg);
+        
+        .flipper-card:hover .flipper-card-back-description {
+          transform: translateZ(80px);
+        }
+        
+        .flipper-card:hover .flipper-card-back-address {
+          transform: translateZ(100px);
         }
         
         .flipper-cover {
@@ -125,6 +111,7 @@ const Flipper: React.FC<FlipperProps> = ({
           background-size: cover;
           background-position: center center;
           background-repeat: no-repeat;
+          backface-visibility: hidden;
         }
         
         .flipper-cover:before {
@@ -163,14 +150,15 @@ const Flipper: React.FC<FlipperProps> = ({
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 3;
-          font-size: 3em;
+          font-size: 1.5em;
           transform: translateZ(0px);
           margin: 0;
           line-height: 1.2;
           white-space: pre-line;
+          backface-visibility: hidden;
         }
         
-        .flipper-price {
+        .flipper-score {
           font-weight: 200;
           position: absolute;
           top: 55px;
@@ -179,8 +167,9 @@ const Flipper: React.FC<FlipperProps> = ({
           transform-style: preserve-3d;
           transition: ease all 2.3s;
           z-index: 4;
-          font-size: 2em;
+          font-size: 1.6em;
           transform: translateZ(0px);
+          backface-visibility: hidden;
         }
         
         .flipper-card-back {
@@ -190,82 +179,136 @@ const Flipper: React.FC<FlipperProps> = ({
           background: #0b0f08;
           transform-style: preserve-3d;
           transition: ease all 2.3s;
-          transform: translateZ(-1px);
+          transform: translateZ(-1px) rotateY(180deg);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-direction: column;
-          gap: 20px;
+          gap: 40px;
+          backface-visibility: hidden;
         }
         
-        .flipper-card-back a {
-          transform-style: preserve-3d;
-          transition: ease transform 2.3s, ease background .5s;
-          transform: translateZ(-1px) rotatey(-180deg);
-          background: transparent;
-          border: 1px solid white;
-          font-weight: 200;
-          font-size: 1.3em;
+        .flipper-card-back-description {
+          font-weight: normal;
           color: white;
-          padding: 14px 32px;
-          outline: none;
-          text-decoration: none;
-          cursor: pointer;
-          display: inline-block;
+          transform-style: preserve-3d;
+          transition: ease all 2.3s;
+          z-index: 3;
+          font-size: 1rem;
+          transform: translateZ(0px);
+          margin: 0;
+          line-height: 1.2;
+          white-space: pre-line;
           text-align: center;
-          min-width: 150px;
+          margin-bottom: 10px;
+          padding: 0 20px;
+          max-width: 100%;
+          word-wrap: break-word;
+          backface-visibility: hidden;
         }
         
-        .flipper-card-back a:hover {
-          background-color: white;
-          color: #0b0f08;
+        
+        .flipper-card-back-address {
+          font-weight: normal;
+          color: #ffd700;
+          transform-style: preserve-3d;
+          transition: ease all 2.3s;
+          z-index: 3;
+          font-size: 1rem;
+          transform: translateZ(0px);
+          margin: 0;
+          line-height: 1.2;
+          white-space: pre-line;
+          text-align: center;
+          margin-bottom: 20px;
+          padding: 0 20px;
+          max-width: 100%;
+          word-wrap: break-word;
+          text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+          backface-visibility: hidden;
         }
+        
         
         /* 반응형 디자인 */
         @media (max-width: 768px) {
-          .flipper-row {
+          .flipper-section {
             flex-direction: column;
             align-items: center;
           }
           
           .flipper-card {
-            max-width: 100%;
-            width: 100%;
+            height: 240px;
+            width: 360px;
           }
           
           .flipper-cover h1 {
-            font-size: 2.5em;
+            font-size: 1.5em;
             bottom: 45px;
             left: 30px;
           }
           
-          .flipper-price {
-            font-size: 1.8em;
+          .flipper-score {
+            font-size: 1.4em;
             top: 45px;
             right: 30px;
+          }
+          
+          .flipper-card-back-description {
+            font-size: 1rem;
+            padding: 0 15px;
+          }
+          
+          
+          .flipper-card-back-address {
+            font-size: 1rem;
+            padding: 0 15px;
           }
         }
         
         @media (max-width: 480px) {
+          .flipper-card {
+            height: 180px;
+            width: 270px;
+          }
+          
           .flipper-cover h1 {
-            font-size: 2em;
+            font-size: 1.5em;
             bottom: 35px;
             left: 20px;
           }
           
-          .flipper-price {
-            font-size: 1.5em;
+          .flipper-score {
+            font-size: 1.2em;
             top: 35px;
             right: 20px;
           }
+          
+          .flipper-card-back-description {
+            font-size: 1rem;
+            padding: 0 10px;
+          }
+          
+          
+          .flipper-card-back-address {
+            font-size: 1rem;
+            padding: 0 10px;
+          }
+        }
+        
+        .flipper-instruction {
+          text-align: center;
+          margin-top: 16px;
+          color: #6b7280;
+          font-size: 0.875rem;
+          font-weight: 500;
         }
       `}</style>
       
       <div className="flipper-container">
         <section className="flipper-section">
-          <div className="flipper-row">
-            {cards.map((card) => (
-              <div key={card.id} className="flipper-card">
+          {cards.map((card) => (
+            <div key={card.id}>
+              <div className="flipper-card">
                 <div 
                   className="flipper-cover" 
                   style={{ 
@@ -273,22 +316,22 @@ const Flipper: React.FC<FlipperProps> = ({
                   }}
                 >
                   <h1>{card.title}</h1>
-                  <span className="flipper-price">{card.price}</span>
+                  <span className="flipper-score">{card.score}</span>
                   <div className="flipper-card-back">
-                    {card.actions?.map((action, index) => (
-                      <a
-                        key={index}
-                        href={action.href}
-                        onClick={action.onClick}
-                      >
-                        {action.label}
-                      </a>
-                    ))}
+                    {card.backDescription && (
+                      <h2 className="flipper-card-back-description">{card.backDescription}</h2>
+                    )}
+                    {card.backAddress && (
+                      <div className="flipper-card-back-address">{card.backAddress}</div>
+                    )}
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className="flipper-instruction">
+                마우스를 올려서 목장 설명을 확인해보세요!
+              </div>
+            </div>
+          ))}
         </section>
       </div>
     </>

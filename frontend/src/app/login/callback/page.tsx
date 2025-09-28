@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithSession, saveTokens } from '@/services/authService';
+import SkyBackground from '@/components/common/SkyBackground';
+import ForestBackground from '@/components/common/ForestBackground';
 
 export default function OAuthCallbackPage() {
   console.log('OAuthCallbackPage - Component rendering');
@@ -56,35 +58,41 @@ export default function OAuthCallbackPage() {
         // 처리 중일 때
         if (isProcessing) {
           return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="mt-4 text-gray-600">카카오 로그인 처리 중...</p>
+            <SkyBackground className="h-screen">
+              <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-20">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
+                  <p className="mt-4 text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>카카오 로그인 처리 중...</p>
+                </div>
               </div>
-            </div>
+              <ForestBackground />
+            </SkyBackground>
           );
         }
 
   // 에러 상태
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="text-red-500 text-xl mb-4">⚠️</div>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              setIsProcessing(true);
-              // 다시 시도
-              window.location.reload();
-            }}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            다시 시도
-          </button>
+      <SkyBackground className="h-screen">
+        <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-20">
+          <div className="text-center">
+            <div className="text-red-400 text-xl mb-4">⚠️</div>
+            <p className="text-white mb-4" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>{error}</p>
+            <button
+              onClick={() => {
+                setError(null);
+                setIsProcessing(true);
+                // 다시 시도
+                window.location.reload();
+              }}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              다시 시도
+            </button>
+          </div>
         </div>
-      </div>
+        <ForestBackground />
+      </SkyBackground>
     );
   }
 
