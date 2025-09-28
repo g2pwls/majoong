@@ -98,7 +98,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
       onDown: () => !animating && gotoSection(currentIndex - 1, -1),
       onUp: () => !animating && gotoSection(currentIndex + 1, 1),
       tolerance: 10,
-      preventDefault: true
+      preventDefault: true,
+      target: containerRef.current
     });
 
     gotoSection(0, 1);
@@ -111,12 +112,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
   return (
     <>
       <style jsx global>{`
-        * {
+        .hero-container * {
           box-sizing: border-box;
           user-select: none;
         }
 
-        a {
+        .hero-container a {
           color: white;
           text-decoration: none;
         }
@@ -124,24 +125,27 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
         .hero-container {
           margin: 0;
           padding: 0;
-          height: 100vh;
+          height: 75vh;
           color: white;
           text-transform: uppercase;
           font-family: 'Geist Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Roboto", "Helvetica Neue", Arial, sans-serif;
+          position: relative;
+          overflow: hidden;
+          z-index: 1;
         }
 
-        .hero-container h2 {
-          font-size: clamp(1rem, 8vw, 10rem);
-          font-weight: 600;
-          text-align: center;
-          margin-right: -0.5em;
-          width: 90vw;
-          max-width: 1200px;
-          text-transform: none;
-        }
+         .hero-container h2 {
+           font-size: clamp(1rem, 6vw, 8rem);
+           font-weight: 600;
+           text-align: center;
+           margin-right: -0.5em;
+           width: 90vw;
+           max-width: 1200px;
+           text-transform: none;
+         }
 
         .hero-header {
-          position: fixed;
+          position: absolute;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -157,7 +161,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
           height: 100%;
           width: 100%;
           top: 0;
-          position: fixed;
+          position: absolute;
           visibility: hidden;
         }
 
@@ -188,31 +192,31 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
           overflow: hidden;
         }
 
-        .first .bg {
-          background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
-             url("https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80");
-        }
+         .first .bg {
+           background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
+              url("/images/main-animated/main1.jpg");
+         }
 
-        .second .bg {
-          background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
-             url("https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80");
-        }
+         .second .bg {
+           background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
+              url("/images/main-animated/main2.jpg");
+         }
 
-        .third .bg {
-          background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
-            url("https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80");
-        }
+         .third .bg {
+           background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
+             url("/images/main-animated/main3.jpg");
+         }
 
-        .fourth .bg {
-          background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
-            url("https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80");
-        }
+         .fourth .bg {
+           background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
+             url("/images/main-animated/main4.webp");
+         }
 
-        .fifth .bg {
-          background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
-            url("https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80");
-          background-position: 50% 45%;
-        }
+         .fifth .bg {
+           background-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.1) 100%),
+             url("/images/main-animated/main5.jpg");
+           background-position: 50% 45%;
+         }
 
         .hero-section h2 * {
           will-change: transform;
@@ -225,7 +229,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
 
       <div ref={containerRef} className={`hero-container ${className}`}>
         <header className="hero-header">
-          <div>마중 - 목장 후원</div>
+          <div>마중</div>
           <div><a href="/support">목장 둘러보기</a></div>
         </header>
 
@@ -245,12 +249,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
                 ref={(el) => { if (el) imagesRef.current[0] = el; }}
                 className="bg one"
               >
-                <h2 
-                  ref={(el) => { if (el) headingsRef.current[0] = el; }}
-                  className="section-heading"
-                >
-                  스크롤해보세요
-                </h2>
+                 <h2 
+                   ref={(el) => { if (el) headingsRef.current[0] = el; }}
+                   className="section-heading"
+                 >
+                   도착지가 정해진 경주에서
+                 </h2>
               </div>
             </div>
           </div>
@@ -272,12 +276,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
                 ref={(el) => { if (el) imagesRef.current[1] = el; }}
                 className="bg"
               >
-                <h2 
-                  ref={(el) => { if (el) headingsRef.current[1] = el; }}
-                  className="section-heading"
-                >
-                  목장과 함께
-                </h2>
+                 <h2 
+                   ref={(el) => { if (el) headingsRef.current[1] = el; }}
+                   className="section-heading"
+                 >
+                   한없이 자유로운 걸음으로
+                 </h2>
               </div>
             </div>
           </div>
@@ -299,12 +303,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
                 ref={(el) => { if (el) imagesRef.current[2] = el; }}
                 className="bg"
               >
-                <h2 
-                  ref={(el) => { if (el) headingsRef.current[2] = el; }}
-                  className="section-heading"
-                >
-                  퇴역마 보호
-                </h2>
+                 <h2 
+                   ref={(el) => { if (el) headingsRef.current[2] = el; }}
+                   className="section-heading"
+                 >
+                   퇴역의 시작, 마생의 시작
+                 </h2>
               </div>
             </div>
           </div>
@@ -326,12 +330,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
                 ref={(el) => { if (el) imagesRef.current[3] = el; }}
                 className="bg"
               >
-                <h2 
-                  ref={(el) => { if (el) headingsRef.current[3] = el; }}
-                  className="section-heading"
-                >
-                  따뜻한 마음
-                </h2>
+                 <h2 
+                   ref={(el) => { if (el) headingsRef.current[3] = el; }}
+                   className="section-heading"
+                 >
+                   퇴역마의 새로운 시작을 함께 마중해보세요
+                 </h2>
               </div>
             </div>
           </div>
@@ -353,12 +357,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
                 ref={(el) => { if (el) imagesRef.current[4] = el; }}
                 className="bg"
               >
-                <h2 
-                  ref={(el) => { if (el) headingsRef.current[4] = el; }}
-                  className="section-heading"
-                >
-                  계속 스크롤하세요
-                </h2>
+                 <h2 
+                   ref={(el) => { if (el) headingsRef.current[4] = el; }}
+                   className="section-heading"
+                 >
+                   마중
+                 </h2>
               </div>
             </div>
           </div>

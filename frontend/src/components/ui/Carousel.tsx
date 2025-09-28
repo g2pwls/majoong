@@ -313,7 +313,7 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
          .carousel-farm-score {
            position: absolute;
            z-index: 2;
-           color: #00ff00;
+           color: #FFD700;
            bottom: 50px;
            left: 15px;
            right: 15px;
@@ -321,7 +321,7 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
            opacity: 0.9;
            line-height: 1.2;
            font-weight: 700;
-           text-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+           text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
          }
 
          .carousel-farm-info {

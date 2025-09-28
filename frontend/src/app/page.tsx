@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from 'react';
 import Carousel from '@/components/ui/Carousel';
 import InfiniteCarousel from '@/components/ui/InfiniteCarousel';
+import HeroSection from '@/components/ui/HeroSection';
 import { getHorses, Horse } from '@/services/apiService';
 
 export default function Home() {
@@ -51,35 +52,27 @@ export default function Home() {
     farmId: horse.farm_id
   }));
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <div className="bg-gradient-to-br from-amber-50 to-amber-100 py-20">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            마중
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            목장 후원과 기부를 통해 따뜻한 마음을 나누는 플랫폼입니다
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/support"
-              className="px-8 py-3 text-white rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-              style={{ backgroundColor: '#4D3A2C' }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
-            >
-              목장 후원하기
-            </Link>
-            <Link
-              href="/about"
-              className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors duration-200"
-            >
-              서비스 소개
-            </Link>
-          </div>
+    <>
+      <style jsx global>{`
+        .hero-section-wrapper {
+          position: relative;
+          height: 75vh;
+          overflow: hidden;
+        }
+        
+        .hero-section-wrapper * {
+          pointer-events: auto;
+        }
+        
+        body {
+          overflow-y: auto;
+        }
+      `}</style>
+      <div className="min-h-screen bg-gray-50">
+        {/* Hero Section */}
+        <div className="hero-section-wrapper">
+          <HeroSection />
         </div>
-      </div>
 
       {/* Carousel Section */}
       <div className="relative py-10" style={{ backgroundColor: '#4D3A2C' }}>
@@ -112,20 +105,9 @@ export default function Home() {
       <div className="py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              지금도 퇴역마가 많이 기다리고 있어요
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">
+              여러분을 기다리고 있는 퇴역마를 만나 보세요
             </h2>
-            <p className="text-lg text-gray-600 mb-4">
-              여러분의 따뜻한 마음으로 그들을 도와주세요
-            </p>
-            
-            {/* 감성적인 멘트 */}
-            <p className="text-xl font-medium text-gray-700 mb-6">
-              지금도 <span className="font-bold text-amber-600">{horses.length}마리</span>의 퇴역마가 여러분을 기다리고 있어요
-            </p>
-            <p className="text-lg text-gray-600 mb-8 italic">
-              그들을 만나러 가시겠어요?
-            </p>
             
             {/* 말 이름 캐러셀 */}
             {loading ? (
@@ -185,12 +167,14 @@ export default function Home() {
           </p>
           <Link
             href="/login"
-            className="inline-block px-8 py-3 bg-amber-300 text-black rounded-lg hover:bg-amber-400 transition-colors duration-200 shadow-md hover:shadow-lg font-medium"
+            className="inline-block px-8 py-3 bg-amber-300 rounded-lg hover:bg-amber-400 transition-colors duration-200 shadow-md hover:shadow-lg font-medium"
+            style={{ color: '#000000' }}
           >
             카카오톡으로 시작하기
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

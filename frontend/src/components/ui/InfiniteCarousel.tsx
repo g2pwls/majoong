@@ -48,7 +48,7 @@ const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
           display: flex;
           width: calc(${width}px * ${items.length} * 2);
           gap: ${defaultGap}px;
-          animation: autoScroll 20s linear infinite;
+          animation: autoScroll 40s linear infinite;
         }
 
         .list:hover {
@@ -98,7 +98,7 @@ const InfiniteCarousel: React.FC<InfiniteCarouselProps> = ({
         }
 
         .slider.reverse .list {
-          animation: reverseScroll 20s linear infinite;
+          animation: reverseScroll 40s linear infinite;
         }
 
         @keyframes reverseScroll {
