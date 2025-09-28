@@ -42,9 +42,20 @@ export default function DonationAmountSelector({
             onClick={() => onAmountSelect(amount)}
             className={`h-12 ${
               selectedAmount === amount
-                ? "bg-green-500 hover:bg-green-600 text-white"
+                ? "text-white"
                 : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             }`}
+            style={selectedAmount === amount ? { backgroundColor: '#91745A' } : {}}
+            onMouseEnter={(e) => {
+              if (selectedAmount === amount) {
+                e.currentTarget.style.backgroundColor = '#7d6149';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedAmount === amount) {
+                e.currentTarget.style.backgroundColor = '#91745A';
+              }
+            }}
           >
             {formatAmount(amount)}원
           </Button>
@@ -69,9 +80,20 @@ export default function DonationAmountSelector({
             onClick={onCustomInputClick}
             className={`h-12 ${
               selectedAmount > 0 && !predefinedAmounts.includes(selectedAmount)
-                ? "bg-green-500 hover:bg-green-600 text-white"
+                ? "text-white"
                 : "bg-gray-100 hover:bg-gray-200 text-gray-700"
             }`}
+            style={selectedAmount > 0 && !predefinedAmounts.includes(selectedAmount) ? { backgroundColor: '#91745A' } : {}}
+            onMouseEnter={(e) => {
+              if (selectedAmount > 0 && !predefinedAmounts.includes(selectedAmount)) {
+                e.currentTarget.style.backgroundColor = '#7d6149';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedAmount > 0 && !predefinedAmounts.includes(selectedAmount)) {
+                e.currentTarget.style.backgroundColor = '#91745A';
+              }
+            }}
           >
             {customAmount ? `${formatAmount(selectedAmount)}원` : "직접 입력"}
           </Button>

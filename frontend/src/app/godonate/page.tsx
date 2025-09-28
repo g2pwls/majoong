@@ -224,7 +224,10 @@ export default function GoDonatePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">로딩 중...</div>
+        <div className="flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mb-4" style={{ borderBottomColor: '#4D3A2C' }}></div>
+          <div className="text-lg text-gray-600">목장 정보를 불러오는 중...</div>
+        </div>
       </div>
     );
   }
@@ -267,7 +270,19 @@ export default function GoDonatePage() {
                 onClick={handleRandomSelect}
                 variant="outline"
                 size="sm"
-                className="flex items-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50"
+                className="flex items-center gap-2 text-white hover:text-white"
+                style={{ 
+                  backgroundColor: '#4D3A2C',
+                  borderColor: '#4D3A2C'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3d2f24';
+                  e.currentTarget.style.borderColor = '#3d2f24';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#4D3A2C';
+                  e.currentTarget.style.borderColor = '#4D3A2C';
+                }}
               >
                 <Shuffle className="h-4 w-4" />
                 랜덤 선택

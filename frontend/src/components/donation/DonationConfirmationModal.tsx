@@ -45,7 +45,10 @@ export default function DonationConfirmationModal({
           </Button>
           <Button
             onClick={onConfirm}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2"
+            className="text-white px-6 py-2"
+            style={{ backgroundColor: '#91745A' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#7d6149'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#91745A'}
           >
             확인
           </Button>

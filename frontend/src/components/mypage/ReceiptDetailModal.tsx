@@ -172,13 +172,25 @@ export default function ReceiptDetailModal({
                       href={`https://sepolia.etherscan.io/token/0x7d961fee8b404296a45e141874feb1ca955ef816?a=${farmVaultAddress}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border transition-colors cursor-pointer"
+                      style={{ '--hover-bg': '#D3CAB8', '--hover-border': '#4D3A2C' } as React.CSSProperties}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#D3CAB8';
+                        e.currentTarget.style.borderColor = '#4D3A2C';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f9fafb';
+                        e.currentTarget.style.borderColor = '#d1d5db';
+                      }}
                     >
                       {farmVaultAddress}
                     </a>
                     <button
                       onClick={() => copyToClipboard(farmVaultAddress)}
-                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                      className="flex-shrink-0"
+                      style={{ color: '#4D3A2C' }}
+                      onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                      onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
                       title="복사"
                     >
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,13 +214,25 @@ export default function ReceiptDetailModal({
                     href={`https://sepolia.etherscan.io/tx/${receiptData.txHash}#eventlog`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                    className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border transition-colors cursor-pointer"
+                    style={{ '--hover-bg': '#D3CAB8', '--hover-border': '#4D3A2C' } as React.CSSProperties}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#D3CAB8';
+                      e.currentTarget.style.borderColor = '#4D3A2C';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#f9fafb';
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                    }}
                   >
                     {receiptData.txHash}
                   </a>
                   <button
                     onClick={() => copyToClipboard(receiptData.txHash)}
-                    className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                    className="flex-shrink-0"
+                    style={{ color: '#4D3A2C' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#3d2f24'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#4D3A2C'}
                     title="복사"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,18 +246,18 @@ export default function ReceiptDetailModal({
               </div>
 
               {/* 안내 메시지 */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#D3CAB8', border: '1px solid #4D3A2C' }}>
                 <div className="flex">
                   <div className="flex-shrink-0">
-                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                    <svg className="h-5 w-5" style={{ color: '#4D3A2C' }} viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                     </svg>
                   </div>
                   <div className="ml-3">
-                    <h3 className="text-sm font-medium text-blue-800">
+                    <h3 className="text-sm font-medium" style={{ color: '#4D3A2C' }}>
                       거래 정보 안내
                     </h3>
-                    <div className="mt-2 text-sm text-blue-700">
+                    <div className="mt-2 text-sm" style={{ color: '#6B4E3D' }}>
                       <p>이 거래는 블록체인에 기록되었으며, MARON 토큰으로 처리되었습니다. (1 MARON = 100원)</p>
                     </div>
                   </div>

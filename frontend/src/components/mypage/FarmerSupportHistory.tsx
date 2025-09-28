@@ -179,7 +179,7 @@ export default function FarmerSupportHistory() {
       case 'SETTLEMENT':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">정산</span>;
       case 'WITHDRAWAL':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">출금</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" style={{ backgroundColor: '#D3CAB8', color: '#4D3A2C' }}>출금</span>;
       default:
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">{type}</span>;
     }
@@ -211,7 +211,10 @@ export default function FarmerSupportHistory() {
         <h2 className="text-xl font-semibold text-gray-900">후원내역</h2>
         <button
           onClick={handleOpenAccountHistory}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          className="px-4 py-2 text-white rounded-md transition-colors flex items-center space-x-2"
+          style={{ backgroundColor: '#4D3A2C' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3d2f24'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#4D3A2C'}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
@@ -222,9 +225,9 @@ export default function FarmerSupportHistory() {
       
       {/* 요약 정보 카드 */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-blue-800 mb-1">누적 후원금</h3>
-          <p className="text-2xl font-bold text-blue-900">{formatAmount(totalDonation / 100)}</p>
+        <div className="rounded-lg p-4" style={{ background: 'linear-gradient(to right, #D3CAB8, #E8DCC6)' }}>
+          <h3 className="text-sm font-medium mb-1" style={{ color: '#4D3A2C' }}>누적 후원금</h3>
+          <p className="text-2xl font-bold" style={{ color: '#3D2F24' }}>{formatAmount(totalDonation / 100)}</p>
         </div>
         <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 rounded-lg p-4">
           <h3 className="text-sm font-medium text-yellow-800 mb-1">누적 정산 금액</h3>
@@ -261,7 +264,18 @@ export default function FarmerSupportHistory() {
             <button
               onClick={handleDateFilter}
               disabled={isListLoading}
-              className="px-4 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
+              className="px-4 py-1 text-white rounded-md text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-1 sm:flex-initial"
+              style={{ backgroundColor: '#4D3A2C' }}
+              onMouseEnter={(e) => {
+                if (!isListLoading) {
+                  e.currentTarget.style.backgroundColor = '#3d2f24';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isListLoading) {
+                  e.currentTarget.style.backgroundColor = '#4D3A2C';
+                }
+              }}
             >
               {isListLoading ? '조회 중...' : '조회'}
             </button>
@@ -295,7 +309,7 @@ export default function FarmerSupportHistory() {
         {isListLoading && (
           <div className="p-4 text-center">
             <div className="inline-flex items-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5" style={{ color: '#4D3A2C' }} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
@@ -352,7 +366,7 @@ export default function FarmerSupportHistory() {
                         </p>
                       </div>
                       {(record.type === 'DONATION' || record.type === 'SETTLEMENT') && (
-                        <div className="text-blue-500 opacity-70">
+                        <div style={{ color: '#4D3A2C', opacity: '0.7' }}>
                           <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
@@ -414,9 +428,10 @@ export default function FarmerSupportHistory() {
                     disabled={isListLoading}
                     className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ring-1 ring-inset ring-gray-300 focus:z-20 focus:outline-offset-0 disabled:cursor-not-allowed ${
                       currentPage === i
-                        ? 'z-10 bg-blue-600 text-white focus:bg-blue-500'
+                        ? 'z-10 text-white'
                         : 'text-gray-900 hover:bg-gray-50'
                     }`}
+                    style={currentPage === i ? { backgroundColor: '#4D3A2C' } : {}}
                   >
                     {i + 1}
                   </button>
@@ -439,18 +454,18 @@ export default function FarmerSupportHistory() {
       )}
 
       {/* 안내 메시지 */}
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
+      <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: '#D3CAB8' }}>
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+            <svg className="h-5 w-5" style={{ color: '#4D3A2C' }} viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
+            <h3 className="text-sm font-medium" style={{ color: '#4D3A2C' }}>
               후원내역 안내
             </h3>
-            <div className="mt-2 text-sm text-blue-700">
+            <div className="mt-2 text-sm" style={{ color: '#6B4E3D' }}>
               <p>모든 후원은 블록체인에 기록되며, MARON 토큰으로 후원금이 지급됩니다. (1 MARON = 1,000원)</p>
             </div>
           </div>
