@@ -328,7 +328,7 @@ const Flipper: React.FC<FlipperProps> = ({
                 </div>
               </div>
               <div className="flipper-instruction">
-                마우스를 올리면 뒤집어서 상세 정보를 확인할 수 있습니다
+                마우스를 올려서 목장 설명을 확인해보세요!
               </div>
             </div>
           ))}

@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { verifyBusiness } from '@/services/authService';
 import TermsAgreement from '@/components/signup/TermsAgreement';
+import SkyBackground from '@/components/common/SkyBackground';
+import ForestBackground from '@/components/common/ForestBackground';
 
 type UserType = 'donor' | 'farmer';
 
@@ -183,8 +185,9 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <SkyBackground className="h-screen">
+      <div className="h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 relative z-20">
+        <div className="max-w-md w-full space-y-8 bg-white/90 backdrop-blur-sm rounded-lg shadow-xl p-8">
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             회원가입
@@ -402,7 +405,9 @@ export default function SignupPage() {
             </div>
           )}
         </div>
+        </div>
       </div>
-    </div>
+      <ForestBackground />
+    </SkyBackground>
   );
 }
