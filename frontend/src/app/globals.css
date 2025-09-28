@@ -8,6 +8,13 @@
   --color-foreground: var(--foreground);
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", "Roboto", "Helvetica Neue", Arial, sans-serif;
   --font-mono: var(--font-geist-mono);
+  --width-15: 3.8rem;
+  --color-orange-600: #ea580c;
+  --color-gray-200: #e5e7eb;
+  --color-gray-800: #1f2937;
+  --color-yellow-100: #fef3c7;
+  --color-red-200: #fecaca;
+  --color-gray-700: #374151;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

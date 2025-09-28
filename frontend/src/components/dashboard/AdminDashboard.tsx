@@ -380,7 +380,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ farmData }) => {
                              ? Math.min(((farmData?.monthTotalAmount || 0) / farmData.purposeTotalAmount) * 100, 100).toFixed(0)
                              : 0}%
                          </div>
-                         <div className="text-sm text-gray-500">달성</div>
+                         <div className="text-m font-bold text-gray-900">달성</div>
                        </div>
                      </div>
                    </div>
