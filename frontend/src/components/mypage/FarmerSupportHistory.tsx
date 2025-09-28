@@ -27,6 +27,7 @@ export default function FarmerSupportHistory() {
   const [totalDonation, setTotalDonation] = useState(0);
   const [usedAmount, setUsedAmount] = useState(0);
   const [currentBalance, setCurrentBalance] = useState(0);
+  const [farmVaultAddress, setFarmVaultAddress] = useState<string>('');
   
   // 모달 상태
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -81,6 +82,7 @@ export default function FarmerSupportHistory() {
         setTotalDonation(result.totalDonation);
         setUsedAmount(result.usedAmount);
         setCurrentBalance(result.currentBalance);
+        setFarmVaultAddress(result.farmVaultAddress);
       } else {
         setError('후원내역을 불러올 수 없습니다.');
       }
@@ -460,6 +462,7 @@ export default function FarmerSupportHistory() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         donationData={selectedDonation}
+        farmVaultAddress={farmVaultAddress}
       />
 
       {/* 계좌 내역 조회 모달 */}
@@ -473,6 +476,7 @@ export default function FarmerSupportHistory() {
         isOpen={isReceiptModalOpen}
         onClose={handleCloseReceiptModal}
         receiptData={selectedReceiptData}
+        farmVaultAddress={farmVaultAddress}
       />
     </div>
   );

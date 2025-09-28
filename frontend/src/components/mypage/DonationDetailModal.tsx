@@ -71,8 +71,14 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* 헤더 */}
         <div className="flex justify-between items-center p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">기부 상세 정보</h2>
@@ -115,124 +121,135 @@ export default function DonationDetailModal({ isOpen, onClose, donationHistoryId
                   <Image
                     src={donationDetail.imageUrl}
                     alt={donationDetail.farmName}
-                    width={192}
-                    height={192}
-                    className="mx-auto h-48 w-48 object-cover rounded-lg shadow-md"
+                    width={300}
+                    height={200}
+                    className="mx-auto h-48 w-72 object-cover rounded-lg shadow-md"
                   />
                 </div>
               )}
 
               {/* 기본 정보 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">목장명</label>
-                    <p className="text-lg font-semibold text-gray-900">{donationDetail.farmName}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">후원 일시</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">후원 일시</label>
                     <p className="text-gray-900">{formatDate(donationDetail.donationDate)}</p>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">기부 금액</label>
-                    <p className="text-xl font-bold text-blue-600">{formatAmount(donationDetail.donationToken)}</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">기부 코인</label>
-                    <p className="text-lg font-semibold text-green-600">{formatCoin(donationDetail.donationToken)}</p>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">목장명</label>
+                    <p className="text-gray-900">{donationDetail.farmName}</p>
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">내 지갑 주소</label>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
-                        {donationDetail.donatorWalletAddress}
-                      </p>
-                      <button
-                        onClick={() => copyToClipboard(donationDetail.donatorWalletAddress)}
-                        className="text-blue-600 hover:text-blue-800"
-                        title="복사"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                    </div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">기부 금액</label>
+                    <p className="text-xl font-bold text-green-600">{formatAmount(donationDetail.donationToken)}</p>
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">목장 지갑 주소</label>
-                    <div className="flex items-center space-x-2">
-                      <p className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all">
-                        {donationDetail.farmWalletAddress}
-                      </p>
-                      <button
-                        onClick={() => copyToClipboard(donationDetail.farmWalletAddress)}
-                        className="text-blue-600 hover:text-blue-800"
-                        title="복사"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                    </div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">기부 코인</label>
+                    <p className="text-gray-900">{formatCoin(donationDetail.donationToken)}</p>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">거래 해시</label>
-                    <div className="flex items-center space-x-2">
-                      <a
-                        href={`https://sepolia.etherscan.io/tx/${donationDetail.txHash}#eventlog`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-gray-900 font-mono bg-gray-100 px-2 py-1 rounded flex-1 break-all hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
-                      >
-                        {donationDetail.txHash}
-                      </a>
-                      <button
-                        onClick={() => copyToClipboard(donationDetail.txHash)}
-                        className="text-blue-600 hover:text-blue-800 flex-shrink-0"
-                        title="복사"
-                      >
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                      </button>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      클릭하면 Etherscan에서 블록체인 거래를 확인할 수 있습니다
+                </div>
+
+                <div className="border-t border-gray-200 pt-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">내 지갑 주소</label>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer">
+                      {donationDetail.donatorWalletAddress}
                     </p>
+                    <button
+                      onClick={() => copyToClipboard(donationDetail.donatorWalletAddress)}
+                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                      title="복사"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    클릭하면 지갑 주소를 복사할 수 있습니다
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">목장 지갑 주소</label>
+                  <div className="flex items-center space-x-2">
+                    <a
+                      href={`https://sepolia.etherscan.io/token/0x7d961fee8b404296a45e141874feb1ca955ef816?a=${donationDetail.farmWalletAddress}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                    >
+                      {donationDetail.farmWalletAddress}
+                    </a>
+                    <button
+                      onClick={() => copyToClipboard(donationDetail.farmWalletAddress)}
+                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                      title="복사"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    클릭하면 Etherscan에서 목장 금고를 확인할 수 있습니다
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">거래 해시</label>
+                  <div className="flex items-center space-x-2">
+                    <a
+                      href={`https://sepolia.etherscan.io/tx/${donationDetail.txHash}#eventlog`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-900 font-mono text-sm break-all flex-1 bg-gray-50 p-3 rounded border hover:bg-blue-50 hover:border-blue-300 transition-colors cursor-pointer"
+                    >
+                      {donationDetail.txHash}
+                    </a>
+                    <button
+                      onClick={() => copyToClipboard(donationDetail.txHash)}
+                      className="text-blue-600 hover:text-blue-800 flex-shrink-0"
+                      title="복사"
+                    >
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    클릭하면 Etherscan에서 블록체인 거래를 확인할 수 있습니다
+                  </p>
                 </div>
               </div>
 
-              {/* 상태 표시 */}
-              <div className="text-center pt-4 border-t border-gray-200">
-                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                  <svg className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  기부 완료
-                </span>
+              {/* 안내 메시지 */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-blue-800">
+                      기부 정보 안내
+                    </h3>
+                    <div className="mt-2 text-sm text-blue-700">
+                      <p>이 기부는 블록체인에 기록되었으며, MARON 토큰으로 지급되었습니다. (1 MARON = 100원)</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : null}
         </div>
 
-        {/* 푸터 */}
-        <div className="flex justify-end p-6 border-t border-gray-200">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-          >
-            닫기
-          </button>
-        </div>
       </div>
     </div>
   );

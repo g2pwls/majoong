@@ -179,6 +179,7 @@ export interface FarmerDonationHistoryResponse {
     totalDonation: number;
     usedAmount: number;
     currentBalance: number;
+    farmVaultAddress: string;
     vaultHistoryResponseDtos: {
       content: VaultHistoryDto[];
       pageable: {
