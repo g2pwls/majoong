@@ -223,7 +223,8 @@ const Carousel: React.FC<CarouselProps> = ({ items = [], className = '', useApiD
         .carousel {
           position: relative;
           z-index: 1;
-          height: 100vh;
+          height: 100%;
+          width: 100%;
           pointer-events: none;
         }
 

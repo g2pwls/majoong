@@ -1,9 +1,55 @@
 'use client';
 
 import Link from "next/link";
+import { useEffect, useState } from 'react';
 import Carousel from '@/components/ui/Carousel';
+import InfiniteCarousel from '@/components/ui/InfiniteCarousel';
+import { getHorses, Horse } from '@/services/apiService';
 
 export default function Home() {
+  const [horses, setHorses] = useState<Horse[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 말 데이터 가져오기
+  useEffect(() => {
+    const fetchHorses = async () => {
+      try {
+        setLoading(true);
+        const response = await getHorses({
+          page: 0,
+          size: 15 // 적당한 수의 말 데이터
+        });
+        
+        const horseList = response.content.map(item => item.horse);
+        setHorses(horseList);
+      } catch (error) {
+        console.error('말 데이터를 가져오는데 실패했습니다:', error);
+        setHorses([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchHorses();
+  }, []);
+
+  // 말 이름 캐러셀용 데이터
+  const horseNameItems = horses.map((horse) => ({
+    id: horse.id.toString(),
+    src: '',
+    alt: horse.hrNm,
+    text: horse.hrNm,
+    farmId: horse.farm_id
+  }));
+
+  // 말 사진 캐러셀용 데이터
+  const horseImageItems = horses.map((horse) => ({
+    id: horse.id.toString(),
+    src: horse.horse_url || `https://via.placeholder.com/200x200/4D3A2C/FFFFFF?text=${encodeURIComponent(horse.hrNm)}`,
+    alt: horse.hrNm,
+    text: horse.hrNm,
+    farmId: horse.farm_id
+  }));
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -36,20 +82,29 @@ export default function Home() {
       </div>
 
       {/* Carousel Section */}
-      <div className="relative py-20" style={{ backgroundColor: '#4D3A2C' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-12">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            추천 목장
-          </h2>
-          <p className="text-xl text-amber-100 mb-8">
-            신뢰도가 높은 목장들을 만나보세요
-          </p>
-          <p className="text-sm text-amber-200 mb-8">
-            카드 영역에서 마우스 휠을 사용하여 목장을 둘러보세요
-          </p>
-        </div>
-        <div className="h-[600px] overflow-hidden">
-          <Carousel useApiData={true} />
+      <div className="relative py-10" style={{ backgroundColor: '#4D3A2C' }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-right mb-6">
+            <h2 className="text-2xl font-bold text-white mb-3">
+              신뢰도 TOP10 목장을 만나보세요
+            </h2>
+            <p className="text-lg text-amber-100 mb-6">
+              목장 운영에 기반한 신뢰도를 측정하여<br />
+              퇴역마의 관리를 모니터링합니다
+            </p>
+          </div>
+          <div className="relative">
+            <div className="h-[300px] w-full flex items-center justify-center">
+              <div className="w-full h-full">
+                <Carousel useApiData={true} />
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-4">
+              <p className="text-xs text-amber-200 opacity-80">
+                카드 영역에서 마우스를 스크롤하거나 드래그로 구경할 수 있어요
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -58,37 +113,63 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              마중의 특징
+              지금도 퇴역마가 많이 기다리고 있어요
             </h2>
-            <p className="text-lg text-gray-600">
-              투명하고 안전한 목장 후원 플랫폼
+            <p className="text-lg text-gray-600 mb-4">
+              여러분의 따뜻한 마음으로 그들을 도와주세요
             </p>
+            
+            {/* 감성적인 멘트 */}
+            <p className="text-xl font-medium text-gray-700 mb-6">
+              지금도 <span className="font-bold text-amber-600">{horses.length}마리</span>의 퇴역마가 여러분을 기다리고 있어요
+            </p>
+            <p className="text-lg text-gray-600 mb-8 italic">
+              그들을 만나러 가시겠어요?
+            </p>
+            
+            {/* 말 이름 캐러셀 */}
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
+                <span className="ml-2 text-gray-600">말 정보를 불러오는 중...</span>
+              </div>
+            ) : horseNameItems.length > 0 ? (
+              <div className="mb-8">
+                <InfiniteCarousel
+                  items={horseNameItems}
+                  width={180}
+                  height={50}
+                  reverse={false}
+                />
+              </div>
+            ) : (
+              <div className="py-8 text-gray-500">
+                말 정보를 불러올 수 없습니다.
+              </div>
+            )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#D3CAB8' }}>
-                <span className="text-2xl">🔒</span>
+          {/* 말 사진 캐러셀 */}
+          <div className="mt-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400"></div>
+                <span className="ml-2 text-gray-600">말 사진을 불러오는 중...</span>
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">안전한 후원</h3>
-              <p className="text-gray-600">블록체인 기술로 투명하고 안전한 후원 시스템</p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#D3CAB8' }}>
-                <span className="text-2xl">🌱</span>
+            ) : horseImageItems.length > 0 ? (
+              <div>
+                <InfiniteCarousel
+                  items={horseImageItems}
+                  width={200}
+                  height={200}
+                  reverse={true}
+                />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">직접 후원</h3>
-              <p className="text-gray-600">목장과 직접 연결되어 의미있는 후원</p>
-            </div>
-            
-            <div className="text-center p-6">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: '#D3CAB8' }}>
-                <span className="text-2xl">📱</span>
+            ) : (
+              <div className="py-8 text-gray-500 text-center">
+                말 사진을 불러올 수 없습니다.
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">간편한 이용</h3>
-              <p className="text-gray-600">카카오톡으로 간편하게 시작하는 후원</p>
-            </div>
+            )}
           </div>
         </div>
       </div>
