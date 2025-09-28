@@ -4,6 +4,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
@@ -155,6 +156,13 @@ export default function Navbar() {
             href={userRole === 'FARMER' ? '/dashboard' : userRole === 'DONATOR' ? '/donator' : '/'} 
             className="flex items-center gap-2 font-bold text-xl"
           >
+            <Image 
+              src="/logo.png" 
+              alt="마중 로고" 
+              width={32} 
+              height={32}
+              className="w-8 h-8"
+            />
             마중
           </Link>
 
