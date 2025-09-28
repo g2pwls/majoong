@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { gsap } from 'gsap';
 import { Observer } from 'gsap/Observer';
 
@@ -15,7 +16,7 @@ interface HeroSectionProps {
 
 const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const sectionsRef = useRef<HTMLDivElement[]>([]);
+  const sectionsRef = useRef<HTMLElement[]>([]);
   const imagesRef = useRef<HTMLDivElement[]>([]);
   const headingsRef = useRef<HTMLHeadingElement[]>([]);
   const outerWrappersRef = useRef<HTMLDivElement[]>([]);
@@ -58,7 +59,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
       
       const tl = gsap.timeline({
         defaults: { duration: 1.25, ease: "power1.inOut" },
-        onComplete: () => animating = false
+        onComplete: () => { animating = false; }
       });
 
       if (currentIndex >= 0) {
@@ -135,7 +136,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
         }
 
          .hero-container h2 {
-           font-size: clamp(1rem, 6vw, 8rem);
+           font-size: clamp(1rem, 5vw, 7rem);
            font-weight: 600;
            text-align: center;
            margin-right: -0.5em;
@@ -230,7 +231,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ className = '' }) => {
       <div ref={containerRef} className={`hero-container ${className}`}>
         <header className="hero-header">
           <div>마중</div>
-          <div><a href="/support">목장 둘러보기</a></div>
+          <div><Link href="/support">목장 둘러보기</Link></div>
         </header>
 
         <section 

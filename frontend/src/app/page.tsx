@@ -105,9 +105,12 @@ export default function Home() {
       <div className="py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
               여러분을 기다리고 있는 퇴역마를 만나 보세요
             </h2>
+            <p className="text-lg text-gray-600 mb-8" style={{ color: '#91745A' }}>
+              목장에서 말의 소식을 확인할 수 있어요
+            </p>
             
             {/* 말 이름 캐러셀 */}
             {loading ? (
