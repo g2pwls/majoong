@@ -1,6 +1,7 @@
 package com.e105.majoong.common.model.receiptHistory;
 
 import com.e105.majoong.batch.score.receipt.dto.ReceiptCountDto;
+import com.e105.majoong.common.model.donationHistory.QDonationHistory;
 import com.e105.majoong.farm.dto.out.CategoryStatsDto;
 import com.e105.majoong.farm.dto.out.MonthlyDonationUsedDto;
 import com.e105.majoong.farm.dto.out.TotalStatsDto;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Repository;
 public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
     private final JPAQueryFactory queryFactory;
     private final QReceiptHistory receiptHistory = QReceiptHistory.receiptHistory;
-
+    private final QDonationHistory donationHistory = QDonationHistory.donationHistory;
     @Override
     public List<ReceiptCountDto> getReceiptCountByOneDay(LocalDateTime start, LocalDateTime end) {
         return queryFactory
@@ -35,18 +36,20 @@ public class ReceiptHistoryImpl implements ReceiptHistoryCustom {
     }
 
     @Override
-    public Map<String, Integer> sumDonationAmountByFarmUuidsBetween(
+    public Map<String, Long> sumDonationAmountByFarmUuidsBetween(
             List<String> farmUuids, LocalDateTime start, LocalDateTime end) {
-        List<Tuple> results = queryFactory.select(receiptHistory.farmUuid, receiptHistory.totalAmount.sum())
-                .from(receiptHistory)
-                .where(receiptHistory.farmUuid.in(farmUuids).and(receiptHistory.createdAt.between(start, end)))
-                .groupBy(receiptHistory.farmUuid)
+        List<Tuple> results = queryFactory.select(donationHistory.farmUuid, donationHistory.donationToken.sum())
+                .from(donationHistory)
+                .where(donationHistory.farmUuid.in(farmUuids),
+                        donationHistory.donationDate.goe(start),
+                        donationHistory.donationDate.lt(end))
+                .groupBy(donationHistory.farmUuid)
                 .fetch();
 
         return results.stream()
                 .collect(Collectors.toMap(
-                        result -> result.get(receiptHistory.farmUuid),
-                        result -> Optional.ofNullable(result.get(receiptHistory.totalAmount.sum())).orElse(0)));
+                        result -> result.get(donationHistory.farmUuid),
+                        result -> Optional.ofNullable(result.get(donationHistory.donationToken.sum())).orElse(0L)*100));
         
     }
 

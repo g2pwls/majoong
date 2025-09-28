@@ -328,3 +328,9 @@ export const getCurrentUserMemberUuid = (): string | null => {
   const tokens = getTokens();
   return tokens.memberUuid;
 };
+
+// 비회원인지 확인하는 함수
+export const isGuest = (): boolean => {
+  const tokens = getTokens();
+  return !tokens.accessToken && !tokens.tempAccessToken;
+};

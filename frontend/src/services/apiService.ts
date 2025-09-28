@@ -165,6 +165,7 @@ export async function getFarms(params: {
       area: number;
       description: string;
       bookmark?: boolean; // 북마크 상태 추가
+      createdAt?: string; // 생성일 추가
       horses?: Array<{
         horseNumber: string;
         horseName: string;
@@ -186,6 +187,7 @@ export async function getFarms(params: {
       area: farm.area,
       description: farm.description,
       bookmarked: farm.bookmark || false, // 북마크 상태 매핑
+      created_at: farm.createdAt, // 생성일 매핑
       horses: (farm.horses || []).map((horse: {
         horseNumber: string;
         horseName: string;

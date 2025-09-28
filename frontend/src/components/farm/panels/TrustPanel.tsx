@@ -370,9 +370,15 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
             <select
               value={selectedYear}
               onChange={(e) => handleYearChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="px-3 py-1 border rounded-md text-sm"
+              className="pl-3 pr-8 py-1 border rounded-md text-sm appearance-none bg-white"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                backgroundPosition: 'right 0.4rem center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '1.5em 1.5em'
+              }}
             >
-              <option value="all">전체</option>
+              <option value="all">년</option>
               {availableYears.map(year => (
                 <option key={year} value={year}>{year}</option>
               ))}
@@ -380,9 +386,15 @@ export default function TrustPanel({ farmUuid, currentScore }: TrustPanelProps) 
             <select
               value={selectedMonth || ''}
               onChange={(e) => handleMonthChange(e.target.value ? parseInt(e.target.value) : null)}
-              className="px-3 py-1 border rounded-md text-sm"
+              className="pl-3 pr-8 py-1 border rounded-md text-sm appearance-none bg-white"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                backgroundPosition: 'right 0.4rem center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '1.5em 1.5em'
+              }}
             >
-              <option value="">전체</option>
+              <option value="">월</option>
               {availableMonths.map(month => (
                 <option key={month} value={month}>{month}월</option>
               ))}
