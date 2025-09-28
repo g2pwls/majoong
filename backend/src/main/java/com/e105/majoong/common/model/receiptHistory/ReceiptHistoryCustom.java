@@ -12,7 +12,7 @@ import java.util.Map;
 public interface ReceiptHistoryCustom {
     List<ReceiptCountDto> getReceiptCountByOneDay(LocalDateTime start, LocalDateTime end);
     
-    Map<String, Integer> sumDonationAmountByFarmUuidsBetween(List<String> farmUuids, LocalDateTime start, LocalDateTime end);
+    Map<String, Long> sumDonationAmountByFarmUuidsBetween(List<String> farmUuids, LocalDateTime start, LocalDateTime end);
 
     List<MonthlyDonationUsedDto> findMonthlyDonationUsed(String farmUuid);
 

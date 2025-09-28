@@ -47,7 +47,9 @@ public class FarmRecommendationServiceImpl implements FarmRecommendationService 
         filterFarms = filterFarms.stream()
                 .filter(farm -> Optional.ofNullable(farm.getTotalScore()).orElse(0.0) >= MIN_TRUST_SCORE)
                 .toList();
-
+        for (Farm farm: filterFarms) {
+            System.out.println(farm.getFarmName());
+        }
         if (filterFarms.isEmpty()) {
             return List.of();
         }
