@@ -215,7 +215,7 @@ export default function DonatePage() {
   return (
     <div>
       {/* 메인 컨텐츠 */}
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-16">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 pb-15">
         {/* 브레드크럼 */}
         <div className="pt-4 pb-3">
           <Breadcrumbs items={[
