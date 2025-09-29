@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { parse } from "exifr";
 import { validateImageDate } from "@/lib/gpsUtils";
 import { FarmService } from "@/services/farmService";
@@ -35,6 +36,7 @@ export default function HorseImageUpload({
   onImageUpload,
   onImageSwap
 }: HorseImageUploadProps) {
+  const router = useRouter();
   const [draggedType, setDraggedType] = useState<string | null>(null);
   const [dragOverType, setDragOverType] = useState<string | null>(null);
   const [verificationResults, setVerificationResults] = useState<Record<string, VerificationResult>>({});
@@ -45,6 +47,35 @@ export default function HorseImageUpload({
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [specialRemarks, setSpecialRemarks] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 모달 관련 상태
+  const [showModal, setShowModal] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [modalType, setModalType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // 모달 표시 함수
+  const showModalMessage = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+    setModalMessage(message);
+    setModalType(type);
+    setShowModal(true);
+  };
+
+  // 모달 닫기 함수
+  const closeModal = () => {
+    setShowModal(false);
+    setModalMessage('');
+  };
+
+  // 성공 모달 닫기 함수
+  const closeSuccessModal = () => {
+    setShowSuccessModal(false);
+  };
+
+  // 말 보고서 페이지로 이동
+  const goToHorseReport = () => {
+    router.push(`/farm/${farmUuid}/horse/${horseNo}/report`);
+  };
 
   // 목장 위치 조회
   useEffect(() => {
@@ -212,13 +243,13 @@ export default function HorseImageUpload({
   const verifyLocation = async (imageType: string) => {
     const originalFile = originalFiles[horseNo]?.[imageType];
     if (!originalFile) {
-      alert(`${imageType} 이미지가 없습니다.`);
+      showModalMessage(`${imageType} 이미지가 없습니다.`, 'warning');
       return;
     }
 
     // 목장 위치가 로드되지 않았으면 대기
     if (!farmLocation) {
-      alert('목장 위치 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+      showModalMessage('목장 위치 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.', 'warning');
       return;
     }
 
@@ -327,7 +358,7 @@ export default function HorseImageUpload({
   // 말 관리 상태 제출
   const handleSubmit = async () => {
     if (!isAllImagesValidated()) {
-      alert('모든 이미지 검증을 완료해주세요.');
+      showModalMessage('모든 이미지 검증을 완료해주세요.', 'warning');
       return;
     }
 
@@ -354,7 +385,8 @@ export default function HorseImageUpload({
         }
       );
 
-      alert('말 관리 상태가 성공적으로 제출되었습니다!\n주간 보고서가 생성되어 말 상세 페이지에서 확인할 수 있습니다.');
+      // 성공 모달 표시
+      setShowSuccessModal(true);
       
       // 제출 후 상태 초기화
       setSpecialRemarks('');
@@ -367,7 +399,7 @@ export default function HorseImageUpload({
     } catch (error) {
       console.error('말 관리 상태 제출 실패:', error);
       const errorMessage = error instanceof Error ? error.message : '제출 중 오류가 발생했습니다.';
-      alert(`제출 실패: ${errorMessage}`);
+      showModalMessage(`제출 실패: ${errorMessage}`, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -497,6 +529,122 @@ export default function HorseImageUpload({
        >
          {isSubmitting ? '제출 중...' : isAllImagesValidated() ? '제출' : '모든 이미지 검증 필요'}
        </button>
+
+      {/* 모달 */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              {/* 아이콘 */}
+              <div className={`mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${
+                modalType === 'success' ? 'bg-green-100' :
+                modalType === 'error' ? 'bg-red-100' :
+                modalType === 'warning' ? 'bg-yellow-100' :
+                'bg-blue-100'
+              }`}>
+                {modalType === 'success' && (
+                  <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+                {modalType === 'error' && (
+                  <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+                {modalType === 'warning' && (
+                  <svg className="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                )}
+                {modalType === 'info' && (
+                  <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
+              
+              {/* 메시지 */}
+              <h3 className={`text-lg font-medium mb-2 ${
+                modalType === 'success' ? 'text-green-900' :
+                modalType === 'error' ? 'text-red-900' :
+                modalType === 'warning' ? 'text-yellow-900' :
+                'text-blue-900'
+              }`}>
+                {modalType === 'success' ? '성공' :
+                 modalType === 'error' ? '오류' :
+                 modalType === 'warning' ? '경고' :
+                 '알림'}
+              </h3>
+              
+              <p className={`text-sm mb-6 whitespace-pre-line ${
+                modalType === 'success' ? 'text-green-700' :
+                modalType === 'error' ? 'text-red-700' :
+                modalType === 'warning' ? 'text-yellow-700' :
+                'text-blue-700'
+              }`}>
+                {modalMessage}
+              </p>
+              
+              {/* 버튼 */}
+              <button
+                onClick={closeModal}
+                className={`w-full px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                  modalType === 'success' ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' :
+                  modalType === 'error' ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500' :
+                  modalType === 'warning' ? 'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500' :
+                  'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+                }`}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 성공 모달 */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-white/50 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="text-center">
+              {/* 성공 아이콘 */}
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              
+              {/* 제목 */}
+              <h3 className="text-lg font-medium text-green-900 mb-2">
+                제출 완료!
+              </h3>
+              
+              {/* 메시지 */}
+              <p className="text-sm text-green-700 mb-6">
+                말 관리 상태가 성공적으로 제출되었습니다!<br/>
+                주간 보고서가 생성되어 말 상세 페이지에서 확인할 수 있습니다.
+              </p>
+              
+              {/* 버튼들 */}
+              <div className="flex space-x-3">
+                <button
+                  onClick={closeSuccessModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={goToHorseReport}
+                  className="flex-1 px-4 py-2 bg-green-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  보고서 보기
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
