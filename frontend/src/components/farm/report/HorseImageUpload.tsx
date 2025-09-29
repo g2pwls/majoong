@@ -74,7 +74,7 @@ export default function HorseImageUpload({
 
   // 말 보고서 페이지로 이동
   const goToHorseReport = () => {
-    router.push(`/farm/${farmUuid}/horse/${horseNo}/report`);
+    router.push(`/farm/${farmUuid}/horse/${horseNo}`);
   };
 
   // 목장 위치 조회
