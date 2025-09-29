@@ -448,17 +448,30 @@ export default function DonationProofUpload({
         return categoryMap[category] || 1;
       };
 
-      // 중복 방지 키 생성 (백엔드 제한: 최대 36자)
+      // 승인번호 생성 (멱등성 키와 백엔드 제출에 동일하게 사용)
+      const approvalNumber = (certificationResult.paymentInfo?.approvalNumber || 
+        `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).substring(0, 255); // 최대 255자
+
+      // 멱등성 키 생성 (승인번호 기반)
       const generateIdempotencyKey = (): string => {
-        // 더 고유한 키 생성을 위해 타임스탬프 + 랜덤 + UUID 조합
-        const timestamp = Date.now().toString(36);
-        const random = Math.random().toString(36).substr(2, 6);
-        const uuid = crypto.randomUUID().replace(/-/g, '').substr(0, 8);
-        const key = `receipt_${timestamp}_${random}_${uuid}`;
+        // 승인번호를 기반으로 키 생성
+        const receiptKey = approvalNumber.replace(/[^a-zA-Z0-9]/g, ''); // 특수문자 제거
+        
+        // 간단한 해시 함수로 길이 조정
+        let hash = 0;
+        for (let i = 0; i < receiptKey.length; i++) {
+          const char = receiptKey.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash; // 32비트 정수로 변환
+        }
+        
+        // 해시값을 36진법으로 변환하여 키 생성
+        const hashString = Math.abs(hash).toString(36);
+        const key = `receipt_${hashString}`;
         
         // 36자 제한 확인
         if (key.length > 36) {
-          return `receipt_${timestamp}_${random}_${uuid.substring(0, 36 - `receipt_${timestamp}_${random}_`.length)}`;
+          return `receipt_${hashString.substring(0, 36 - 8)}`; // "receipt_" (8자) 제외하고 나머지
         }
         return key;
       };
@@ -466,6 +479,7 @@ export default function DonationProofUpload({
       // 멱등성 키 생성
       const idempotencyKey = generateIdempotencyKey();
       console.log("생성된 멱등성 키:", idempotencyKey, "길이:", idempotencyKey.length);
+      console.log("사용된 승인번호:", approvalNumber, "길이:", approvalNumber.length);
 
       // 백엔드 API 요구사항에 맞는 데이터 구성 (타입 및 유효성 검증 강화)
       const reason = (certificationResult.reason || "기부금 증빙 정산").substring(0, 1000); // 최대 1000자
@@ -488,8 +502,6 @@ export default function DonationProofUpload({
       
       const receiptAmount = Math.max(1, parseInt(usedAmount.replace(/,/g, ""))); // 최소 1
       const categoryId = Number(getCategoryId(selectedCategory)); // Long 타입으로 명시적 변환
-      const approvalNumber = (certificationResult.paymentInfo?.approvalNumber || 
-        `receipt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`).substring(0, 255); // 최대 255자
       
       const payload = {
         reason: reason,
