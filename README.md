@@ -471,7 +471,7 @@
 
 <br>
 
-<img src="profile/image/지라전체보기.png" width="700"/>
+<img src="profile/image/마중지라전체보기.png" width="700"/>
 
 </details>
 
