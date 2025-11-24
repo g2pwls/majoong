@@ -70,9 +70,9 @@
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-06B6D4?style=for-the-badge&logo=TailwindCSS&logoColor=white)
-![Zustand](https://img.shields.io/badge/Zustand-000000?style=for-the-badge&logo=Zustand&logoColor=white)
 ![Swiper](https://img.shields.io/badge/Swiper-6332F6?style=for-the-badge&logo=Swiper&logoColor=white)
 ![Axios](https://img.shields.io/badge/Axios-5A29E4?style=for-the-badge&logo=Axios&logoColor=white)
+![GSAP](https://img.shields.io/badge/GSAP-23D997?style=for-the-badge&logo=GSAP&logoColor=white)
 
 ### DevOps / Infra
 ![Jenkins](https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=Jenkins&logoColor=white)
@@ -466,7 +466,14 @@
 
 ### [JIRA](profile/image/지라.png)
 [<img src="profile/image/지라.png" width="700"/>](profile/image/지라.png)  
+<details>
+<summary>전체보기</summary>
 
+<br>
+
+<img src="profile/image/지라전체보기.png" width="700"/>
+
+</details>
 
 
 
