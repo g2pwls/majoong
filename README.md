@@ -1,5 +1,5 @@
 <div align="center"> 
-  <img width="50%" src="./image/logo.png" />
+  <img width="50%" src="profile/image/logo.png" />
 </div>
 
 ## 🐎 마중
